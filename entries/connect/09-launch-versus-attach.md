@@ -2,10 +2,10 @@
 id: connect-09-launch-versus-attach
 title: Launch versus attach, and never closing someone's session
 status: partly-verified
-verified_on: SolidWorks 2026 for attach; launch path compiles and runs, ExitApp untested
+verified_on: SolidWorks 2026 for attach; launch path compiles and runs, ExitApp untested; the hidden-instance warning observed on 2026 SP1.1
 language: [csharp, vbscript]
 api: [ISldWorks.Visible, ISldWorks.ExitApp, Activator.CreateInstance, Type.GetTypeFromProgID]
-keywords: [launch solidworks, hidden instance, CreateObject, ExitApp, FinalReleaseComObject, headless]
+keywords: [launch solidworks, hidden instance, CreateObject, ExitApp, FinalReleaseComObject, headless, batch, modal dialog blocks]
 answers: "Should my tool start SolidWorks if none is running, and how do I clean up?"
 ---
 
@@ -16,7 +16,7 @@ answers: "Should my tool start SolidWorks if none is running, and how do I clean
 | Situation | Do this |
 |---|---|
 | A tool that operates on the part the user is looking at | Attach only. Fail if nothing is running. |
-| A batch job on a build machine | Launch hidden. |
+| A batch job on a build machine | Launch hidden, but read the warning below first. |
 | A tool that could be either | Attach, and make launching an explicit flag. |
 
 The reason to default against launching is that `CreateObject` succeeds when
@@ -24,6 +24,26 @@ The reason to default against launching is that `CreateObject` succeeds when
 to the wrong install ([GOTCHAS §1](../../GOTCHAS.md)), you have just started a
 **second** SolidWorks while the first sits on screen. You then silently edit an
 invisible document.
+
+## A batch job is the case where launching bites hardest
+
+This entry originally recommended launching hidden for batch work without
+qualification. A long unattended run on SolidWorks 2026 SP1.1 showed why that
+is the wrong default.
+
+**A COM-created instance starts hidden, and a modal dialog in a hidden instance
+blocks every API call indefinitely.** There is nothing on screen to dismiss. The
+symptom is a process sitting at a few hundred megabytes, reported as
+"Responding", making no progress and never returning from a call. Any prompt
+does it — a save prompt, a licence notice, a repair dialog on a bad file.
+
+What worked instead: start `SLDWORKS.exe` normally, let it finish loading, then
+attach with `Marshal.GetActiveObject`. If something puts up a dialog you can see
+it and answer it, and the run continues.
+
+So launching hidden is right only where nothing can prompt: a fixed set of files
+you have already run through once, or a machine you can watch. Otherwise attach.
+See [files/01](../files/01-batch-convert-step.md).
 
 ## Launching hidden, in C#
 
@@ -111,3 +131,5 @@ open, launching a second may fail on licensing rather than on COM. Attach.
 
 - [connect/01 — Attach from VBScript](01-attach-from-vbscript.md)
 - [connect/03 — Attach from C#](03-attach-from-csharp.md)
+- [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — a batch
+  run that had to attach rather than launch

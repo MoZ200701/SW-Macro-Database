@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 36,
+  "count": 37,
   "by_status": {
-    "partly-verified": 3,
+    "partly-verified": 4,
     "unverified": 5,
     "verified": 28
   },
@@ -223,7 +223,7 @@
       "path": "entries/connect/09-launch-versus-attach.md",
       "category": "connect",
       "status": "partly-verified",
-      "verified_on": "SolidWorks 2026 for attach; launch path compiles and runs, ExitApp untested",
+      "verified_on": "SolidWorks 2026 for attach; launch path compiles and runs, ExitApp untested; the hidden-instance warning observed on 2026 SP1.1",
       "language": [
         "csharp",
         "vbscript"
@@ -240,7 +240,9 @@
         "CreateObject",
         "ExitApp",
         "FinalReleaseComObject",
-        "headless"
+        "headless",
+        "batch",
+        "modal dialog blocks"
       ],
       "answers": "Should my tool start SolidWorks if none is running, and how do I clean up?"
     },
@@ -548,6 +550,43 @@
         "BODYFEATURE"
       ],
       "answers": "How do I put features into a folder in the feature tree from code?"
+    },
+    {
+      "id": "files-01-batch-convert-step",
+      "title": "Batch-convert a tree of STEP files to SolidWorks parts",
+      "path": "entries/files/01-batch-convert-step.md",
+      "category": "files",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 SP1.1 for the C# converter; the VBA macro is the same sequence with a different save call and was not run end to end",
+      "language": [
+        "vba",
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.LoadFile4",
+        "ISldWorks.CloseDoc",
+        "ISldWorks.SetUserPreferenceToggle",
+        "IModelDoc2.GetType",
+        "IModelDoc2.SaveAs3",
+        "IModelDocExtension.SaveAs"
+      ],
+      "keywords": [
+        "STEP",
+        "stp",
+        "neutral format",
+        "import",
+        "batch convert",
+        "LoadFile4",
+        "OpenDoc6",
+        "error 2097152",
+        "swFileRequiresRepairError",
+        "swInvalidFileTypeError",
+        "1024",
+        "task scheduler",
+        "SLDPRT",
+        "resumable"
+      ],
+      "answers": "How do I import a folder of STEP files and save each one as a SolidWorks part?"
     },
     {
       "id": "reading-01-dependencies-closed-file",

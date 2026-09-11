@@ -184,4 +184,6 @@ Runner.Dispose();
 ## See also
 
 - [connect/09 — Launch versus attach](09-launch-versus-attach.md)
+- [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — the
+  same rule from a compiled exe, with `[STAThread]`
 - [`code/python/swcom.py`](../../code/python/swcom.py)

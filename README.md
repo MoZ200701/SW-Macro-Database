@@ -24,7 +24,7 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-36 entries, grouped five ways:
+37 entries, grouped six ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, and keeping the connection alive safely.
@@ -40,6 +40,8 @@ code. You never need to open the projects the entries came from.
   model coordinates.
 - **[entries/surfacing/](entries/surfacing/)** — the parts that stay manual, and
   the axis conventions that decide which way geometry lands.
+- **[entries/files/](entries/files/)** — getting files in and out: importing
+  neutral formats such as STEP in bulk, and what survives the trip.
 
 ## The status field is the whole point
 
@@ -52,7 +54,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **28 verified, 3 partly verified, 5 unverified.**
+Currently: **28 verified, 4 partly verified, 5 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.

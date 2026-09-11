@@ -19,6 +19,11 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `GetDocumentDependencies2` | References of a **closed** file, without opening it | Verified |
 | `ReplaceReferencedDocument` | Repoint a reference after a move | Unverified |
 | `GetOpenDocumentByName` | Check whether a file is open before touching it | Unverified |
+| `LoadFile4(path, argString, importData, ByRef err)` | Import a neutral format. **The working route for STEP**, where `OpenDoc6` fails | Verified, SW 2026 SP1.1 |
+| `OpenDoc6` | Opens native files. **Failed every STEP file with 2097152**, whatever the options | Verified not to work on STEP, SW 2026 SP1.1 |
+| `GetOpenDocSpec` | Document spec before opening. On a `.step` returns `DocumentType = -1`, `Error = 1024` | Verified, SW 2026 SP1.1 |
+| `CloseDoc(title)` | Close one document, discarding changes silently. Unlike `CloseAllDocuments`, raises no save prompt | Verified, SW 2026 SP1.1 |
+| `SetUserPreferenceToggle` / `SetUserPreferenceIntegerValue` | Set import and other options from code | Verified, SW 2026 SP1.1 |
 
 ## IModelDoc2 (a part, assembly or drawing)
 
@@ -34,6 +39,8 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `ClearSelection2(all)` | Empty the selection | Verified |
 | `SelectionManager` | The selection, for reading what was clicked | Verified |
 | `SketchManager` | The sketch API | Partly verified |
+| `GetType` | Document type of what you actually got. 1 part, 2 assembly. A neutral import decides this for you | Verified, SW 2026 SP1.1 |
+| `SaveAs3(path, version, options)` | Save under a new name. `0` current version, `2` silent | Unverified |
 | `Extension` | `IModelDocExtension`, below | Verified |
 
 ## IModelDocExtension
@@ -45,6 +52,7 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `GetPersistReference3(obj)` | A byte handle to a feature that survives renaming | Verified, SW 2026 |
 | `DeleteSelection2(options)` | Delete what is selected. On a folder it removes **only the folder**, leaving its contents in place | Verified, SW 2026 |
 | `GetObjectByPersistReference3(ref, out)` | Resolve that handle back. Needs a by-ref out parameter | Verified, SW 2026 |
+| `SaveAs(path, version, options, exportData, ByRef err, ByRef warn)` | Save under a new name, with an error and a warning code back. Prefer over `SaveAs3` | Verified, SW 2026 SP1.1 |
 | `ListExternalFileReferences` | External references of a document | Unverified |
 
 ## IFeatureManager (from `IModelDoc2.FeatureManager`)
@@ -164,3 +172,10 @@ sentinel named `<folder>___EndTag___` after everything it holds.
 Selection type numbers seen from `GetSelectedObjectType3`: 1 edge, 2 face,
 3 vertex, 4 plane, 5 axis, 6 reference point, 9 sketch, 24 sketch segment,
 25 sketch point.
+
+Neutral-format errors seen on a `.step`: `2097152` `swFileRequiresRepairError`
+from `OpenDoc6`, `1024` `swInvalidFileTypeError` from `GetOpenDocSpec`. See
+[files/01](entries/files/01-batch-convert-step.md).
+
+`swDocumentTypes_e` from `IModelDoc2.GetType`: `1` part and `2` assembly, both
+observed. The enum also defines a drawing value; it was not seen here.

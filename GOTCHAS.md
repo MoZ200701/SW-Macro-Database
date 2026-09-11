@@ -196,3 +196,44 @@ into whatever follows the folder.
 Walk the top-level chain only. A walk that also descends into
 `GetFirstSubFeature` drops absorbed features into the middle of a folder's
 contents and the tags stop lining up.
+
+## 20. `OpenDoc6` cannot open a STEP file that `LoadFile4` opens fine
+
+On a vendor's STEP library, `ISldWorks.OpenDoc6` failed every file with error
+**2097152, `swFileRequiresRepairError`**. It kept failing with import
+diagnostics off, full entity check off, and several combinations of open
+options. `ISldWorks.LoadFile4(path, "r", Nothing, err)` imported the same files
+with `err = 0`.
+
+`OpenDoc7` is not a way out: it rejects neutral formats before it starts.
+`GetOpenDocSpec` on a `.step` returns `DocumentType = -1` and `Error = 1024`,
+`swInvalidFileTypeError`. Renaming to `.stp` changes nothing.
+
+The error number reads like the file is damaged. The files were fine. See
+[files/01](entries/files/01-batch-convert-step.md).
+
+## 21. A late-bound host cannot call an API with a `ByRef Long` out-parameter
+
+`OpenDoc6` and `LoadFile4` both take one. VBScript and PowerShell are
+late-bound, cannot produce `VT_BYREF|VT_I4`, and fail with **"Type mismatch"
+before the method runs** — so the failure looks like a bad argument list rather
+than a host limitation, and no amount of rearranging the call fixes it.
+
+VBA inside SolidWorks works, because it is in-process. C# compiled against the
+interop assemblies works, because it is early-bound. Python gets there with an
+explicit typed variant, `VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)`, as
+in §4.
+
+This is the reason a job may have to be a compiled exe rather than the `.vbs`
+that everything else in this repo uses.
+
+## 22. Opening an older file in a newer SolidWorks makes closing it dangerous
+
+The version upgrade alone marks the document modified, so closing prompts
+*"Save changes to ...?"* — under a **"SOLIDWORKS CAM Warning"** title, which
+gives no clue what is at stake. Answering **yes rewrites the file in the new
+format**, in place. For a read-only pass over someone's library that is data
+loss with a friendly dialog in front of it.
+
+`CloseAllDocuments` raises this prompt. `ISldWorks.CloseDoc(title)` discards
+silently, which is what a batch wants.

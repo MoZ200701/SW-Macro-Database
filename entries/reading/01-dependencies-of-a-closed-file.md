@@ -125,3 +125,5 @@ lock files.
 
 - [reading/02 — Walk a reference tree](02-walk-a-reference-tree.md)
 - [reading/03 — Repair references after a move](03-repair-references-after-a-move.md)
+- [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — why
+  closing a file you only meant to read can rewrite it

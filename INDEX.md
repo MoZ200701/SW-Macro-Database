@@ -45,6 +45,12 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Get the units and number formatting right | [sketches/05 — Units and number format](entries/sketches/05-units-and-number-format.md) |
 | Know what I will have to do by hand | [sketches/06 — What the sketch API cannot do](entries/sketches/06-what-the-sketch-api-cannot-do.md) |
 
+## Convert and batch-process files
+
+| I want to… | Entry |
+|---|---|
+| Turn a folder of STEP files into SolidWorks parts | [files/01 — Batch-convert STEP](entries/files/01-batch-convert-step.md) |
+
 ## Read an existing model
 
 | I want to… | Entry |
@@ -67,9 +73,9 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **VBA** — connect/04, sketches/01 through 06, curves/03
 - **Python (pywin32)** — connect/02, connect/05, connect/06, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, reading/04, reading/05
-- **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06
+- **VBA** — connect/04, sketches/01 through 06, curves/03, files/01
+- **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, files/01
 
 ## The thing you probably came here for
 

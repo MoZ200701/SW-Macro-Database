@@ -133,4 +133,6 @@ cscript //nologo ImportCurves.vbs
 - [connect/05 — Choosing among versions](05-choosing-among-versions.md)
 - [connect/07 — Find the open document](07-find-the-open-document.md)
 - [connect/09 — Launch versus attach](09-launch-versus-attach.md)
+- [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — a job
+  VBScript cannot do, and why
 - [GOTCHAS §1](../../GOTCHAS.md)
