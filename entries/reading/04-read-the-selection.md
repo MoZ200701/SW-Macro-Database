@@ -206,3 +206,4 @@ those is how the conventions above got established.
 
 - [reading/05 — Sketch to model transform](05-sketch-to-model-transform.md)
 - [connect/06 — One apartment thread](../connect/06-one-apartment-thread.md)
+- [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — a call that consumes the selection rather than reading it

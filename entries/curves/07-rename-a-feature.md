@@ -78,4 +78,5 @@ persistent reference instead: [curves/10](10-persistent-references.md).
 ## See also
 
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md)
+- [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — a folder is renamed the same way, and read back for the same reason
 - [GOTCHAS §8](../../GOTCHAS.md)

@@ -111,3 +111,4 @@ survives renaming, use a persistent reference:
 
 - [curves/07 — Rename a feature](../curves/07-rename-a-feature.md)
 - [reading/07 — Report the feature type on failure](../reading/07-report-feature-type-on-failure.md)
+- [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — selecting a found feature with `IFeature.Select2`

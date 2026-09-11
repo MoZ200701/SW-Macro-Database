@@ -97,3 +97,4 @@ The type name of the result is `CompositeCurve`.
 
 - [curves/02 — Insert a curve from a file](02-insert-curve-from-file.md)
 - [curves/09 — Curves as loft profiles](09-curves-as-loft-profiles.md)
+- [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — putting the composite in a folder with the curves it is built from

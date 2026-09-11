@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 35,
+  "count": 36,
   "by_status": {
     "partly-verified": 3,
     "unverified": 5,
-    "verified": 27
+    "verified": 28
   },
   "entries": [
     {
@@ -514,6 +514,40 @@
         "VT_BYREF"
       ],
       "answers": "How do I keep a handle on a feature that survives the user renaming it?"
+    },
+    {
+      "id": "curves-11-feature-tree-folders",
+      "title": "Put features in a feature-tree folder",
+      "path": "entries/curves/11-feature-tree-folders.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertFeatureTreeFolder2",
+        "IFeatureManager.MoveToFolder",
+        "IModelDocExtension.DeleteSelection2",
+        "IFeature.Select2",
+        "IFeature.GetSpecificFeature2",
+        "IFeatureFolder.GetFeatureCount",
+        "IFeatureFolder.GetFeatures"
+      ],
+      "keywords": [
+        "InsertFeatureTreeFolder2",
+        "MoveToFolder",
+        "swFeatureTreeFolderType_e",
+        "FtrFolder",
+        "___EndTag___",
+        "feature tree folder",
+        "group features",
+        "ungroup",
+        "DeleteSelection2",
+        "Select2",
+        "BODYFEATURE"
+      ],
+      "answers": "How do I put features into a folder in the feature tree from code?"
     },
     {
       "id": "reading-01-dependencies-closed-file",

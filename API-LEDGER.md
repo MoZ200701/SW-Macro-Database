@@ -43,8 +43,24 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `SelectByID2` | Select a named entity by type string, with a selection mark | Verified, SW 2026 |
 | `AddDimension2(x, y, z)` | Add a dimension at a placement point, in metres | Unverified |
 | `GetPersistReference3(obj)` | A byte handle to a feature that survives renaming | Verified, SW 2026 |
+| `DeleteSelection2(options)` | Delete what is selected. On a folder it removes **only the folder**, leaving its contents in place | Verified, SW 2026 |
 | `GetObjectByPersistReference3(ref, out)` | Resolve that handle back. Needs a by-ref out parameter | Verified, SW 2026 |
 | `ListExternalFileReferences` | External references of a document | Unverified |
+
+## IFeatureManager (from `IModelDoc2.FeatureManager`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `InsertFeatureTreeFolder2(type)` | Folder around the current selection. Pass `2`; see the constants below | Verified, SW 2026 |
+| `MoveToFolder(folder, feature, moveAfter)` | Would add a feature to an existing folder. **Returned `False` and did nothing, every way it was tried** | Verified not to work, SW 2026 |
+| `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed | Verified, SW 2026 |
+
+## IFeatureFolder (from `GetSpecificFeature2` on an `FtrFolder`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetFeatureCount` | How many features the folder holds. **Counts a nested folder's end tag** | Verified, SW 2026 |
+| `GetFeatures` | The features it holds, end tag included | Verified, SW 2026 |
 
 ## IFeature
 
@@ -55,7 +71,8 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `GetTypeName2` | Type string, e.g. `"CurveInFile"`, `"CompositeCurve"` | Verified |
 | `GetDefinition` | Feature data you can modify | Verified |
 | `ModifyDefinition(data, doc, component)` | Commit modified feature data | Verified, SW 2026 |
-| `GetSpecificFeature2` | The concrete feature behind a reference plane | Verified |
+| `GetSpecificFeature2` | The concrete feature behind a reference plane; on an `FtrFolder`, the `IFeatureFolder` | Verified |
+| `Select2(append, mark)` | Select this feature. Works where `SelectByID2` with `"BODYFEATURE"` returned `False` | Verified, SW 2026 |
 | `ListExternalFileReferences2` | External references of one feature | Unverified |
 
 ## Curve feature data (from `GetDefinition` on a CurveInFile)
@@ -132,7 +149,17 @@ Dimension types (`swDimensionType_e`):
 
 Selection type strings for `SelectByID2`: `REFERENCECURVES` for a reference curve.
 
-Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`.
+Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
+`FtrFolder`, `RefPlane`.
+
+`swFeatureTreeFolderType_e` for `InsertFeatureTreeFolder2`, by observed
+behaviour rather than by header: `2` wraps the selection in a new folder, `1`
+makes a folder that does not contain it, `3` hands back the existing
+`Surface Bodies` folder, `0` does nothing. See
+[curves/11](entries/curves/11-feature-tree-folders.md).
+
+A folder in the feature walk is two features: the folder, and a closing
+sentinel named `<folder>___EndTag___` after everything it holds.
 
 Selection type numbers seen from `GetSelectedObjectType3`: 1 edge, 2 face,
 3 vertex, 4 plane, 5 axis, 6 reference point, 9 sketch, 24 sketch segment,

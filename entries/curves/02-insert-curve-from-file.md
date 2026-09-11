@@ -124,4 +124,5 @@ you only ever delete files a previous manifest says you wrote.
 - [curves/03 — Stream curve points](03-stream-curve-points.md) — the other insert route
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md)
 - [curves/07 — Rename a feature](07-rename-a-feature.md)
+- [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — gathering what you inserted into a folder
 - [GOTCHAS §3, §11, §14](../../GOTCHAS.md)

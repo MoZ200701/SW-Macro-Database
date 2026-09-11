@@ -32,6 +32,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Avoid spurious errors while updating many curves | [curves/08 — Rebuild once, at the end](entries/curves/08-rebuild-once-at-the-end.md) |
 | Track a feature that might get renamed | [curves/10 — Persistent references](entries/curves/10-persistent-references.md) |
 | Know whether I must wrap curves in sketches before lofting | [curves/09 — Curves as loft profiles](entries/curves/09-curves-as-loft-profiles.md) |
+| Group features into a folder in the tree | [curves/11 — Feature-tree folders](entries/curves/11-feature-tree-folders.md) |
 
 ## Draw a sketch from code
 
@@ -67,7 +68,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
 - **VBA** — connect/04, sketches/01 through 06, curves/03
-- **Python (pywin32)** — connect/02, connect/05, connect/06, curves/02, curves/04, curves/05, curves/06, curves/10, reading/04, reading/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, reading/04, reading/05
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06
 
 ## The thing you probably came here for

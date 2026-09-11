@@ -172,3 +172,27 @@ failing halfway through a batch.
 Not a SolidWorks issue, but it bites automation work generally: a verification
 that reads a surface the thing under test controls is not a verification. When
 checking what is committed, read the committed object, not the working tree.
+
+## 18. `MoveToFolder` does not move anything
+
+`IFeatureManager.MoveToFolder` returned `False` and changed nothing on
+SolidWorks 2026: on a curve, on a plane, on a folder, into an empty folder and
+into a full one, with and without the feature selected first, before and after
+a rebuild. There is no error and no exception, only the return value.
+
+The only call that puts features in a folder is
+`InsertFeatureTreeFolder2`, and it wraps the current selection in a **new**
+folder. So an arrangement is rebuilt rather than patched. This is affordable
+because deleting a folder deletes only the folder: everything it held stays
+where it was. See [curves/11](entries/curves/11-feature-tree-folders.md).
+
+## 19. A folder is two features in the tree
+
+Walking `FirstFeature`/`GetNextFeature`, a folder appears as itself and again
+as `<folder>___EndTag___` after its contents, both typed `FtrFolder`. Nesting
+is the depth between the two. Count the end tags or your contents will run on
+into whatever follows the folder.
+
+Walk the top-level chain only. A walk that also descends into
+`GetFirstSubFeature` drops absorbed features into the middle of a folder's
+contents and the tags stop lining up.
