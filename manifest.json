@@ -1,0 +1,915 @@
+{
+  "schema": 1,
+  "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
+  "count": 35,
+  "by_status": {
+    "partly-verified": 3,
+    "unverified": 5,
+    "verified": 27
+  },
+  "entries": [
+    {
+      "id": "connect-01-attach-vbscript",
+      "title": "Attach to a running SolidWorks from VBScript",
+      "path": "entries/connect/01-attach-from-vbscript.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript"
+      ],
+      "api": [
+        "GetObject",
+        "CreateObject",
+        "ISldWorks.Visible"
+      ],
+      "keywords": [
+        "attach",
+        "connect",
+        "running object table",
+        "progid",
+        "GetObject",
+        "error 429",
+        "cscript",
+        "generated script"
+      ],
+      "answers": "How do I reach an already-open SolidWorks from a standalone script?"
+    },
+    {
+      "id": "connect-02-attach-python",
+      "title": "Attach to a running SolidWorks from Python",
+      "path": "entries/connect/02-attach-from-python.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024, 2025 and 2026 side by side",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.RevisionNumber",
+        "ISldWorks.ActiveDoc"
+      ],
+      "keywords": [
+        "pywin32",
+        "pythoncom",
+        "running object table",
+        "EnumRunning",
+        "IDispatch",
+        "VARIANT",
+        "late binding",
+        "SolidWorks_PID"
+      ],
+      "answers": "How do I connect to SolidWorks from Python without launching a second copy?"
+    },
+    {
+      "id": "connect-03-attach-csharp",
+      "title": "Attach to a running SolidWorks from C# on .NET 8",
+      "path": "entries/connect/03-attach-from-csharp.md",
+      "category": "connect",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 for attach and dependency read",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "GetActiveObject",
+        "GetRunningObjectTable",
+        "CreateBindCtx",
+        "CLSIDFromProgID"
+      ],
+      "keywords": [
+        "dotnet 8",
+        "Marshal.GetActiveObject",
+        "P/Invoke",
+        "ole32",
+        "oleaut32",
+        "interop",
+        "EmbedInteropTypes",
+        "wpf"
+      ],
+      "answers": "Marshal.GetActiveObject is gone on .NET 8. How do I attach to SolidWorks?"
+    },
+    {
+      "id": "connect-04-attach-vba",
+      "title": "Attach from VBA, inside SolidWorks",
+      "path": "entries/connect/04-attach-from-vba.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "standard across versions",
+      "language": [
+        "vba"
+      ],
+      "api": [
+        "Application.SldWorks",
+        "ISldWorks.ActiveDoc"
+      ],
+      "keywords": [
+        "vba",
+        "macro",
+        "late binding",
+        "swp binary",
+        "bas file",
+        "Application.SldWorks",
+        "paste macro"
+      ],
+      "answers": "What is the preamble for a macro that runs inside SolidWorks?"
+    },
+    {
+      "id": "connect-05-choosing-among-versions",
+      "title": "Choosing among several installed versions",
+      "path": "entries/connect/05-choosing-among-versions.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "a machine carrying SolidWorks 2024, 2025 and 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.RevisionNumber"
+      ],
+      "keywords": [
+        "version",
+        "revision number",
+        "major 32 33 34",
+        "2024 2025 2026",
+        "minimum version",
+        "choose session",
+        "multiple installs"
+      ],
+      "answers": "Several SolidWorks versions are installed. Which one should my tool drive?"
+    },
+    {
+      "id": "connect-06-one-apartment-thread",
+      "title": "Put every COM call on one apartment thread",
+      "path": "entries/connect/06-one-apartment-thread.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "csharp",
+        "python"
+      ],
+      "api": [
+        "CoInitializeEx",
+        "Marshal.FinalReleaseComObject"
+      ],
+      "keywords": [
+        "STA",
+        "apartment",
+        "thread",
+        "marshalling",
+        "BlockingCollection",
+        "CoInitializeEx",
+        "COINIT_APARTMENTTHREADED",
+        "modal dialog",
+        "blocking"
+      ],
+      "answers": "How do I stop COM calls blowing up or freezing my UI?"
+    },
+    {
+      "id": "connect-07-find-open-document",
+      "title": "Find the open document you want to work on",
+      "path": "entries/connect/07-find-the-open-document.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "ISldWorks.ActiveDoc",
+        "ISldWorks.GetFirstDocument",
+        "IModelDoc2.GetNext",
+        "IModelDoc2.GetTitle"
+      ],
+      "keywords": [
+        "active document",
+        "open documents",
+        "walk documents",
+        "GetTitle",
+        "part not open"
+      ],
+      "answers": "How do I get the ModelDoc2 for the part I care about, rather than whatever is on top?"
+    },
+    {
+      "id": "connect-08-find-feature-by-name",
+      "title": "Find a feature by name in the tree",
+      "path": "entries/connect/08-find-a-feature-by-name.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.FirstFeature",
+        "IFeature.GetNextFeature",
+        "IFeature.Name"
+      ],
+      "keywords": [
+        "feature tree",
+        "walk features",
+        "FirstFeature",
+        "GetNextFeature",
+        "find feature"
+      ],
+      "answers": "How do I get an IFeature by its name so I can modify or reference it?"
+    },
+    {
+      "id": "connect-09-launch-versus-attach",
+      "title": "Launch versus attach, and never closing someone's session",
+      "path": "entries/connect/09-launch-versus-attach.md",
+      "category": "connect",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 for attach; launch path compiles and runs, ExitApp untested",
+      "language": [
+        "csharp",
+        "vbscript"
+      ],
+      "api": [
+        "ISldWorks.Visible",
+        "ISldWorks.ExitApp",
+        "Activator.CreateInstance",
+        "Type.GetTypeFromProgID"
+      ],
+      "keywords": [
+        "launch solidworks",
+        "hidden instance",
+        "CreateObject",
+        "ExitApp",
+        "FinalReleaseComObject",
+        "headless"
+      ],
+      "answers": "Should my tool start SolidWorks if none is running, and how do I clean up?"
+    },
+    {
+      "id": "connect-10-driving-from-outside-windows",
+      "title": "Driving Windows SolidWorks from WSL or another host",
+      "path": "entries/connect/10-driving-from-outside-windows.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "WSL2 to SolidWorks 2026",
+      "language": [
+        "shell",
+        "typescript"
+      ],
+      "api": [
+        "cscript",
+        "wslpath"
+      ],
+      "keywords": [
+        "wsl",
+        "cross platform",
+        "cscript",
+        "wslpath",
+        "path translation",
+        "remote drive"
+      ],
+      "answers": "My code runs on Linux or a Mac. How do I still drive SolidWorks?"
+    },
+    {
+      "id": "curves-01-sldcrv-format",
+      "title": "The Curve Through XYZ Points file format",
+      "path": "entries/curves/01-sldcrv-file-format.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2025 and 2026",
+      "language": [
+        "any"
+      ],
+      "api": [],
+      "keywords": [
+        "sldcrv",
+        "curve through xyz points",
+        "file format",
+        "mm suffix",
+        "units",
+        "tab delimited",
+        "CRLF",
+        "closed curve"
+      ],
+      "answers": "What exactly do I write into a .sldcrv file so SolidWorks reads it correctly?"
+    },
+    {
+      "id": "curves-02-insert-curve-from-file",
+      "title": "Insert a curve from a file as a new feature",
+      "path": "entries/curves/02-insert-curve-from-file.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.InsertCurveFile",
+        "IFeature.Name"
+      ],
+      "keywords": [
+        "InsertCurveFile",
+        "CurveInFile",
+        "import curve",
+        "error 438",
+        "IFeatureManager",
+        "insert feature"
+      ],
+      "answers": "How do I import a .sldcrv file as a feature from code, and get hold of what it made?"
+    },
+    {
+      "id": "curves-03-stream-curve-points",
+      "title": "Create a curve by streaming points, with no file",
+      "path": "entries/curves/03-stream-curve-points.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2025",
+      "language": [
+        "vba",
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.InsertCurveFileBegin",
+        "IModelDoc2.InsertCurveFilePoint",
+        "IModelDoc2.InsertCurveFileEnd"
+      ],
+      "keywords": [
+        "InsertCurveFileBegin",
+        "InsertCurveFilePoint",
+        "InsertCurveFileEnd",
+        "streaming",
+        "metres",
+        "no file"
+      ],
+      "answers": "Can I make a Curve Through XYZ Points feature without writing a file first?"
+    },
+    {
+      "id": "curves-04-reload-curve-in-place",
+      "title": "Refresh a curve's points in place, without breaking what uses it",
+      "path": "entries/curves/04-reload-curve-in-place.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IFeature.GetDefinition",
+        "IFeature.ModifyDefinition",
+        "LoadPointsFromFile",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "LoadPointsFromFile",
+        "ModifyDefinition",
+        "GetDefinition",
+        "refresh curve",
+        "in place",
+        "reload",
+        "live update"
+      ],
+      "answers": "How do I change a curve's geometry without re-picking it in the boundary surface?"
+    },
+    {
+      "id": "curves-05-read-curve-points-back",
+      "title": "Read a curve's points back out",
+      "path": "entries/curves/05-read-curve-points-back.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeature.GetDefinition",
+        "PointArray"
+      ],
+      "keywords": [
+        "PointArray",
+        "read curve",
+        "curve points",
+        "metres",
+        "round trip",
+        "verify"
+      ],
+      "answers": "How do I check what a curve feature actually contains?"
+    },
+    {
+      "id": "curves-06-composite-curve",
+      "title": "Join several curves into one selectable curve",
+      "path": "entries/curves/06-composite-curve.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.InsertCompositeCurve",
+        "IModelDocExtension.SelectByID2",
+        "IModelDoc2.ClearSelection2"
+      ],
+      "keywords": [
+        "InsertCompositeCurve",
+        "composite curve",
+        "SelectByID2",
+        "selection mark",
+        "REFERENCECURVES",
+        "sharp corner"
+      ],
+      "answers": "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
+    },
+    {
+      "id": "curves-07-rename-a-feature",
+      "title": "Rename a feature, and read the name back",
+      "path": "entries/curves/07-rename-a-feature.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IFeature.Name"
+      ],
+      "keywords": [
+        "rename feature",
+        "feature name",
+        "collision",
+        "silent rename",
+        "read back"
+      ],
+      "answers": "How do I name a feature I just created, and why did my name not stick?"
+    },
+    {
+      "id": "curves-08-rebuild-once",
+      "title": "Suppress rebuilds, change everything, rebuild once",
+      "path": "entries/curves/08-rebuild-once-at-the-end.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "ISldWorks.CommandInProgress",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "ForceRebuild3",
+        "CommandInProgress",
+        "suppress rebuild",
+        "batch update",
+        "transient error",
+        "finally"
+      ],
+      "answers": "Why does my part show errors halfway through my batch update, and how do I make it fast?"
+    },
+    {
+      "id": "curves-09-curves-as-loft-profiles",
+      "title": "Imported curves are selectable as loft and boundary profiles",
+      "path": "entries/curves/09-curves-as-loft-profiles.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "n/a"
+      ],
+      "api": [],
+      "keywords": [
+        "loft profile",
+        "boundary surface",
+        "convert entities",
+        "3d sketch",
+        "reference curve",
+        "guide curve",
+        "pierce"
+      ],
+      "answers": "Do I need to convert imported curves into sketches before lofting them?"
+    },
+    {
+      "id": "curves-10-persistent-references",
+      "title": "Track a feature that might get renamed",
+      "path": "entries/curves/10-persistent-references.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDocExtension.GetPersistReference3",
+        "IModelDocExtension.GetObjectByPersistReference3"
+      ],
+      "keywords": [
+        "GetPersistReference3",
+        "GetObjectByPersistReference3",
+        "persistent reference",
+        "rename",
+        "stable handle",
+        "VT_BYREF"
+      ],
+      "answers": "How do I keep a handle on a feature that survives the user renaming it?"
+    },
+    {
+      "id": "reading-01-dependencies-closed-file",
+      "title": "Read a closed file's references without opening it",
+      "path": "entries/reading/01-dependencies-of-a-closed-file.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.GetDocumentDependencies2"
+      ],
+      "keywords": [
+        "GetDocumentDependencies2",
+        "references",
+        "dependencies",
+        "closed file",
+        "virtual component",
+        "document manager",
+        "opaque format"
+      ],
+      "answers": "How do I find out what a part or assembly references without opening it?"
+    },
+    {
+      "id": "reading-02-walk-reference-tree",
+      "title": "Walk a full reference tree with a cycle guard",
+      "path": "entries/reading/02-walk-a-reference-tree.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.GetDocumentDependencies2"
+      ],
+      "keywords": [
+        "reference tree",
+        "recursion",
+        "cycle",
+        "depth first",
+        "dependency tree",
+        "ancestors"
+      ],
+      "answers": "How do I build the whole dependency tree from the one-level primitive?"
+    },
+    {
+      "id": "reading-03-repair-references",
+      "title": "Rename or move a file and repair every reference to it",
+      "path": "entries/reading/03-repair-references-after-a-move.md",
+      "category": "reading",
+      "status": "unverified",
+      "verified_on": null,
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.ReplaceReferencedDocument",
+        "ISldWorks.GetOpenDocumentByName"
+      ],
+      "keywords": [
+        "ReplaceReferencedDocument",
+        "rename",
+        "move",
+        "broken reference",
+        "repair",
+        "where used",
+        "preflight"
+      ],
+      "answers": "How do I move a part on disk without breaking the assemblies that use it?"
+    },
+    {
+      "id": "reading-04-read-the-selection",
+      "title": "Find out what the user just clicked",
+      "path": "entries/reading/04-read-the-selection.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISelectionMgr.GetSelectedObjectCount2",
+        "GetSelectedObject6",
+        "GetSelectedObjectType3",
+        "GetSelectedObjectsSketch",
+        "GetPoint",
+        "GetCurve",
+        "IsLine",
+        "GetSurface",
+        "IsPlane",
+        "PlaneParams"
+      ],
+      "keywords": [
+        "selection manager",
+        "GetSelectedObject6",
+        "GetSelectedObjectType3",
+        "pick",
+        "click",
+        "vertex",
+        "edge",
+        "plane",
+        "duck typing"
+      ],
+      "answers": "How do I let a user click something in SolidWorks and read what it was?"
+    },
+    {
+      "id": "reading-05-sketch-to-model-transform",
+      "title": "Convert sketch coordinates to model coordinates",
+      "path": "entries/reading/05-sketch-to-model-transform.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISketch.ModelToSketchTransform",
+        "IMathTransform.Inverse",
+        "IMathTransform.ArrayData",
+        "ISelectionMgr.GetSelectedObjectsSketch"
+      ],
+      "keywords": [
+        "ModelToSketchTransform",
+        "ArrayData",
+        "IMathTransform",
+        "column major",
+        "sketch coordinates",
+        "transpose",
+        "16 doubles"
+      ],
+      "answers": "A sketch point reports coordinates that are not in model space. How do I convert them?"
+    },
+    {
+      "id": "reading-06-live-sketch-monitor",
+      "title": "Watch the active sketch while the user works",
+      "path": "entries/reading/06-live-sketch-monitor.md",
+      "category": "reading",
+      "status": "unverified",
+      "verified_on": null,
+      "language": [
+        "csharp",
+        "python"
+      ],
+      "api": [
+        "ISldWorks.ActiveDoc",
+        "ISketchManager.ActiveSketch",
+        "IFeature.ListExternalFileReferences2",
+        "IModelDocExtension.ListExternalFileReferences"
+      ],
+      "keywords": [
+        "ActiveSketch",
+        "polling",
+        "live monitor",
+        "external references",
+        "in-context",
+        "dangling",
+        "watch"
+      ],
+      "answers": "How do I show live information about whatever sketch the user is currently editing?"
+    },
+    {
+      "id": "reading-07-report-feature-type-on-failure",
+      "title": "Make a failing call say what it found",
+      "path": "entries/reading/07-report-feature-type-on-failure.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "vbscript",
+        "python"
+      ],
+      "api": [
+        "IFeature.GetTypeName2"
+      ],
+      "keywords": [
+        "GetTypeName2",
+        "error handling",
+        "diagnostics",
+        "CurveInFile",
+        "CompositeCurve",
+        "failure message"
+      ],
+      "answers": "My macro fails on a feature and I can't tell why. How do I make the error useful?"
+    },
+    {
+      "id": "sketches-01-2d-sketch-as-vba",
+      "title": "Generate a 2D sketch as a VBA macro",
+      "path": "entries/sketches/01-2d-sketch-as-vba.md",
+      "category": "sketches",
+      "status": "unverified",
+      "verified_on": null,
+      "language": [
+        "vba"
+      ],
+      "api": [
+        "ISketchManager.InsertSketch",
+        "CreatePoint",
+        "CreateLine2",
+        "CreateArc",
+        "CreateCircleByRadius",
+        "CreateSpline",
+        "AddConstraint",
+        "Select4",
+        "GetStartPoint2",
+        "GetEndPoint2",
+        "GetCenterPoint2"
+      ],
+      "keywords": [
+        "2d sketch",
+        "InsertSketch",
+        "CreateLine2",
+        "CreateSpline",
+        "sketch macro",
+        "generate vba",
+        "weld",
+        "construction geometry"
+      ],
+      "answers": "How do I emit a VBA macro that draws a fully-defined 2D sketch?"
+    },
+    {
+      "id": "sketches-02-3d-sketch-as-vba",
+      "title": "Generate a 3D sketch as a VBA macro",
+      "path": "entries/sketches/02-3d-sketch-as-vba.md",
+      "category": "sketches",
+      "status": "unverified",
+      "verified_on": null,
+      "language": [
+        "vba"
+      ],
+      "api": [
+        "ISketchManager.Insert3DSketch2",
+        "CreatePoint",
+        "CreateLine2",
+        "CreateSpline",
+        "AddConstraint"
+      ],
+      "keywords": [
+        "3d sketch",
+        "Insert3DSketch2",
+        "three coordinates",
+        "no plane",
+        "spline on surface",
+        "CreateArc plane"
+      ],
+      "answers": "How do I emit a VBA macro that draws a 3D sketch?"
+    },
+    {
+      "id": "sketches-03-relation-constants",
+      "title": "Sketch relation constants for AddConstraint",
+      "path": "entries/sketches/03-relation-constants.md",
+      "category": "sketches",
+      "status": "partly-verified",
+      "verified_on": null,
+      "language": [
+        "vba"
+      ],
+      "api": [
+        "ISketchManager.AddConstraint"
+      ],
+      "keywords": [
+        "AddConstraint",
+        "sgCOINCIDENT",
+        "sgVERTICAL2D",
+        "sgSYMMETRIC",
+        "sgCOLINEAR",
+        "relation constants",
+        "swConstraintType"
+      ],
+      "answers": "What string do I pass to AddConstraint for a given sketch relation?"
+    },
+    {
+      "id": "sketches-04-dimensions",
+      "title": "Add a dimension and set its value",
+      "path": "entries/sketches/04-dimensions.md",
+      "category": "sketches",
+      "status": "unverified",
+      "verified_on": null,
+      "language": [
+        "vba"
+      ],
+      "api": [
+        "IModelDocExtension.AddDimension2",
+        "IDisplayDimension.Dimension",
+        "IDimension.SystemValue",
+        "IDimension.Name"
+      ],
+      "keywords": [
+        "AddDimension2",
+        "SystemValue",
+        "swDistanceDim",
+        "swAngularDim",
+        "dimension placement",
+        "horizontal vertical"
+      ],
+      "answers": "How do I add a driving dimension from a macro and set its value?"
+    },
+    {
+      "id": "sketches-05-units-and-number-format",
+      "title": "Units and number formatting for generated macros",
+      "path": "entries/sketches/05-units-and-number-format.md",
+      "category": "sketches",
+      "status": "verified",
+      "verified_on": "SolidWorks 2025 and 2026",
+      "language": [
+        "vba",
+        "vbscript",
+        "python",
+        "typescript"
+      ],
+      "api": [],
+      "keywords": [
+        "metres",
+        "millimetres",
+        "radians",
+        "units",
+        "number format",
+        "scientific notation",
+        "negative zero",
+        "nine decimals"
+      ],
+      "answers": "What units does the API use, and how do I format numbers so VBA parses them?"
+    },
+    {
+      "id": "sketches-06-sketch-api-limits",
+      "title": "What the sketch API cannot do, and how to handle it",
+      "path": "entries/sketches/06-what-the-sketch-api-cannot-do.md",
+      "category": "sketches",
+      "status": "verified",
+      "verified_on": "documented API surface as of SW 2026",
+      "language": [
+        "vba"
+      ],
+      "api": [],
+      "keywords": [
+        "spline handle",
+        "tangent handle",
+        "style spline",
+        "interior fit point",
+        "manual step",
+        "SW-MANUAL",
+        "limits",
+        "cannot select"
+      ],
+      "answers": "Why can't my macro fully define this sketch, and what do I do about it?"
+    },
+    {
+      "id": "surfacing-01-boundary-surface-recipe",
+      "title": "The boundary surface recipe, and generating it",
+      "path": "entries/surfacing/01-boundary-surface-recipe.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "n/a"
+      ],
+      "api": [],
+      "keywords": [
+        "boundary surface",
+        "loft",
+        "knit",
+        "trim",
+        "planar",
+        "fill",
+        "manual steps",
+        "recipe",
+        "surface"
+      ],
+      "answers": "Which parts of building a surface from curves are automatable, and what stays manual?"
+    },
+    {
+      "id": "surfacing-02-axis-conventions",
+      "title": "Axis conventions, and landing geometry the right way up",
+      "path": "entries/surfacing/02-axis-conventions.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "typescript"
+      ],
+      "api": [],
+      "keywords": [
+        "axes",
+        "front plane",
+        "top plane",
+        "right plane",
+        "orientation",
+        "Y up",
+        "Z up",
+        "axis map",
+        "mirror",
+        "standard views"
+      ],
+      "answers": "Why does my exported geometry come out lying on its side?"
+    }
+  ]
+}
