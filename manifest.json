@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 37,
+  "count": 41,
   "by_status": {
-    "partly-verified": 4,
+    "partly-verified": 5,
     "unverified": 5,
-    "verified": 28
+    "verified": 31
   },
   "entries": [
     {
@@ -589,6 +589,69 @@
       "answers": "How do I import a folder of STEP files and save each one as a SolidWorks part?"
     },
     {
+      "id": "files-02-explode-configurations",
+      "title": "Write one file per configuration out of a configurable part",
+      "path": "entries/files/02-explode-configurations.md",
+      "category": "files",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP1.1",
+      "language": [
+        "vba",
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.GetConfigurationNames",
+        "IModelDoc2.ShowConfiguration2",
+        "IModelDoc2.DeleteDesignTable",
+        "IModelDoc2.DeleteConfiguration2",
+        "IModelDoc2.GetConfigurationNames",
+        "IModelDoc2.Save3",
+        "IConfigurationManager.ActiveConfiguration"
+      ],
+      "keywords": [
+        "configuration",
+        "design table",
+        "ShowConfiguration2",
+        "DeleteConfiguration2",
+        "DeleteDesignTable",
+        "derived configuration",
+        "save configuration as part",
+        "one file per length",
+        "explode"
+      ],
+      "answers": "How do I turn a part with many configurations into one standalone file per configuration?"
+    },
+    {
+      "id": "files-03-upgrade-file-version",
+      "title": "Re-save a library into the current file version",
+      "path": "entries/files/03-upgrade-file-version.md",
+      "category": "files",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP1.1",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "ISldWorks.VersionHistory",
+        "ISldWorks.GetLatestSupportedFileVersion",
+        "ISldWorks.OpenDoc6",
+        "IModelDocExtension.SaveAs"
+      ],
+      "keywords": [
+        "file version",
+        "upgrade",
+        "VersionHistory",
+        "GetLatestSupportedFileVersion",
+        "19000",
+        "14000",
+        "backwards compatible",
+        "downgrade",
+        "re-save",
+        "read-only attribute"
+      ],
+      "answers": "How do I re-save a whole folder of parts in the current SolidWorks file format?"
+    },
+    {
       "id": "reading-01-dependencies-closed-file",
       "title": "Read a closed file's references without opening it",
       "path": "entries/reading/01-dependencies-of-a-closed-file.md",
@@ -599,7 +662,10 @@
         "csharp"
       ],
       "api": [
-        "ISldWorks.GetDocumentDependencies2"
+        "ISldWorks.GetDocumentDependencies2",
+        "ISldWorks.GetConfigurationNames",
+        "ISldWorks.VersionHistory",
+        "ISldWorks.GetLatestSupportedFileVersion"
       ],
       "keywords": [
         "GetDocumentDependencies2",
@@ -608,7 +674,11 @@
         "closed file",
         "virtual component",
         "document manager",
-        "opaque format"
+        "opaque format",
+        "GetConfigurationNames",
+        "VersionHistory",
+        "file version",
+        "without opening"
       ],
       "answers": "How do I find out what a part or assembly references without opening it?"
     },
@@ -773,6 +843,73 @@
         "failure message"
       ],
       "answers": "My macro fails on a feature and I can't tell why. How do I make the error useful?"
+    },
+    {
+      "id": "reading-08-dimensions-and-equations",
+      "title": "Read every dimension, equation and configuration out of a part",
+      "path": "entries/reading/08-dimensions-and-equations.md",
+      "category": "reading",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 SP1.1 for the open, configuration and size passes; the dimension and equation walks ran in the same tool but their output was not retained",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "IFeature.GetFirstDisplayDimension",
+        "IFeature.GetNextDisplayDimension",
+        "IDisplayDimension.GetDimension",
+        "IDimension.FullName",
+        "IDimension.GetSystemValue2",
+        "IModelDoc2.GetEquationMgr",
+        "IEquationMgr.GetCount",
+        "IEquationMgr.Equation",
+        "IModelDoc2.GetDesignTable",
+        "IModelDoc2.GetConfigurationByName",
+        "IConfiguration.GetParent"
+      ],
+      "keywords": [
+        "display dimension",
+        "GetFirstDisplayDimension",
+        "GetSystemValue2",
+        "FullName",
+        "equation manager",
+        "global variable",
+        "design table",
+        "derived configuration",
+        "GetParent",
+        "inspect part",
+        "dump"
+      ],
+      "answers": "How do I read the dimensions and equations of an existing part from code?"
+    },
+    {
+      "id": "reading-09-bounding-box",
+      "title": "Measure a part's bounding box, and use it as a check",
+      "path": "entries/reading/09-bounding-box.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP1.1",
+      "language": [
+        "csharp"
+      ],
+      "api": [
+        "IPartDoc.GetPartBox",
+        "IModelDoc2.ShowConfiguration2",
+        "IModelDoc2.EditRebuild3"
+      ],
+      "keywords": [
+        "GetPartBox",
+        "bounding box",
+        "extents",
+        "units",
+        "document units",
+        "metres",
+        "inches",
+        "verification",
+        "sanity check",
+        "ShowConfiguration2"
+      ],
+      "answers": "How big is this part, and how do I check that a generated file is the size it should be?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",

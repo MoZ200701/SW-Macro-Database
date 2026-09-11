@@ -157,6 +157,12 @@ This is why insertion should be opt-in.
 
 Part, assembly and drawing files are opaque binaries. In git, mark them binary
 and track them with LFS. Conflicts get prevented with file locks, not resolved.
+
+**LFS is not free, and generated parts blow through it.** Writing one file per
+configuration turns a 9-part folder into 315 files, and a whole library into a
+few thousand. That is ordinary storage but an expensive LFS quota. A nested
+`.gitattributes` in the generated folder can opt those files back out to plain
+blobs while the hand-built masters above it stay in LFS.
 As of 2026 the container format also cannot be parsed for references directly,
 and the Document Manager API that would do it is behind a subscription licence.
 The regular API is the way in. See
@@ -209,7 +215,10 @@ with `err = 0`.
 `GetOpenDocSpec` on a `.step` returns `DocumentType = -1` and `Error = 1024`,
 `swInvalidFileTypeError`. Renaming to `.stp` changes nothing.
 
-The error number reads like the file is damaged. The files were fine. See
+The error number reads like the file is damaged. The files were fine.
+
+This is about neutral formats. On native parts and assemblies `OpenDoc6` works
+normally and is the call to use. See
 [files/01](entries/files/01-batch-convert-step.md).
 
 ## 21. A late-bound host cannot call an API with a `ByRef Long` out-parameter
@@ -237,3 +246,45 @@ loss with a friendly dialog in front of it.
 
 `CloseAllDocuments` raises this prompt. `ISldWorks.CloseDoc(title)` discards
 silently, which is what a batch wants.
+
+## 23. `ShowConfiguration2` returns False when the configuration is already active
+
+Activating a configuration that happens to be the active one returns **False**
+having done nothing wrong. In a loop over every configuration in a part, that is
+exactly one false failure per part: whichever configuration the file was last
+saved in.
+
+Read the name back instead of trusting the return:
+
+```vb
+swModel.ShowConfiguration2 cfg
+If swModel.ConfigurationManager.ActiveConfiguration.Name <> cfg Then
+```
+
+Same shape as §8. A SolidWorks call's return value tells you less than the state
+does.
+
+Two more from the same area, both silent:
+
+- **A design table owns its configurations.** With the table still in place,
+  `DeleteConfiguration2` either fails or the configuration comes back on the
+  next edit. `DeleteDesignTable` first.
+- **Configurations delete in a cascade.** A derived configuration goes when its
+  parent does, so a pass over a name list captured up front tries to delete
+  names that are already gone. Re-read `GetConfigurationNames` each pass, and
+  assert on what is left before saving.
+
+See [files/02](entries/files/02-explode-configurations.md).
+
+## 24. `GetPartBox` is the exception to §2
+
+The API is in metres everywhere, except that `IPartDoc.GetPartBox` takes a
+boolean that decides. `GetPartBox(true)` is metres. `GetPartBox(false)` converts
+to **the document's own unit system**, so the same call returns different
+numbers for two parts depending on how each file was set up.
+
+Pass `true` and convert yourself, particularly when the result is a check. A
+verification that silently depends on a setting in the file being verified is
+not a verification — which is §17, arriving from a different direction.
+
+See [reading/09](entries/reading/09-bounding-box.md).

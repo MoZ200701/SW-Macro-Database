@@ -53,6 +53,12 @@ SetInt(swUserPreferenceIntegerValue_e.swImportCheckAndRepair, 0);
 `GetOpenDocSpec` on a `.step` returns `DocumentType = -1` and `spec.Error = 1024`
 (`swInvalidFileTypeError`). Renaming the file to `.stp` changes nothing.
 
+**This is about neutral formats, not about `OpenDoc6`.** On native parts and
+assemblies `OpenDoc6` is the right call and works normally, including in the
+tools behind [files/02](02-explode-configurations.md) and
+[files/03](03-upgrade-file-version.md). Do not read this entry as a reason to
+avoid it everywhere.
+
 ## Let SolidWorks decide part or assembly
 
 A neutral file becomes whatever SolidWorks makes of it, regardless of what you
@@ -216,5 +222,8 @@ the interop enum:
   and why it cannot be used for this
 - [connect/06 — One apartment thread](../connect/06-one-apartment-thread.md)
 - [connect/09 — Launch versus attach](../connect/09-launch-versus-attach.md)
+- [files/02 — Explode configurations](02-explode-configurations.md) — what a
+  STEP import has none of
+- [files/03 — Upgrade a file version](03-upgrade-file-version.md)
 - [reading/01 — Dependencies of a closed file](../reading/01-dependencies-of-a-closed-file.md)
 - [GOTCHAS §20, §21, §22](../../GOTCHAS.md)

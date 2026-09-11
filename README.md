@@ -24,7 +24,7 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-37 entries, grouped six ways:
+41 entries, grouped six ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, and keeping the connection alive safely.
@@ -36,12 +36,13 @@ code. You never need to open the projects the entries came from.
   VBA, with the full relation and dimension constant tables, and an honest list
   of what the sketch API cannot be made to do.
 - **[entries/reading/](entries/reading/)** — interrogating a model: a closed
-  file's references, reference trees, what the user has selected, and sketch to
-  model coordinates.
+  file's references, reference trees, what the user has selected, sketch to
+  model coordinates, and reading dimensions, equations and sizes back out.
 - **[entries/surfacing/](entries/surfacing/)** — the parts that stay manual, and
   the axis conventions that decide which way geometry lands.
-- **[entries/files/](entries/files/)** — getting files in and out: importing
-  neutral formats such as STEP in bulk, and what survives the trip.
+- **[entries/files/](entries/files/)** — whole-library operations: importing
+  neutral formats such as STEP in bulk, writing one file per configuration, and
+  moving a tree onto a newer file version.
 
 ## The status field is the whole point
 
@@ -54,7 +55,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **28 verified, 4 partly verified, 5 unverified.**
+Currently: **31 verified, 5 partly verified, 5 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.

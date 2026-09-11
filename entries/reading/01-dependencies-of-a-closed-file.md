@@ -4,8 +4,8 @@ title: Read a closed file's references without opening it
 status: verified
 verified_on: SolidWorks 2026
 language: [csharp]
-api: [ISldWorks.GetDocumentDependencies2]
-keywords: [GetDocumentDependencies2, references, dependencies, closed file, virtual component, document manager, opaque format]
+api: [ISldWorks.GetDocumentDependencies2, ISldWorks.GetConfigurationNames, ISldWorks.VersionHistory, ISldWorks.GetLatestSupportedFileVersion]
+keywords: [GetDocumentDependencies2, references, dependencies, closed file, virtual component, document manager, opaque format, GetConfigurationNames, VersionHistory, file version, without opening]
 answers: "How do I find out what a part or assembly references without opening it?"
 ---
 
@@ -117,6 +117,36 @@ SQLite is enough for everything downstream:
 Skip files whose name starts with `~$`. Those are SolidWorks' own temporary
 lock files.
 
+## Two more things a closed file will tell you
+
+`GetDocumentDependencies2` is not the only call that reads a file without
+opening it. Two others are worth knowing, both on `ISldWorks`, both taking a
+path:
+
+```csharp
+// Configuration names, straight out of the file.
+object o = sw.GetConfigurationNames(path);
+string[] names = (string[])o;
+
+// The saved-version list. "11000[2018/134] | 14000[2021/85]"
+string[] vh = (string[])sw.VersionHistory(path);
+```
+
+`GetConfigurationNames` exists on `IModelDoc2` as well, where it reads an open
+document. The `ISldWorks` one takes a path and does not open anything, which is
+the difference that matters: surveying a whole library takes seconds this way
+where opening each part takes hours.
+
+`VersionHistory` gives a pipe-separated list of file versions with the release
+and build in brackets, oldest first, so the last entry is what last wrote the
+file. Compare it against `ISldWorks.GetLatestSupportedFileVersion()` to find
+what is stale. See [files/03](../files/03-upgrade-file-version.md).
+
+Both were verified on SolidWorks 2026 SP1.1, over a library of a few thousand
+parts, without a document being opened.
+
+Skip files whose name starts with `~$` here too.
+
 ## Full source
 
 [`code/csharp/SwConnector.cs`](../../code/csharp/SwConnector.cs)
@@ -125,5 +155,9 @@ lock files.
 
 - [reading/02 — Walk a reference tree](02-walk-a-reference-tree.md)
 - [reading/03 — Repair references after a move](03-repair-references-after-a-move.md)
+- [files/02 — Explode configurations](../files/02-explode-configurations.md) —
+  uses the configuration-name read above to plan the work
+- [files/03 — Upgrade a file version](../files/03-upgrade-file-version.md) —
+  uses the version history above to skip what is current
 - [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — why
   closing a file you only meant to read can rewrite it

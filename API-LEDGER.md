@@ -24,6 +24,9 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `GetOpenDocSpec` | Document spec before opening. On a `.step` returns `DocumentType = -1`, `Error = 1024` | Verified, SW 2026 SP1.1 |
 | `CloseDoc(title)` | Close one document, discarding changes silently. Unlike `CloseAllDocuments`, raises no save prompt | Verified, SW 2026 SP1.1 |
 | `SetUserPreferenceToggle` / `SetUserPreferenceIntegerValue` | Set import and other options from code | Verified, SW 2026 SP1.1 |
+| `GetConfigurationNames(path)` | Configuration names of a **closed** file. The `IModelDoc2` member of the same name reads an open one | Verified, SW 2026 SP1.1 |
+| `VersionHistory(path)` | Saved-version list of a **closed** file, `11000[2018/134] \| 14000[2021/85]` | Verified, SW 2026 SP1.1 |
+| `GetLatestSupportedFileVersion` | File version this instance writes. Not the `RevisionNumber` major | Verified, SW 2026 SP1.1 |
 
 ## IModelDoc2 (a part, assembly or drawing)
 
@@ -40,6 +43,16 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `SelectionManager` | The selection, for reading what was clicked | Verified |
 | `SketchManager` | The sketch API | Partly verified |
 | `GetType` | Document type of what you actually got. 1 part, 2 assembly. A neutral import decides this for you | Verified, SW 2026 SP1.1 |
+| `GetConfigurationNames` | Configuration names of the open document | Verified, SW 2026 SP1.1 |
+| `GetConfigurationByName(name)` | One `IConfiguration` | Verified, SW 2026 SP1.1 |
+| `ShowConfiguration2(name)` | Activate a configuration. **Returns False when it is already active**; read the name back | Verified, SW 2026 SP1.1 |
+| `DeleteConfiguration2(name)` | Delete one. Takes derived configurations with it | Verified, SW 2026 SP1.1 |
+| `DeleteDesignTable` | Drop the table. Must precede any configuration deletion | Verified, SW 2026 SP1.1 |
+| `GetDesignTable` | Non-null means the configurations are table-driven | Verified, SW 2026 SP1.1 |
+| `GetEquationMgr` | `IEquationMgr`, below | Verified, SW 2026 SP1.1 |
+| `EditRebuild3` | Rebuild the active configuration. Needed after `ShowConfiguration2` before measuring | Verified, SW 2026 SP1.1 |
+| `Save3(options, ByRef err, ByRef warn)` | Save in place, silently | Verified, SW 2026 SP1.1 |
+| `ConfigurationManager` | `IConfigurationManager`, below | Verified, SW 2026 SP1.1 |
 | `SaveAs3(path, version, options)` | Save under a new name. `0` current version, `2` silent | Unverified |
 | `Extension` | `IModelDocExtension`, below | Verified |
 
@@ -54,6 +67,42 @@ lives on, and whether it has been observed working. Sorted by interface.
 | `GetObjectByPersistReference3(ref, out)` | Resolve that handle back. Needs a by-ref out parameter | Verified, SW 2026 |
 | `SaveAs(path, version, options, exportData, ByRef err, ByRef warn)` | Save under a new name, with an error and a warning code back. Prefer over `SaveAs3` | Verified, SW 2026 SP1.1 |
 | `ListExternalFileReferences` | External references of a document | Unverified |
+
+## IConfigurationManager (from `IModelDoc2.ConfigurationManager`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `ActiveConfiguration` | The active `IConfiguration`. Read its `Name` rather than trusting `ShowConfiguration2` | Verified, SW 2026 SP1.1 |
+
+## IConfiguration
+
+| Member | Purpose | Status |
+|---|---|---|
+| `Name` | Configuration name | Verified, SW 2026 SP1.1 |
+| `Description` | Its description. Can throw; wrap it | Verified, SW 2026 SP1.1 |
+| `GetParent` | Non-null means this configuration is derived from that one | Verified, SW 2026 SP1.1 |
+
+## IPartDoc (a part, cast from IModelDoc2)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetPartBox(useSystemUnits)` | Axis-aligned bounding box, `x1,y1,z1,x2,y2,z2`. **`true` is metres, `false` converts to the document's units** | Verified, SW 2026 SP1.1 |
+
+## IEquationMgr (from `IModelDoc2.GetEquationMgr`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetCount` | How many equations, global variables included | Verified, SW 2026 SP1.1 |
+| `Equation[i]` | The raw equation text, in editor order | Verified, SW 2026 SP1.1 |
+
+## IDisplayDimension and IDimension (from a feature)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IFeature.GetFirstDisplayDimension` / `GetNextDisplayDimension(dd)` | Walk a feature's dimensions. There is no all-dimensions collection | Verified, SW 2026 SP1.1 |
+| `IDisplayDimension.GetDimension` | The `IDimension` behind the annotation | Verified, SW 2026 SP1.1 |
+| `IDimension.FullName` | Qualified name, as the equation editor spells it | Verified, SW 2026 SP1.1 |
+| `IDimension.GetSystemValue2(config)` | Value **in metres**. `""` is the active configuration | Verified, SW 2026 SP1.1 |
 
 ## IFeatureManager (from `IModelDoc2.FeatureManager`)
 
@@ -179,3 +228,8 @@ from `OpenDoc6`, `1024` `swInvalidFileTypeError` from `GetOpenDocSpec`. See
 
 `swDocumentTypes_e` from `IModelDoc2.GetType`: `1` part and `2` assembly, both
 observed. The enum also defines a drawing value; it was not seen here.
+
+File versions, from `VersionHistory` and `GetLatestSupportedFileVersion`:
+`11000` is 2018, `14000` is 2021, `19000` is 2026. These are **not** the
+`RevisionNumber` majors above, where 34 is 2026. Two schemes for one release;
+do not compare across them.

@@ -50,6 +50,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | I want to… | Entry |
 |---|---|
 | Turn a folder of STEP files into SolidWorks parts | [files/01 — Batch-convert STEP](entries/files/01-batch-convert-step.md) |
+| Write one file per configuration out of a configurable part | [files/02 — Explode configurations](entries/files/02-explode-configurations.md) |
+| Re-save a whole library in the current file format | [files/03 — Upgrade a file version](entries/files/03-upgrade-file-version.md) |
 
 ## Read an existing model
 
@@ -62,6 +64,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Convert sketch coordinates to model coordinates | [reading/05 — Sketch to model transform](entries/reading/05-sketch-to-model-transform.md) |
 | Watch the active sketch while the user works | [reading/06 — Live sketch monitor](entries/reading/06-live-sketch-monitor.md) |
 | Make a failing call tell me why | [reading/07 — Report the feature type on failure](entries/reading/07-report-feature-type-on-failure.md) |
+| Read the dimensions and equations of an existing part | [reading/08 — Dimensions and equations](entries/reading/08-dimensions-and-equations.md) |
+| Check that a generated file is the size it should be | [reading/09 — Bounding box as a check](entries/reading/09-bounding-box.md) |
 
 ## Build a surface, and get the orientation right
 
@@ -74,8 +78,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
 - **Python (pywin32)** — connect/02, connect/05, connect/06, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, reading/04, reading/05
-- **VBA** — connect/04, sketches/01 through 06, curves/03, files/01
-- **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, files/01
+- **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
+- **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
 ## The thing you probably came here for
 
