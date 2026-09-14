@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2024, 2025 and 2026 side by side
 language: [python]
 api: [ISldWorks.RevisionNumber, ISldWorks.ActiveDoc]
-keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID]
+keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID, indexed property, property put, DISPATCH_PROPERTYPUT, Invoke, _oleobj_, Equation(i), zero-argument method not invoked, method object, PyInstaller, hidden-import, onefile exe, frozen app]
 answers: "How do I connect to SolidWorks from Python without launching a second copy?"
 ---
 
@@ -163,6 +163,102 @@ The year offset is display only. Getting it wrong costs one wrong word in a
 message and nothing else, which is the right amount of trust to put in a
 convention.
 
+## Setting an indexed property
+
+Some SolidWorks properties take an index. In VBA, changing an equation in the
+Equation Manager is an assignment:
+
+```vb
+swEqnMgr.Equation(i) = """Module""= 2.25"
+```
+
+Late-bound pywin32 has no way to spell that. `eqm.Equation(i)` is a *get*, and
+there is no assignment syntax for a property with an argument. Make the put
+through `Invoke` on the underlying `IDispatch`:
+
+```python
+def _put_indexed(obj: Any, name: str, index: int, value: Any) -> None:
+    """An indexed property put, which late binding cannot spell as an assignment.
+
+    ``eqm.Equation(i) = text`` in VBA; through pywin32's dynamic dispatch the
+    name is only ever invoked as a get or a call, so the put goes through
+    ``Invoke`` (probe equation_set, SolidWorks 2026).
+    """
+    oleobj = obj._oleobj_  # noqa: SLF001
+    oleobj.Invoke(oleobj.GetIDsOfNames(name), 0, pythoncom.DISPATCH_PROPERTYPUT, False, index, value)
+```
+
+`Invoke(dispid, lcid, flags, wantResult, *args)`: the locale is `0`,
+`DISPATCH_PROPERTYPUT` makes it a put, `False` asks for no result, and the
+index comes before the value, as it does in VBA.
+
+**Verified on SolidWorks 2026 (revision 34.0.0).** With `"Probe Base"= 3` and
+`"Probe Twice"= "Probe Base" * 2` in a part, `_put_indexed(eqm, "Equation", i, '"Probe Base"= 5')`
+returned `None`, and after `IModelDoc2.ForceRebuild3(False)` the dependent
+global read 10.0. The documented-looking alternative,
+`IEquationMgr.SetEquationAndConfigurationOption`, returned `-1` and changed
+nothing. The same put later drove a sketch dimension, an Equation Driven Curve,
+a pattern count and an assembly mate distance through their globals, and
+changed a built gear's teeth and module. See
+[equations/01](../equations/01-global-variables-from-code.md).
+
+## A zero-argument method that returns nothing is not invoked by `call`
+
+The `call` rule above — attribute access for zero-argument members — held for
+every member that returns something. It did **not** run a member that returns
+nothing. `call(asm, "FixComponent")` on an assembly, on SolidWorks 2026
+(revision 34.0.0), came back as a Python `method` object: the bound method was
+fetched and never called. Nothing raised, and a check afterwards passed only
+because the component was already fixed.
+
+So a zero-argument *action* needs explicit parentheses, `asm.FixComponent()`,
+and a check of its effect. That form was confirmed on a rerun on the same
+version (run 20260914-183429): on a free component it returned `None` and
+`IsFixed` went from `False` to `True`. If a result's `type(...).__name__` is `'method'`,
+nothing ran. That pywin32 treats a zero-argument member with a return value as
+a property and one without as a method is the likely reason; it was not
+established. See [assemblies/01](../assemblies/01-new-assembly-and-insert-components.md)
+and [GOTCHAS §31](../../GOTCHAS.md).
+
+## Bundled into a one-file exe
+
+A tool frozen with PyInstaller attached through the Running Object Table in the
+same way, built with pywin32's modules named as hidden imports. The command, from
+the tool's `build.bat`:
+
+```bat
+python -m PyInstaller --onefile --windowed --name "Gear Generator v0.1" ^
+    --paths src ^
+    --add-data "src\gear_generator\assets\fonts;assets/fonts" ^
+    --hidden-import pythoncom ^
+    --hidden-import pywintypes ^
+    --hidden-import win32com.client.dynamic ^
+    --hidden-import win32timezone ^
+    main.py
+```
+
+Observed with SolidWorks 2026 (revision 34.0.0), Windows 11, the Microsoft Store
+Python 3.13.14 and PyInstaller 6.22.2:
+
+- In `cmd`, `pyinstaller` was "not recognized as an internal or external
+  command", with PyInstaller installed for that Python, and the build logged
+  above completed. The batch file therefore runs it as `python -m PyInstaller`.
+  Its comment gives the reason as the Store Python keeping its Scripts folder off
+  `PATH`; that was not checked separately.
+- The build ran from a copy of the checkout under `%USERPROFILE%\Documents`, not
+  from its `\\wsl.localhost` path. Whether building from the UNC path works is
+  not recorded.
+- The build log shows pywin32's hooks for `pythoncom`, `pywintypes` and
+  `win32com` applied, and `win32timezone` analysed as a hidden import.
+- Launched, the exe opened its window, and its SolidWorks panel read "SolidWorks
+  2026 (revision 34.0.0)" with the document open in that session: it had
+  attached. A `WM_CLOSE` posted to the window closed it, the launched process
+  exited 0, and no process of that image was left running.
+
+Not established: that a build without those hidden imports fails to attach (the
+batch file says so, but no such build was run), and which process owns the
+window of a `--onefile` build.
+
 ## Full source
 
 [`code/python/swcom.py`](../../code/python/swcom.py) — the complete module,
@@ -175,3 +271,8 @@ that application testable without SolidWorks.
 - [connect/05 — Choosing among versions](05-choosing-among-versions.md)
 - [connect/06 — One apartment thread](06-one-apartment-thread.md)
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md)
+- [equations/01 — Global variables from code](../equations/01-global-variables-from-code.md) — the indexed put in use
+- [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — typed nulls and out longs on `SaveAs3`
+- [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — the `FixComponent` case
+- [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md)
+- [`code/python/gear_generator/swcom.py`](../../code/python/gear_generator/swcom.py) — a later version of the module, with `_put_indexed`

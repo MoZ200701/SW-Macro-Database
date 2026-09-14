@@ -15,8 +15,24 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Stop COM blowing up under threads | [connect/06 — One apartment thread](entries/connect/06-one-apartment-thread.md) |
 | Find the part I want among the open documents | [connect/07 — Find the open document](entries/connect/07-find-the-open-document.md) |
 | Find a feature by its name | [connect/08 — Find a feature by name](entries/connect/08-find-a-feature-by-name.md) |
+| Walk every feature, sketches under features included | [connect/08 — Find a feature by name](entries/connect/08-find-a-feature-by-name.md) |
 | Start SolidWorks if it isn't running | [connect/09 — Launch versus attach](entries/connect/09-launch-versus-attach.md) |
 | Drive Windows SolidWorks from WSL or a Mac | [connect/10 — Driving from outside Windows](entries/connect/10-driving-from-outside-windows.md) |
+| Find out whether an API call really works before depending on it | [connect/11 — Probe an API member on a live session](entries/connect/11-probe-an-api-member-on-a-live-session.md) |
+
+## Make, save and close documents
+
+| I want to… | Entry |
+|---|---|
+| Make a new part or assembly, in millimetres | [documents/01 — New part from a template](entries/documents/01-new-part-from-template.md) |
+| Save to a new path, and close without a prompt | [documents/02 — Save as, and close](entries/documents/02-save-as-and-close.md) |
+
+## Make a part parametric
+
+| I want to… | Entry |
+|---|---|
+| Add, read and change global variables | [equations/01 — Global variables from code](entries/equations/01-global-variables-from-code.md) |
+| Make a dimension follow a global | [equations/02 — Link a dimension to a global](entries/equations/02-link-a-dimension-to-a-global.md) |
 
 ## Get geometry in
 
@@ -44,6 +60,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Add and set a dimension | [sketches/04 — Dimensions](entries/sketches/04-dimensions.md) |
 | Get the units and number formatting right | [sketches/05 — Units and number format](entries/sketches/05-units-and-number-format.md) |
 | Know what I will have to do by hand | [sketches/06 — What the sketch API cannot do](entries/sketches/06-what-the-sketch-api-cannot-do.md) |
+| Draw a curve from x(t) and y(t), driven by globals | [sketches/07 — Equation driven curve](entries/sketches/07-equation-driven-curve.md) |
+| Check that a sketch is fully defined | [sketches/10 — Is the sketch fully defined](entries/sketches/10-is-the-sketch-fully-defined.md) |
 
 ## Convert and batch-process files
 
@@ -52,6 +70,22 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Turn a folder of STEP files into SolidWorks parts | [files/01 — Batch-convert STEP](entries/files/01-batch-convert-step.md) |
 | Write one file per configuration out of a configurable part | [files/02 — Explode configurations](entries/files/02-explode-configurations.md) |
 | Re-save a whole library in the current file format | [files/03 — Upgrade a file version](entries/files/03-upgrade-file-version.md) |
+
+## Build solid features
+
+| I want to… | Entry |
+|---|---|
+| Extrude a closed sketch into a boss | [features/01 — Boss extrude](entries/features/01-boss-extrude.md) |
+| Cut a sketch through the part | [features/02 — Cut extrude](entries/features/02-cut-extrude.md) |
+| Repeat a feature around an axis | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
+| Find an extrusion's depth or a pattern's count to name or link | [features/04 — Read a feature's dimensions](entries/features/04-read-a-features-dimensions.md) |
+
+## Put parts together
+
+| I want to… | Entry |
+|---|---|
+| Make an assembly and insert saved parts | [assemblies/01 — New assembly and insert components](entries/assemblies/01-new-assembly-and-insert-components.md) |
+| Mate components, and drive a mate from a global | [assemblies/02 — Mates from code](entries/assemblies/02-mates-from-code.md) |
 
 ## Read an existing model
 
@@ -66,6 +100,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Make a failing call tell me why | [reading/07 — Report the feature type on failure](entries/reading/07-report-feature-type-on-failure.md) |
 | Read the dimensions and equations of an existing part | [reading/08 — Dimensions and equations](entries/reading/08-dimensions-and-equations.md) |
 | Check that a generated file is the size it should be | [reading/09 — Bounding box as a check](entries/reading/09-bounding-box.md) |
+| Check that a feature changed the solid the way I meant | [reading/10 — Mass properties as an oracle](entries/reading/10-mass-properties-as-an-oracle.md) |
 
 ## Build a surface, and get the orientation right
 
@@ -77,14 +112,14 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, reading/04, reading/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 04, assemblies/01, assemblies/02, reading/04, reading/05, reading/10
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
 ## The thing you probably came here for
 
 If you are about to write a macro that drives a feature this collection does
-not cover — an extrude, a revolve, a fillet — you still want
+not cover — a revolve, a fillet, a loft — you still want
 [connect/01](entries/connect/01-attach-from-vbscript.md) for the attach,
 [connect/07](entries/connect/07-find-the-open-document.md) for finding the
 part, [connect/08](entries/connect/08-find-a-feature-by-name.md) for finding
@@ -92,4 +127,7 @@ what to build on, [sketches/05](entries/sketches/05-units-and-number-format.md)
 for the units, [curves/07](entries/curves/07-rename-a-feature.md) for naming
 the result, and [reading/07](entries/reading/07-report-feature-type-on-failure.md)
 for the error handling. That is the whole scaffold. Only the one call in the
-middle is new.
+middle is new — and [connect/11](entries/connect/11-probe-an-api-member-on-a-live-session.md)
+is how to find out whether that call works before you depend on it, with
+[reading/10](entries/reading/10-mass-properties-as-an-oracle.md) as the check.
+Extrude, cut and circular pattern are in [features/](entries/features/).

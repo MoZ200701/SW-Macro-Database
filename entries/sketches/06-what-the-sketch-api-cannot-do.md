@@ -128,3 +128,5 @@ right.
 - [sketches/01 — A 2D sketch as VBA](01-2d-sketch-as-vba.md)
 - [sketches/02 — A 3D sketch as VBA](02-3d-sketch-as-vba.md)
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — the same rule, as an authorship rule
+- [sketches/07 — Equation driven curve](07-equation-driven-curve.md) — a spline that can be driven from code
+- [sketches/10 — Is the sketch fully defined](10-is-the-sketch-fully-defined.md) — checking what is left

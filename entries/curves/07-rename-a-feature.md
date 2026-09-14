@@ -75,8 +75,19 @@ collide with their work and hit the silent-rename behaviour above.
 A user can rename anything at any time. If a mapping has to survive that, use a
 persistent reference instead: [curves/10](10-persistent-references.md).
 
+## Also seen on SolidWorks 2026 (revision 34.0.0)
+
+A new sketch feature renamed to `Probe Sketch`, in a part that already had a
+sketch of that name, read back as `Sketch2`: its own generated name, kept with
+no error. The same run renamed extrusions, cuts, patterns, axes, mates and
+dimensions and read every one back (probes `sketch_open_close`, `extrude`,
+`pattern`, `axis`, `assembly_components_and_mates` and `end_to_end`, run
+20260914-180426).
+
 ## See also
 
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md)
 - [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — a folder is renamed the same way, and read back for the same reason
 - [GOTCHAS §8](../../GOTCHAS.md)
+- [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md) — an equation names the feature, so a name that did not stick breaks it
+- [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) — dimensions are renamed and read back the same way

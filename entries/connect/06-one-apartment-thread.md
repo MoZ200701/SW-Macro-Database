@@ -187,3 +187,4 @@ Runner.Dispose();
 - [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — the
   same rule from a compiled exe, with `[STAThread]`
 - [`code/python/swcom.py`](../../code/python/swcom.py)
+- [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md) — one job per probe on the COM thread, with a timeout

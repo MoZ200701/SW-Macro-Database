@@ -127,3 +127,4 @@ any machine and catches the transpose immediately.
 
 - [reading/04 — Read the selection](04-read-the-selection.md)
 - [GOTCHAS §10](../../GOTCHAS.md)
+- [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — a component's `Transform2.ArrayData`

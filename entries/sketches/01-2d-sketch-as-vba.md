@@ -1,19 +1,22 @@
 ---
 id: sketches-01-2d-sketch-as-vba
 title: Generate a 2D sketch as a VBA macro
-status: unverified
-verified_on: null
+status: partly-verified
+verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [vba]
 api: [ISketchManager.InsertSketch, CreatePoint, CreateLine2, CreateArc, CreateCircleByRadius, CreateSpline, AddConstraint, Select4, GetStartPoint2, GetEndPoint2, GetCenterPoint2]
-keywords: [2d sketch, InsertSketch, CreateLine2, CreateSpline, sketch macro, generate vba, weld, construction geometry]
+keywords: [2d sketch, InsertSketch, CreateLine2, CreateSpline, sketch macro, generate vba, weld, construction geometry, shared end point, CreateArc direction]
 answers: "How do I emit a VBA macro that draws a fully-defined 2D sketch?"
 ---
 
 # Generate a 2D sketch as a VBA macro
 
-**Status: unverified.** This code is well-formed VBA against the documented API
-surface, and it is deterministic and complete. Nobody has watched it run against
-SolidWorks. Treat it as a strong starting point, not as proven.
+**Status: partly verified.** The VBA below is well-formed against the documented
+API surface, deterministic and complete, and **the macro itself has still not
+been run**. Most of the members it uses have now been run on SolidWorks 2026
+(revision 34.0.0) from Python over pywin32, and behaved as described here; a
+few have not, and two were run in a different form. "What has been run", below,
+says which. This entry was `unverified` until that probe run.
 
 ## The skeleton
 
@@ -78,6 +81,11 @@ Set v_A = Part.SketchManager.CreateArc(cx, cy, 0, sx, sy, 0, ex, ey, 0, 1)
 Hold every created entity in its own `Dim`ed variable. You need them later to
 select for relations and dimensions, and there is no way to look one up by name.
 
+**Arc direction `1` is counter-clockwise from the start point, `-1`
+clockwise** (observed on SolidWorks 2026: centre at the origin, start (30, 0)
+mm, end (0, 30) mm, direction `1` made the 90° arc, 47.12 mm long; `-1` made
+the 270° arc, 141.37 mm long).
+
 ## Splines take a flat array
 
 ```vb
@@ -113,6 +121,23 @@ The shape is always the same and is worth internalising:
 
 `GetStartPoint2`, `GetEndPoint2` and `GetCenterPoint2` return selectable point
 objects, so they can be the target of a relation directly.
+
+### Ends drawn exactly on ends are already one point
+
+Observed on SolidWorks 2026 (revision 34.0.0): an entity **created starting
+exactly at another entity's end point does not get a point of its own there.**
+A line started on a previous line's end, on an arc's start, and on an Equation
+Driven Curve's start each left exactly one sketch point at that spot, and the
+new line's `GetStartPoint2` compared equal to the other entity's point. A line
+started 0.1 mm away got its own point.
+
+Two consequences for a generator. There is nothing to weld between two such
+ends: the coincident relation already holds. And trying to add it anyway
+selects one object twice: selecting that shared point and then "the other" end
+left the selection count at 1, so a two-entity relation has only one entity to
+work on. Skip the weld when both ends were drawn at the same coordinates. The
+standalone-point case above — a `CreatePoint` and a line end at the same place
+— was not tested, so the weld for it stands as written.
 
 ## Relations
 
@@ -161,6 +186,35 @@ Works on segments. **On a bare sketch point its availability varies by
 version**, so if you set it there, be prepared for the line to error and have
 the macro carry on.
 
+## What has been run
+
+On SolidWorks 2026 (revision 34.0.0), from Python over pywin32, in the probe
+run 20260914-180426 (probes `close_document`, `sketch_open_close`,
+`sketch_entities`, `relations`, `dimensions`, `curve_end_points`):
+
+| In this entry | Run? | What was observed |
+|---|---|---|
+| `InsertSketch True` twice | Yes | a plane selected, the first call opened a sketch (`ActiveSketch` not `Nothing`), the second closed it (`ActiveSketch` `Nothing`) |
+| `CreatePoint` | Yes | a point at (70, 80) mm read back there |
+| `CreateLine2` | **No** | `ISketchManager.CreateLine` with the same six coordinates ran instead; its ends read back where asked and `GetLength` was in metres |
+| `CreateCircleByRadius` | Yes | centre and `GetRadius` read back, in metres |
+| `CreateArc(..., 1)` | Yes | direction as stated above |
+| `CreateSpline` | **No** | |
+| `ConstructionGeometry = True` | On a line, yes | set on a line and read back `True`; not tried on a bare point |
+| `Select4 append, data` | Yes | from Python, with `data` a typed null dispatch rather than `Nothing`; 18 selections, each on the first try |
+| `GetStartPoint2` / `GetEndPoint2` / `GetCenterPoint2` as relation targets | Yes | relations on them moved the geometry as expected |
+| `SketchManager.AddConstraint` | **No** | `IModelDoc2.SketchAddConstraints` with the same constant strings ran instead; see [sketches/03](03-relation-constants.md) |
+| `Extension.AddDimension2` and `.Dimension` | **No** | `IModelDoc2.AddDimension2` and `IDisplayDimension.GetDimension2(0)` ran instead; see [sketches/04](04-dimensions.md) |
+| `swSketch.GetFeature().Name` | **No** | the sketch feature was found by diffing the tree and renamed through `IFeature.Name` |
+| Ends drawn on ends | Yes | as in the section above |
+
+A complete generated sketch in the same style — curves, lines and arcs,
+coincident, tangent and equal-length relations, two dimensions — read
+`GetConstrainedStatus` 3, fully defined; see
+[sketches/10](10-is-the-sketch-fully-defined.md). To move this entry to
+`verified`, run [`code/vba/SectionSketch.bas`](../../code/vba/SectionSketch.bas)
+in SolidWorks and record what it drew.
+
 ## Full generated example
 
 [`code/vba/SectionSketch.bas`](../../code/vba/SectionSketch.bas) — a real
@@ -182,3 +236,6 @@ See [sketches/06](06-what-the-sketch-api-cannot-do.md) for what those steps are.
 - [sketches/02 — A 3D sketch as VBA](02-3d-sketch-as-vba.md)
 - [sketches/05 — Units and number format](05-units-and-number-format.md)
 - [connect/04 — Attach from VBA](../connect/04-attach-from-vba.md)
+- [sketches/07 — Equation driven curve](07-equation-driven-curve.md) — curve ends shared with lines
+- [sketches/10 — Is the sketch fully defined](10-is-the-sketch-fully-defined.md) — checking the result
+- [GOTCHAS §35](../../GOTCHAS.md)

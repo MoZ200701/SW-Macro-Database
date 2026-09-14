@@ -109,3 +109,4 @@ when something is off by a thousand.
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md)
 - [curves/03 — Stream curve points](../curves/03-stream-curve-points.md)
 - [GOTCHAS §2](../../GOTCHAS.md)
+- [documents/01 — New part from a template](../documents/01-new-part-from-template.md) — document units, which equations use even though the API does not

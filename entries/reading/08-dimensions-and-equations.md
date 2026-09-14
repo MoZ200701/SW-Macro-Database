@@ -167,3 +167,9 @@ measuring geometry, not by reading dimensions — see
 - [sketches/04 — Dimensions](../sketches/04-dimensions.md) — the writing side,
   still unverified
 - [files/02 — Explode configurations](../files/02-explode-configurations.md)
+- [equations/01 — Global variables from code](../equations/01-global-variables-from-code.md) —
+  adding and changing the equations this reads
+- [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md) —
+  the `Dim@Owner` names an equation uses
+- [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) —
+  the same display-dimension walk, used to find one dimension by value

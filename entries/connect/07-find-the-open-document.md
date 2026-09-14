@@ -107,6 +107,30 @@ def documents(self):
 Note `call`, not `doc.GetNext()`. In late-bound Python a zero-argument member
 is reached by attribute access. See [connect/02](02-attach-from-python.md).
 
+## Bringing another open document to the front
+
+Finding a document does not make it active. `ActivateDoc3` on **ISldWorks**
+does, by title. From the probe, in Python:
+
+```python
+got, value = px.attempt(
+    "ActivateDoc3(title, False, 0, out long)",
+    lambda: call(sc.app(px), "ActivateDoc3", first_title, False, 0, sc.out_long()),
+)
+```
+
+`sc.out_long()` is the by-reference integer
+`VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)` from
+[connect/02](02-attach-from-python.md).
+
+Observed on SolidWorks 2026 (revision 34.0.0), probe `activate_document`: with
+two new parts open and the second active, `ActivateDoc3` with the first part's
+title returned a document object (not a tuple, despite the out parameter), and
+`ActiveDoc` then returned the first part. Only `False` and `0` were passed for
+the middle two arguments, and the out value was not read.
+
 ## See also
 
 - [connect/08 — Find a feature by name](08-find-a-feature-by-name.md)
+- [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — `CloseDoc` by title
+- [documents/01 — New part from a template](../documents/01-new-part-from-template.md) — a new document is the active one

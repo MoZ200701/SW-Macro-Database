@@ -1,13 +1,90 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 41,
+  "count": 55,
   "by_status": {
-    "partly-verified": 5,
-    "unverified": 5,
-    "verified": 31
+    "partly-verified": 7,
+    "unverified": 3,
+    "verified": 45
   },
   "entries": [
+    {
+      "id": "assemblies-01-new-assembly-and-insert-components",
+      "title": "Make an assembly and insert saved parts as components",
+      "path": "entries/assemblies/01-new-assembly-and-insert-components.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.NewDocument",
+        "IAssemblyDoc.AddComponent5",
+        "IComponent2.Name2",
+        "IComponent2.Transform2",
+        "IComponent2.IsFixed",
+        "IComponent2.Select4",
+        "IAssemblyDoc.FixComponent"
+      ],
+      "keywords": [
+        "assembly",
+        "AddComponent5",
+        "insert component",
+        "component name -1",
+        "Name2",
+        "Transform2",
+        "ArrayData",
+        "IsFixed",
+        "FixComponent",
+        "fixed on insert",
+        "first component fixed",
+        "asmdot",
+        "assembly template",
+        "component position"
+      ],
+      "answers": "How do I make a new assembly and insert saved parts into it as components from code?"
+    },
+    {
+      "id": "assemblies-02-mates-from-code",
+      "title": "Add coincident, distance and angle mates",
+      "path": "entries/assemblies/02-mates-from-code.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IAssemblyDoc.AddMate5",
+        "IComponent2.FeatureByName",
+        "IFeature.Select2",
+        "IModelDocExtension.SelectByID2",
+        "IFeature.GetFirstSubFeature",
+        "IFeature.GetNextSubFeature",
+        "IEquationMgr.Add2"
+      ],
+      "keywords": [
+        "AddMate5",
+        "mate",
+        "coincident mate",
+        "distance mate",
+        "angle mate",
+        "swMateType_e",
+        "swMateCOINCIDENT",
+        "swMateDISTANCE",
+        "swMateANGLE",
+        "swMateAlign_e",
+        "MateGroup",
+        "MateCoincident",
+        "MateDistanceDim",
+        "MatePlanarAngleDim",
+        "FeatureByName",
+        "selection mark 1",
+        "drive mate from global"
+      ],
+      "answers": "How do I add coincident, distance and angle mates between assembly components from code?"
+    },
     {
       "id": "connect-01-attach-vbscript",
       "title": "Attach to a running SolidWorks from VBScript",
@@ -57,7 +134,19 @@
         "IDispatch",
         "VARIANT",
         "late binding",
-        "SolidWorks_PID"
+        "SolidWorks_PID",
+        "indexed property",
+        "property put",
+        "DISPATCH_PROPERTYPUT",
+        "Invoke",
+        "_oleobj_",
+        "Equation(i)",
+        "zero-argument method not invoked",
+        "method object",
+        "PyInstaller",
+        "hidden-import",
+        "onefile exe",
+        "frozen app"
       ],
       "answers": "How do I connect to SolidWorks from Python without launching a second copy?"
     },
@@ -206,14 +295,21 @@
       "api": [
         "IModelDoc2.FirstFeature",
         "IFeature.GetNextFeature",
-        "IFeature.Name"
+        "IFeature.Name",
+        "IFeature.GetFirstSubFeature",
+        "IFeature.GetNextSubFeature"
       ],
       "keywords": [
         "feature tree",
         "walk features",
         "FirstFeature",
         "GetNextFeature",
-        "find feature"
+        "find feature",
+        "GetFirstSubFeature",
+        "GetNextSubFeature",
+        "sub-feature",
+        "absorbed sketch",
+        "repeated names"
       ],
       "answers": "How do I get an IFeature by its name so I can modify or reference it?"
     },
@@ -255,7 +351,8 @@
       "verified_on": "WSL2 to SolidWorks 2026",
       "language": [
         "shell",
-        "typescript"
+        "typescript",
+        "python"
       ],
       "api": [
         "cscript",
@@ -267,9 +364,54 @@
         "cscript",
         "wslpath",
         "path translation",
-        "remote drive"
+        "remote drive",
+        "python.exe",
+        "windows python from wsl",
+        "pywin32 from wsl",
+        "ext4",
+        "\\\\wsl.localhost",
+        "UNC path",
+        "carriage return",
+        "tr -d"
       ],
       "answers": "My code runs on Linux or a Mac. How do I still drive SolidWorks?"
+    },
+    {
+      "id": "connect-11-probe-an-api-member-on-a-live-session",
+      "title": "Probe an API member on a live session before relying on it",
+      "path": "entries/connect/11-probe-an-api-member-on-a-live-session.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.NewDocument",
+        "ISldWorks.CloseDoc",
+        "ISldWorks.GetFirstDocument",
+        "IModelDoc2.GetNext",
+        "ISelectionMgr.GetSelectedObjectCount2"
+      ],
+      "keywords": [
+        "probe",
+        "harness",
+        "verify API",
+        "test against SolidWorks",
+        "scratch document",
+        "timeout",
+        "modal dialog",
+        "hang",
+        "HRESULT",
+        "argerror",
+        "com_error",
+        "evidence",
+        "latest.json",
+        "API ledger",
+        "skip cascade",
+        "cleanup"
+      ],
+      "answers": "How do I find out whether a SolidWorks API call really works before my tool depends on it?"
     },
     {
       "id": "curves-01-sldcrv-format",
@@ -550,6 +692,289 @@
         "BODYFEATURE"
       ],
       "answers": "How do I put features into a folder in the feature tree from code?"
+    },
+    {
+      "id": "documents-01-new-part-from-template",
+      "title": "Make a new part or assembly from a template, in millimetres",
+      "path": "entries/documents/01-new-part-from-template.md",
+      "category": "documents",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.GetDocumentTemplate",
+        "ISldWorks.GetUserPreferenceStringValue",
+        "ISldWorks.NewDocument",
+        "IModelDoc2.GetType",
+        "IModelDocExtension.GetUserPreferenceInteger",
+        "IModelDocExtension.SetUserPreferenceInteger"
+      ],
+      "keywords": [
+        "NewDocument",
+        "GetDocumentTemplate",
+        "NewPart",
+        "new part",
+        "new assembly",
+        "prtdot",
+        "asmdot",
+        "template",
+        "inch template",
+        "wrong year template",
+        "MMGS",
+        "swUnitSystem",
+        "swUnitsLinear",
+        "263",
+        "47",
+        "document units",
+        "millimetres"
+      ],
+      "answers": "How do I create a new part or assembly from code, and make sure it is in millimetres?"
+    },
+    {
+      "id": "documents-02-save-as-and-close",
+      "title": "Save a document to a new path, and close it",
+      "path": "entries/documents/02-save-as-and-close.md",
+      "category": "documents",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDocExtension.SaveAs3",
+        "IModelDoc2.SaveAs3",
+        "IModelDoc2.GetPathName",
+        "IModelDoc2.GetTitle",
+        "IModelDoc2.GetSaveFlag",
+        "ISldWorks.CloseDoc"
+      ],
+      "keywords": [
+        "SaveAs3",
+        "save as",
+        "overwrite",
+        "silent overwrite",
+        "swSaveAsOptions_Silent",
+        "swSaveAsCurrentVersion",
+        "out parameter",
+        "tuple",
+        "CloseDoc",
+        "close without saving",
+        "GetSaveFlag",
+        "GetPathName",
+        "unsaved changes"
+      ],
+      "answers": "How do I save a new document to a path from code, and close a document without a prompt?"
+    },
+    {
+      "id": "equations-01-global-variables-from-code",
+      "title": "Add, read and change global variables in the Equation Manager",
+      "path": "entries/equations/01-global-variables-from-code.md",
+      "category": "equations",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.GetEquationMgr",
+        "IEquationMgr.Add2",
+        "IEquationMgr.Add3",
+        "IEquationMgr.GetCount",
+        "IEquationMgr.Equation",
+        "IEquationMgr.Value",
+        "IEquationMgr.GlobalVariable",
+        "IEquationMgr.Delete",
+        "IEquationMgr.Status",
+        "IEquationMgr.SetEquationAndConfigurationOption",
+        "IEquationMgr.AngularEquationUnits",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "equation manager",
+        "global variable",
+        "IEquationMgr",
+        "Add2",
+        "Add3",
+        "-1",
+        "Equation",
+        "indexed property",
+        "property put",
+        "SetEquationAndConfigurationOption",
+        "sqr",
+        "sqr(0)",
+        "IIF",
+        "precedence",
+        "comparison",
+        "degrees",
+        "radians",
+        "sin",
+        "pi",
+        "parametric",
+        "Status"
+      ],
+      "answers": "How do I add, read and change global variables in the Equation Manager from code?"
+    },
+    {
+      "id": "equations-02-link-a-dimension-to-a-global",
+      "title": "Link a dimension to a global variable",
+      "path": "entries/equations/02-link-a-dimension-to-a-global.md",
+      "category": "equations",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IEquationMgr.Add2",
+        "IEquationMgr.Equation",
+        "IDimension.Name",
+        "IDimension.FullName",
+        "IDimension.SystemValue",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "link dimension",
+        "dimension equation",
+        "drive dimension",
+        "D1@Sketch1",
+        "Dim@Feature",
+        "global variable",
+        "parametric",
+        "document units",
+        "millimetres",
+        "-1",
+        "dimension does not exist yet",
+        "mate dimension",
+        "pattern count"
+      ],
+      "answers": "How do I make a sketch, feature or mate dimension follow a global variable from code?"
+    },
+    {
+      "id": "features-01-boss-extrude",
+      "title": "Extrude a closed sketch into a boss",
+      "path": "entries/features/01-boss-extrude.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.FeatureExtrusion3",
+        "IFeature.Select2",
+        "IModelDocExtension.SelectByID2",
+        "IFeature.Name"
+      ],
+      "keywords": [
+        "FeatureExtrusion3",
+        "extrude",
+        "boss",
+        "blind",
+        "swEndCondBlind",
+        "23 arguments",
+        "depth",
+        "solid from sketch",
+        "FeatureManager",
+        "select sketch"
+      ],
+      "answers": "How do I extrude a closed sketch into a solid boss from code?"
+    },
+    {
+      "id": "features-02-cut-extrude",
+      "title": "Cut-extrude a sketch through the part",
+      "path": "entries/features/02-cut-extrude.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.FeatureCut4"
+      ],
+      "keywords": [
+        "FeatureCut4",
+        "cut extrude",
+        "through all",
+        "swEndCondThroughAll",
+        "swEndCondThroughAllBoth",
+        "9",
+        "flip direction",
+        "cut removed nothing",
+        "returns None",
+        "hole",
+        "27 arguments"
+      ],
+      "answers": "How do I cut-extrude a sketch through a part from code, and be sure it removed material?"
+    },
+    {
+      "id": "features-03-circular-pattern",
+      "title": "Pattern a feature around an axis",
+      "path": "entries/features/03-circular-pattern.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.InsertAxis2",
+        "IFeatureManager.FeatureCircularPattern5",
+        "IFeature.Select2"
+      ],
+      "keywords": [
+        "FeatureCircularPattern5",
+        "circular pattern",
+        "InsertAxis2",
+        "reference axis",
+        "RefAxis",
+        "CirPattern",
+        "selection mark",
+        "mark 1",
+        "mark 4",
+        "DName NULL",
+        "instance count",
+        "equal spacing",
+        "teeth"
+      ],
+      "answers": "How do I make a circular pattern of a feature about an axis from code?"
+    },
+    {
+      "id": "features-04-read-a-features-dimensions",
+      "title": "Read a feature's dimensions, and find one by value",
+      "path": "entries/features/04-read-a-features-dimensions.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeature.GetFirstDisplayDimension",
+        "IFeature.GetNextDisplayDimension",
+        "IDisplayDimension.GetDimension2",
+        "IDimension.Name",
+        "IDimension.SystemValue",
+        "IDimension.FullName"
+      ],
+      "keywords": [
+        "GetFirstDisplayDimension",
+        "GetNextDisplayDimension",
+        "GetDimension2",
+        "display dimension",
+        "D1",
+        "D3",
+        "feature dimensions",
+        "extrusion depth",
+        "pattern count",
+        "mate distance",
+        "rename dimension",
+        "find by value",
+        "FullName"
+      ],
+      "answers": "How do I list a feature's dimensions from code and pick out one, such as an extrusion's depth or a pattern's count?"
     },
     {
       "id": "files-01-batch-convert-step",
@@ -912,12 +1337,41 @@
       "answers": "How big is this part, and how do I check that a generated file is the size it should be?"
     },
     {
+      "id": "reading-10-mass-properties-as-an-oracle",
+      "title": "Use the part's volume to check that a feature did what you meant",
+      "path": "entries/reading/10-mass-properties-as-an-oracle.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDocExtension.CreateMassProperty",
+        "IMassProperty.Volume",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "CreateMassProperty",
+        "mass property",
+        "Volume",
+        "cubic metres",
+        "oracle",
+        "verify feature",
+        "test geometry",
+        "cut removed nothing",
+        "did it work",
+        "regression check"
+      ],
+      "answers": "How do I check from code that a feature actually changed the solid the way I intended?"
+    },
+    {
       "id": "sketches-01-2d-sketch-as-vba",
       "title": "Generate a 2D sketch as a VBA macro",
       "path": "entries/sketches/01-2d-sketch-as-vba.md",
       "category": "sketches",
-      "status": "unverified",
-      "verified_on": null,
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
       "language": [
         "vba"
       ],
@@ -942,7 +1396,9 @@
         "sketch macro",
         "generate vba",
         "weld",
-        "construction geometry"
+        "construction geometry",
+        "shared end point",
+        "CreateArc direction"
       ],
       "answers": "How do I emit a VBA macro that draws a fully-defined 2D sketch?"
     },
@@ -979,19 +1435,28 @@
       "path": "entries/sketches/03-relation-constants.md",
       "category": "sketches",
       "status": "partly-verified",
-      "verified_on": null,
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
       "language": [
-        "vba"
+        "vba",
+        "python"
       ],
       "api": [
-        "ISketchManager.AddConstraint"
+        "ISketchManager.AddConstraint",
+        "IModelDoc2.SketchAddConstraints"
       ],
       "keywords": [
         "AddConstraint",
+        "SketchAddConstraints",
         "sgCOINCIDENT",
         "sgVERTICAL2D",
         "sgSYMMETRIC",
         "sgCOLINEAR",
+        "sgEQUAL",
+        "sgSAMELENGTH",
+        "sgTANGENT",
+        "sgFIXED",
+        "sgHORIZONTAL2D",
+        "equal radius",
         "relation constants",
         "swConstraintType"
       ],
@@ -1002,16 +1467,20 @@
       "title": "Add a dimension and set its value",
       "path": "entries/sketches/04-dimensions.md",
       "category": "sketches",
-      "status": "unverified",
-      "verified_on": null,
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
       "language": [
-        "vba"
+        "vba",
+        "python"
       ],
       "api": [
         "IModelDocExtension.AddDimension2",
+        "IModelDoc2.AddDimension2",
         "IDisplayDimension.Dimension",
+        "IDisplayDimension.GetDimension2",
         "IDimension.SystemValue",
-        "IDimension.Name"
+        "IDimension.Name",
+        "IDimension.FullName"
       ],
       "keywords": [
         "AddDimension2",
@@ -1019,7 +1488,13 @@
         "swDistanceDim",
         "swAngularDim",
         "dimension placement",
-        "horizontal vertical"
+        "horizontal vertical",
+        "circle diameter",
+        "arc radius",
+        "GetDimension2",
+        "FullName",
+        "swInputDimValOnCreate",
+        "dimension dialog"
       ],
       "answers": "How do I add a driving dimension from a macro and set its value?"
     },
@@ -1071,6 +1546,73 @@
         "cannot select"
       ],
       "answers": "Why can't my macro fully define this sketch, and what do I do about it?"
+    },
+    {
+      "id": "sketches-07-equation-driven-curve",
+      "title": "Draw an equation driven curve, and drive it from globals",
+      "path": "entries/sketches/07-equation-driven-curve.md",
+      "category": "sketches",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISketchManager.CreateEquationSpline2",
+        "ISketchSpline.GetPoints2",
+        "ISketchSegment.GetType",
+        "ISketch.GetSketchPoints2",
+        "IModelDoc2.SketchAddConstraints"
+      ],
+      "keywords": [
+        "equation driven curve",
+        "CreateEquationSpline2",
+        "parametric curve",
+        "involute",
+        "x(t) y(t)",
+        "radians",
+        "degrees",
+        "180/pi",
+        "refused",
+        "returns None",
+        "global variable in curve",
+        "GetPoints2",
+        "sgFIXED",
+        "curve end point",
+        "spline"
+      ],
+      "answers": "How do I draw an equation driven curve from code, and make it follow global variables?"
+    },
+    {
+      "id": "sketches-10-is-the-sketch-fully-defined",
+      "title": "Check whether a sketch is fully defined",
+      "path": "entries/sketches/10-is-the-sketch-fully-defined.md",
+      "category": "sketches",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISketch.GetConstrainedStatus",
+        "ISketchManager.ActiveSketch",
+        "IFeature.GetSpecificFeature2"
+      ],
+      "keywords": [
+        "GetConstrainedStatus",
+        "fully defined",
+        "under defined",
+        "over defined",
+        "swConstrainedStatus_e",
+        "swUnderConstrained",
+        "swFullyConstrained",
+        "2",
+        "3",
+        "sketch status",
+        "black sketch",
+        "blue sketch"
+      ],
+      "answers": "How do I check from code whether a sketch is fully defined?"
     },
     {
       "id": "surfacing-01-boundary-surface-recipe",

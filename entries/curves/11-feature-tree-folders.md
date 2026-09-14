@@ -270,3 +270,4 @@ calls at all and reported all three folders kept.
   place, and [`code/python/swlink.py`](../../code/python/swlink.py) for the
   rebuild-not-patch arrangement as `arrange`
 - [GOTCHAS §18, §19](../../GOTCHAS.md)
+- [features/01 — Boss extrude](../features/01-boss-extrude.md) — `Select2` judged by the selection count, with a `SelectByID2` fallback

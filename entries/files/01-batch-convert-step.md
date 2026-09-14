@@ -227,3 +227,5 @@ the interop enum:
 - [files/03 — Upgrade a file version](03-upgrade-file-version.md)
 - [reading/01 — Dependencies of a closed file](../reading/01-dependencies-of-a-closed-file.md)
 - [GOTCHAS §20, §21, §22](../../GOTCHAS.md)
+- [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) —
+  `CloseDoc` without a prompt, and what `SaveAs3` returned

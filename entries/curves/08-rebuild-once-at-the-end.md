@@ -99,7 +99,20 @@ Interleaving steps 1 and 3 means a failure partway leaves the part half-updated
 against files that are all new, which is the hardest state to reason about
 afterwards.
 
+## Also observed with solid features
+
+On SolidWorks 2026 (revision 34.0.0), probe `batched_under_command_in_progress`
+(run 20260914-180426): with `CommandInProgress` set `True`, a boss extrude and a
+through cut were both made; the flag was restored in a `finally` and read back
+`False`; one `ForceRebuild3` then gave the part the expected volume,
+12283.627 mm³. A gear build ran its whole batch of globals, sketches and
+features under the flag the same way, and a later change of its globals was
+also made under it and rebuilt once. See
+[features/01](../features/01-boss-extrude.md).
+
 ## See also
 
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md)
 - [GOTCHAS §9](../../GOTCHAS.md)
+- [features/01 — Boss extrude](../features/01-boss-extrude.md)
+- [equations/01 — Global variables from code](../equations/01-global-variables-from-code.md) — changing many globals, then one rebuild
