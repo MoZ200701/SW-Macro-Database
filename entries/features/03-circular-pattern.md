@@ -108,7 +108,9 @@ def circular_pattern(self, handle: str, name: str, axis: str, feature: str, coun
   `(count, 2π, False, "NULL", False, True, False, False, False, False, 1, 0.0, "NULL", False)`.
   The first is the instance count including the seed, the second the total
   angle in **radians**. The two `"NULL"` strings are the probe's "DName"
-  arguments. The rest were not varied, so nothing more is claimed about them.
+  arguments. The rest were not varied here. The fifth, passed `False`, was
+  varied on patterns of twisted cuts in [features/10](10-swept-cut.md): `True`
+  made the same solid and rebuilt in about half the time.
 - It returns the new feature, `GetTypeName2` `"CirPattern"`, or `None`.
 
 ## Why it is not obvious
@@ -133,7 +135,8 @@ made eight holes. Find the count by value rather than by position or name
   more than one feature were not tried.
 - `IFeatureManager.FeatureCircularPattern4` was listed in the probe but never
   called.
-- Only a cut was patterned.
+- Only cuts were patterned: extruded cuts here, twisted swept cuts in
+  [features/10](10-swept-cut.md).
 
 ## Evidence
 
@@ -158,6 +161,7 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 
 - [features/02 — Cut extrude](02-cut-extrude.md) — the seed feature
 - [features/04 — Read a feature's dimensions](04-read-a-features-dimensions.md)
+- [features/10 — Swept cut](10-swept-cut.md) — a pattern of twisted cuts, and the fifth argument
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md)
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
 - [features/05 — Revolve](05-revolve.md) — selecting a sketch line by name

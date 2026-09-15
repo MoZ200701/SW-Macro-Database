@@ -21,6 +21,7 @@ PASS = "pass"
 RECIPE_A_NEEDS = ("curve_literal", "curve_globals", "curve_rebuild")
 RECIPE_B_NEEDS = ("sketch_entities", "relations", "dimension_link")
 PARAMETRIC_NEEDS = ("equation_add", "equation_syntax", "equation_set")
+HELIX_TWIST_NEEDS = ("sweep_twist", "sweep_twist_link", "sweep_cut_ends")
 
 STOP = "STOP"
 
@@ -51,6 +52,42 @@ def flank_recipe(records: Records) -> str:
     if all(_passed(records, name) for name in RECIPE_B_NEEDS):
         return "B"
     return STOP
+
+
+def helix_route(records: Records) -> str:
+    """How a helical tooth space is swept: ``twist`` iff a constant-twist sweep cuts
+    exactly and its twist follows a global; else ``guide`` iff the helix-guide
+    fallback passed; else STOP. Nothing works without atn for the transverse
+    pressure angle."""
+    if not _passed(records, "equation_inverse_trig"):
+        return STOP
+    if all(_passed(records, name) for name in HELIX_TWIST_NEEDS):
+        return "twist"
+    if _passed(records, "helix_guide"):
+        return "guide"
+    return STOP
+
+
+def herringbone_route(records: Records) -> str:
+    """A herringbone is a helical half mirrored: ``mirror`` iff the helix has a route and
+    the body mirrors into one; the two-sweep alternative has no probe, so otherwise STOP."""
+    if helix_route(records) == STOP or not _passed(records, "mirror_body_merge"):
+        return STOP
+    return "mirror"
+
+
+def _twist_turn(records: Records) -> Optional[Dict[str, int]]:
+    turns = _fact(records, "sweep_twist", "twist_about_plus_z") or {}
+    if "plus z" not in turns or "minus z" not in turns:
+        return None
+    return {"plus z": turns["plus z"], "minus z": turns["minus z"]}
+
+
+def _top_sketch_y_is_minus_z(records: Records) -> Optional[bool]:
+    axes = _fact(records, "center_of_mass", "top_sketch_axes_in_model")
+    if not axes:
+        return None
+    return list(axes["y"]) == [0.0, 0.0, -1.0]
 
 
 def manual_steps(records: Records, recipe: str) -> List[str]:
@@ -86,6 +123,30 @@ def _equation_add_call(records: Records) -> Optional[str]:
     return "Add2" if form == "Add2" else form
 
 
+def _revolve_axis_mark(records: Records) -> Optional[int]:
+    routes = _fact(records, "revolve", "revolve_routes") or []
+    marked = [r for r in routes if "mark" in r]
+    return int(marked[-1].rsplit(" ", 1)[-1]) if marked else None
+
+
+def _bevel_section_x_sign(records: Records) -> Optional[int]:
+    signs = _fact(records, "ref_plane_normal", "ref_plane_normal_signs")
+    return None if not signs else int(signs["x_along_outward"])
+
+
+def bevel_mate_route(records: Records) -> Optional[str]:
+    """``mates`` when a placed component held a bevel frame under its mates; otherwise nothing is decided."""
+    error = _fact(records, "nonparallel_mates", "bevel_frame_error")
+    if error is None:
+        return None
+    return "mates" if error["rotation"] < 1e-6 and error["origin_mm"] < 1e-6 else None
+
+
+def crossed_route(records: Records) -> Optional[str]:
+    """``mates`` when the crossed frame held under its mates; nothing is decided off a failed probe."""
+    return "mates" if _passed(records, "nonparallel_mates") else None
+
+
 def decide(records: Records) -> Dict[str, Any]:
     recipe = flank_recipe(records)
     units = _fact(records, "document_units", "default_template_is_mm")
@@ -109,5 +170,30 @@ def decide(records: Records) -> Dict[str, Any]:
         if _passed(records, "save_as") else None,
         "first_component_fixed": _fact(records, "assembly_components_and_mates", "first_component_fixed_on_insert"),
         "end_to_end": _passed(records, "end_to_end"),
+        "helix_route": helix_route(records),
+        "herringbone_route": herringbone_route(records),
+        "inverse_tangent": _fact(records, "equation_inverse_trig", "inverse_trig_tangent"),
+        "extrude_z_sign": _fact(records, "center_of_mass", "extrude_z_sign"),
+        "top_sketch_y_is_minus_z": _top_sketch_y_is_minus_z(records),
+        "ref_plane_unflipped_is_plus_z": (not plus) if (plus := _fact(records, "ref_plane_offset",
+                                                                        "ref_plane_plus_z_flip")) is not None else None,
+        "twist_turn": _twist_turn(records),
+        "twist_reverse_flips": _fact(records, "sweep_twist", "reverse_flag_flips"),
+        "mirror_body_route": (_fact(records, "mirror_body_merge", "mirror_body_routes") or [None])[0],
+        "helical_end_to_end": _passed(records, "helical_end_to_end"),
+        "annulus_extrudes": _passed(records, "annulus_extrude") or None,
+        "interference_route": _fact(records, "interference", "interference_route"),
+        "internal_end_to_end": _passed(records, "internal_end_to_end"),
+        "revolve_axis_mark": _revolve_axis_mark(records),
+        "bevel_section_x_sign": _bevel_section_x_sign(records),
+        "loft_cut_route": _fact(records, "loft_cut_sections", "loft_cut_route"),
+        "loft_cut_type": _fact(records, "loft_cut_sections", "loft_cut_type"),
+        "place_route": _fact(records, "nonparallel_mates", "place_route"),
+        "transform_array_order": _fact(records, "nonparallel_mates", "transform_array_order"),
+        "origin_select_route": _fact(records, "nonparallel_mates", "origin_select_route"),
+        "bevel_mate_route": bevel_mate_route(records),
+        "crossed_route": crossed_route(records),
+        "bevel_end_to_end": _passed(records, "bevel_end_to_end"),
+        "crossed_end_to_end": _passed(records, "crossed_end_to_end"),
         "manual_steps": manual_steps(records, recipe),
     }

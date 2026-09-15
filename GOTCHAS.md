@@ -551,3 +551,60 @@ the angle as dimensions: [features/06](entries/features/06-reference-plane-norma
 SolidWorks 2026 (revision 34.0.0), run 20260915-015506, probe
 `move_body_rotate`, in
 [`p2_bevel.py`](code/python/gear_generator/probe/p2_bevel.py).
+
+## 45. A sweep's twist sign is ignored: the other hand is `D1ReverseTwistDir`
+
+`IFeatureManager.InsertProtrusionSwept4` with constant twist along path (8) and
+a twist of **−π/2** made exactly the same solid as +π/2: the same volume,
+565.6302 mm³, and the same centre of mass, (7.6397, +7.6400, 9.9998) mm, to
+every printed digit. Both were a right-hand helix, turning counter-clockwise
+about +Z as z increases, and so was a sweep whose path ran toward −Z. Nothing
+reports that the sign was dropped. The direction is a flag on the definition:
+`IFeature.GetDefinition`, `ISweepFeatureData.AccessSelections(doc, null)`,
+`D1ReverseTwistDir = True`, then `IFeature.ModifyDefinition(data, doc, null)`,
+which returned `True` and moved the centre to y −7.6401. The tool reverses its
+`InsertCutSwept5` tooth spaces the same way, and a left-hand space came out
+mirrored in y. SolidWorks 2026 (revision 34.0.0), runs 20260915-002812 and
+20260915-023929. See [features/09](entries/features/09-twisted-sweep.md) and
+[features/10](entries/features/10-swept-cut.md).
+
+## 46. `arctan` is refused; the inverse tangent is `atn`
+
+In the Equation Manager, `"Probe Arctan"= arctan ( 1 )` made `IEquationMgr.Add2`
+return **-1**, while `"Probe Atn"= atn ( 1 )` was accepted and read 45 in a part
+whose trig is degrees. `arcsin ( 0.5 )` and `arccos ( 0.5 )` were accepted and
+read 30 and 60: inverse trig answers in the document's angle unit, as `sin`
+takes it, and only the tangent has the short name. Nested,
+`atn ( tan ( "Probe Alpha" ) / cos ( "Probe Beta" ) )` with 20 and 15 read
+20.646896487046472 against 20.64689648704647 worked by hand. Not tried inside
+an Equation Driven Curve, whose trig is radians (§29). SolidWorks 2026
+(revision 34.0.0), runs 20260915-002812 and 20260915-023929. See
+[equations/01](entries/equations/01-global-variables-from-code.md).
+
+## 47. Mirroring a body: the body goes at mark 256, and a wrong mark returns `None`
+
+`IFeatureManager.InsertMirrorFeature2(True, False, True, False, 0)` with the
+plane at mark 2 and the body at mark 1 returned `None` and made nothing; so did
+body and plane both at mark 1. With the body at **mark 256** and the plane at
+mark 2 it made one `MirrorSolid` body of twice the volume, centred on the plane.
+The body is selected through `IBody2.Select2(True, data)` with the mark set on
+an `ISelectionMgr.CreateSelectData` object, so there is no mark argument to
+notice. SolidWorks 2026 (revision 34.0.0), runs 20260915-002812 and
+20260915-023929. See [features/11](entries/features/11-mirror-body.md).
+
+## 48. Twisted and patterned spline cuts weigh close to the arithmetic, not exactly
+
+Extrusions and straight cuts matched hand arithmetic to sixteen significant
+figures ([reading/10](entries/reading/10-mass-properties-as-an-oracle.md)).
+Features with spline surfaces did not. A quarter-turn sweep of A·L =
+565.487 mm³ measured 565.630 (2.5e-4 out). A twisted cut of 282.743 mm³
+measured 282.743 when it started ahead of the face and 282.701 when it started
+on it. Six patterned twisted cuts left 10869.773 mm³ against 10869.911. A ring
+gear's single tooth-space cut weighed 157.494 mm³ on its own against 157.345
+per space when sixty were patterned, which put the ring 2.8e-4 off "blank less
+sixty spaces". None of these is an error in the feature. Compare such parts
+with a relative tolerance (the Gear Generator uses 5e-4), or like with like: an
+updated ring and a fresh build of the same ring agreed to 1e-13
+(34284.14386641376 and 34284.143866418235 mm³). SolidWorks 2026 (revision
+34.0.0), run 20260915-023929. See [features/09](entries/features/09-twisted-sweep.md),
+[features/10](entries/features/10-swept-cut.md).

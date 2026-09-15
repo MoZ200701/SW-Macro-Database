@@ -116,3 +116,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
 - [features/07 — Loft cut](07-loft-cut.md) — a cut whose section changes
 - [GOTCHAS §32](../../GOTCHAS.md)
+- [features/10 — Swept cut](10-swept-cut.md) — a cut along a path with a twist

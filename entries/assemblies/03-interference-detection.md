@@ -176,6 +176,16 @@ facts in both. Excerpts:
 - Probe `crossed_end_to_end`: a crossed helical pair (normal module 2, 20 and 40
   teeth, 45° right-hand, shafts at 90°) as mated, no interference; half a pitch
   round, `crossed_half_pitch_interference = {'count': 3, 'volume_mm3': 102.56289208058003}`.
+- The full run 20260915-023929 (54 of 54 probes passed) recorded the same
+  bevel and crossed counts and volumes, and added ring gears. Probe
+  `internal_end_to_end` in
+  [`p5_internal.py`](../../code/python/gear_generator/probe/p5_internal.py) built
+  a 60-tooth ring with a 20-tooth pinion meshed inside it, spur and 15°
+  right-hand helical: "the pinion meshes inside the ring without interference"
+  for both; with the pinion half a pitch round,
+  `spur_half_pitch_interference = {'count': 4, 'volume_mm3': 210.03780148567827}` and
+  `helical_half_pitch_interference = {'count': 5, 'volume_mm3': 217.07546148537384}`.
+  [`probe-results-20260915-023929.txt`](../../code/python/gear_generator/probe/results/probe-results-20260915-023929.txt).
 
 ## See also
 

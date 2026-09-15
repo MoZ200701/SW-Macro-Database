@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 60,
+  "count": 64,
   "by_status": {
     "partly-verified": 7,
     "unverified": 3,
-    "verified": 50
+    "verified": 54
   },
   "entries": [
     {
@@ -896,7 +896,13 @@
         "sin",
         "pi",
         "parametric",
-        "Status"
+        "Status",
+        "atn",
+        "arctan",
+        "arcsin",
+        "arccos",
+        "inverse trig",
+        "inverse tangent"
       ],
       "answers": "How do I add, read and change global variables in the Equation Manager from code?"
     },
@@ -949,7 +955,8 @@
         "IFeatureManager.FeatureExtrusion3",
         "IFeature.Select2",
         "IModelDocExtension.SelectByID2",
-        "IFeature.Name"
+        "IFeature.Name",
+        "IMassProperty.CenterOfMass"
       ],
       "keywords": [
         "FeatureExtrusion3",
@@ -961,7 +968,14 @@
         "depth",
         "solid from sketch",
         "FeatureManager",
-        "select sketch"
+        "select sketch",
+        "extrude direction",
+        "which way",
+        "+Z",
+        "annulus",
+        "ring",
+        "two concentric circles",
+        "ring gear blank"
       ],
       "answers": "How do I extrude a closed sketch into a solid boss from code?"
     },
@@ -1167,6 +1181,174 @@
         "12 arguments"
       ],
       "answers": "How do I make a lofted cut between two closed sketches from code?"
+    },
+    {
+      "id": "features-08-offset-reference-plane",
+      "title": "A reference plane at a distance from another, on the side you choose",
+      "path": "entries/features/08-offset-reference-plane.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertRefPlane",
+        "IFeature.Name",
+        "IDimension.Name",
+        "IEquationMgr.Add2",
+        "ISketch.ModelToSketchTransform"
+      ],
+      "keywords": [
+        "InsertRefPlane",
+        "offset plane",
+        "reference plane",
+        "distance",
+        "parallel plane",
+        "swRefPlaneReferenceConstraint_Distance",
+        "swRefPlaneReferenceConstraint_OptionFlip",
+        "8",
+        "256",
+        "flip",
+        "which side",
+        "RefPlane",
+        "D1",
+        "Offset",
+        "linked plane",
+        "plane follows a global",
+        "profile plane",
+        "mid plane"
+      ],
+      "answers": "How do I make a reference plane offset from the Front plane from code, choose which side it lands on, and drive the offset from a global?"
+    },
+    {
+      "id": "features-09-twisted-sweep",
+      "title": "Sweep a profile along a line with a constant twist, and choose which way it turns",
+      "path": "entries/features/09-twisted-sweep.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertProtrusionSwept4",
+        "IFeature.GetDefinition",
+        "IFeature.ModifyDefinition",
+        "ISweepFeatureData.D1ReverseTwistDir",
+        "ISweepFeatureData.TwistControlType",
+        "ISweepFeatureData.GetTwistAngle",
+        "ISweepFeatureData.AccessSelections",
+        "IMassProperty.CenterOfMass"
+      ],
+      "keywords": [
+        "InsertProtrusionSwept4",
+        "sweep",
+        "swept boss",
+        "twist",
+        "constant twist along path",
+        "swTwistControlConstantTwistAlongPath",
+        "8",
+        "twist angle",
+        "radians",
+        "D1ReverseTwistDir",
+        "reverse twist",
+        "twist direction",
+        "helix",
+        "helicoid",
+        "right-hand",
+        "left-hand",
+        "helical gear",
+        "ModifyDefinition",
+        "GetDefinition",
+        "AccessSelections",
+        "selection mark 1",
+        "mark 4",
+        "Sweep",
+        "D4",
+        "20 arguments"
+      ],
+      "answers": "How do I sweep a sketch along a straight path with a constant twist from code, drive the twist from a global, and make it turn the other way?"
+    },
+    {
+      "id": "features-10-swept-cut",
+      "title": "Cut a sketch along a path with a twist, and pattern the cut",
+      "path": "entries/features/10-swept-cut.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertCutSwept5",
+        "IFeature.GetDefinition",
+        "IFeature.ModifyDefinition",
+        "ISweepFeatureData.D1ReverseTwistDir",
+        "IFeatureManager.FeatureCircularPattern5",
+        "IPartDoc.GetBodies2"
+      ],
+      "keywords": [
+        "InsertCutSwept5",
+        "InsertCutSwept4",
+        "swept cut",
+        "cut sweep",
+        "SweepCut",
+        "twisted cut",
+        "helical cut",
+        "helical tooth space",
+        "helical gear",
+        "constant twist along path",
+        "twist",
+        "radians",
+        "overrun",
+        "lead-in",
+        "start ahead of the face",
+        "pattern of sweeps",
+        "geometry pattern",
+        "FeatureCircularPattern5",
+        "rebuild time",
+        "22 arguments",
+        "selection mark 1",
+        "mark 4"
+      ],
+      "answers": "How do I cut a profile along a straight path with a twist from code, such as a helical gear's tooth space, and pattern that cut around an axis?"
+    },
+    {
+      "id": "features-11-mirror-body",
+      "title": "Mirror a part's body about a plane and merge it into one",
+      "path": "entries/features/11-mirror-body.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertMirrorFeature2",
+        "ISelectionMgr.CreateSelectData",
+        "IBody2.Select2",
+        "IPartDoc.GetBodies2",
+        "IFeature.Select2"
+      ],
+      "keywords": [
+        "InsertMirrorFeature2",
+        "mirror",
+        "mirror body",
+        "MirrorSolid",
+        "merge",
+        "one body",
+        "selection mark 256",
+        "mark 2",
+        "CreateSelectData",
+        "IBody2.Select2",
+        "herringbone",
+        "double helical",
+        "symmetric part",
+        "nothing mirrored",
+        "returned None"
+      ],
+      "answers": "How do I mirror a part's solid body about a reference plane from code so the result is one merged body?"
     },
     {
       "id": "files-01-batch-convert-step",
@@ -1541,6 +1723,7 @@
       "api": [
         "IModelDocExtension.CreateMassProperty",
         "IMassProperty.Volume",
+        "IMassProperty.CenterOfMass",
         "IModelDoc2.ForceRebuild3"
       ],
       "keywords": [
@@ -1553,7 +1736,15 @@
         "test geometry",
         "cut removed nothing",
         "did it work",
-        "regression check"
+        "regression check",
+        "CenterOfMass",
+        "centre of mass",
+        "Cavalieri",
+        "twin",
+        "twisted sweep",
+        "spline",
+        "tolerance",
+        "fresh build"
       ],
       "answers": "How do I check from code that a feature actually changed the solid the way I intended?"
     },

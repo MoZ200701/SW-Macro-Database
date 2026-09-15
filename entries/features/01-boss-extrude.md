@@ -4,8 +4,8 @@ title: Extrude a closed sketch into a boss
 status: verified
 verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [python]
-api: [IFeatureManager.FeatureExtrusion3, IFeature.Select2, IModelDocExtension.SelectByID2, IFeature.Name]
-keywords: [FeatureExtrusion3, extrude, boss, blind, swEndCondBlind, 23 arguments, depth, solid from sketch, FeatureManager, select sketch]
+api: [IFeatureManager.FeatureExtrusion3, IFeature.Select2, IModelDocExtension.SelectByID2, IFeature.Name, IMassProperty.CenterOfMass]
+keywords: [FeatureExtrusion3, extrude, boss, blind, swEndCondBlind, 23 arguments, depth, solid from sketch, FeatureManager, select sketch, extrude direction, which way, +Z, annulus, ring, two concentric circles, ring gear blank]
 answers: "How do I extrude a closed sketch into a solid boss from code?"
 ---
 
@@ -93,6 +93,63 @@ was not logged; one of them did every time. The same count-judged
 selection failed once elsewhere, on a new sketch point, with no known cause; see
 [GOTCHAS §36](../../GOTCHAS.md).
 
+### Which way it goes
+
+From the Front plane, with the arguments above, the boss grows toward **+Z**.
+Probe `center_of_mass` in
+[`p2_helical.py`](../../code/python/gear_generator/probe/p2_helical.py)
+extruded a circle r 3 mm centred at (12, 5) by 10 mm and read where its
+centre of mass was:
+
+```python
+front = sc.planes(doc)[0]
+sketch = circle_sketch(px, doc, front, "Probe Boss Sketch", (PROFILE_X, 5.0, 0.0))
+px.require(sc.select_feature(doc, sc.feature_by_name(doc, sketch)), "the boss sketch selects")
+from .p2_solid import _extrude_args  # noqa: PLC0415
+boss = call(sc.feature_manager(doc), "FeatureExtrusion3", *_extrude_args(BLANK_W / sc.MM))
+call(doc, "ClearSelection2", True)
+px.require(boss is not None, "the boss is extruded")
+centre = centre_of_mass_mm(doc)
+px.fact("boss_centre_of_mass_mm", centre)
+px.check(near(centre[0], PROFILE_X, 1e-6) and near(centre[1], 5.0, 1e-6),
+         f"x and y of the centre are the sketch's, in metres: {centre}")
+px.require(near(abs(centre[2]), BLANK_W / 2.0, 1e-6), f"the centre is half the depth off the plane: {centre[2]}")
+sign = 1 if centre[2] > 0 else -1
+px.fact("extrude_z_sign", sign, f"a blank from the Front plane extrudes toward {'+' if sign > 0 else '-'}Z")
+```
+
+The centre came back (12.0, 5.0, 5.0) mm: z at **+half the depth**.
+`centre_of_mass_mm` is **IMassProperty** `CenterOfMass` after a rebuild, three
+doubles in metres, scaled to mm. An unflipped offset plane from the Front plane
+lands on the same side ([features/08](08-offset-reference-plane.md)).
+
+### Two circles make a ring
+
+A sketch of two concentric circles extrudes, with the same call, into one
+annular body: the outer circle is the rim and the inner one the hole. Probe
+`annulus_extrude` in
+[`p2_internal.py`](../../code/python/gear_generator/probe/p2_internal.py):
+
+```python
+before = sc.feature_names(doc)
+manager = sc.open_sketch(px, doc, 1)
+rim = call(manager, "CreateCircleByRadius", 0.0, 0.0, 0.0, RIM_D / 2.0 / sc.MM)
+tip = call(manager, "CreateCircleByRadius", 0.0, 0.0, 0.0, TIP_D / 2.0 / sc.MM)
+px.require(rim is not None and tip is not None, "both circles are made")
+origin = sc.origin_point(doc)
+sc.relate(doc, "sgCOINCIDENT", call(rim, "GetCenterPoint2"), origin)
+sc.relate(doc, "sgCOINCIDENT", call(tip, "GetCenterPoint2"), origin)
+px.check(_dimension(doc, rim, 28.0, "Rim") == "Rim", "the rim's dimension renames to Rim")
+px.check(_dimension(doc, tip, 5.0, "Tip") == "Tip", "the tip circle's dimension renames to Tip")
+sketch = sc.close_sketch(px, doc, "Ring Sketch", before)
+```
+
+then `FeatureExtrusion3` with `_extrude_args` as above. With D 40 and d 24 mm
+and 10 mm deep the part weighed π/4 × (40² − 24²) × 10 = 8042.4772 mm³ in one
+solid body, not a disc. The inner circle's dimension, linked by
+`"Tip@Ring Sketch"= "Probe Tip"` to 20, opened the hole to match: 9424.7780 mm³.
+That is how the Gear Generator makes a ring gear's blank.
+
 ## Why it is not obvious
 
 **23 positional arguments and no names.** From late-bound Python there are no
@@ -118,11 +175,12 @@ both made, the flag restored, and one rebuild gave the right volume
 
 ## What it does not do
 
-- Only a single-ended blind boss from a closed circle on the first reference
-  plane was made. Mid-plane, two-direction, draft, thin features and
+- Only single-ended blind bosses on the first reference plane were made, from
+  one circle or two concentric circles. Mid-plane, two-direction, draft, thin features and
   merge-result options were not varied.
 - The first three boolean arguments were passed `True, False, False` and never
-  changed, so which direction `True` means is not established.
+  changed, so which direction `True` means is not established. With them the
+  boss grew toward +Z from the Front plane.
 - Extruding a sketch that is not closed was not tried.
 
 ## Evidence
@@ -140,6 +198,16 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - `batched_under_command_in_progress`: 12283.627 mm³ after one rebuild.
 - `end_to_end`: the gear blank was made through `extrude` above and its width
   linked to `"Face Width"`.
+- `center_of_mass`, in [`p2_helical.py`](../../code/python/gear_generator/probe/p2_helical.py),
+  runs 20260915-002812 and 20260915-023929:
+  `boss_centre_of_mass_mm = (12.0, 5.000000000000001, 5.000000000000001)`;
+  "a blank from the Front plane extrudes toward +Z".
+- `annulus_extrude`, in [`p2_internal.py`](../../code/python/gear_generator/probe/p2_internal.py),
+  run 20260915-023929: `annulus_volume_mm3 = {'volume': 8042.477193189872, 'expected': 8042.47719318987}`;
+  `annulus_solid_bodies = 1`; "the link "Tip@Ring Sketch"= "Probe Tip" is accepted";
+  `annulus_volume_linked_mm3 = {'volume': 9424.777960769381, 'expected': 9424.77796076938}`.
+  Probe `internal_end_to_end` in the same run built spur and helical rings on
+  such blanks, each one solid body with every sketch fully defined.
 
 ## See also
 
@@ -150,3 +218,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [sketches/10 — Is the sketch fully defined](../sketches/10-is-the-sketch-fully-defined.md) — check the profile first
 - [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — another use of `IFeature.Select2`
 - [features/05 — Revolve](05-revolve.md) — the other way to make a blank
+- [features/08 — Offset reference plane](08-offset-reference-plane.md) — planes on the side the boss grows

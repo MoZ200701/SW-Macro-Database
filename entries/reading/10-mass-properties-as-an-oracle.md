@@ -4,8 +4,8 @@ title: Use the part's volume to check that a feature did what you meant
 status: verified
 verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [python]
-api: [IModelDocExtension.CreateMassProperty, IMassProperty.Volume, IModelDoc2.ForceRebuild3]
-keywords: [CreateMassProperty, mass property, Volume, cubic metres, oracle, verify feature, test geometry, cut removed nothing, did it work, regression check]
+api: [IModelDocExtension.CreateMassProperty, IMassProperty.Volume, IMassProperty.CenterOfMass, IModelDoc2.ForceRebuild3]
+keywords: [CreateMassProperty, mass property, Volume, cubic metres, oracle, verify feature, test geometry, cut removed nothing, did it work, regression check, CenterOfMass, centre of mass, Cavalieri, twin, twisted sweep, spline, tolerance, fresh build]
 answers: "How do I check from code that a feature actually changed the solid the way I intended?"
 ---
 
@@ -78,10 +78,57 @@ teeth, module 2.25, 5545.11 between 3880.97 and 8443.52, and different from
 before. A bound like that catches a missing pattern, a cut that removed
 nothing, and a dimension a thousand times out.
 
+## When the arithmetic is not exact, and other oracles
+
+**Spline surfaces weigh close, not exact.** A twisted sweep, a twisted cut and
+a patterned tooth space all measured within about 1e-3 of the arithmetic
+rather than to sixteen figures ([GOTCHAS §48](../../GOTCHAS.md)). Compare them
+with a relative tolerance, or against another build rather than a formula.
+
+**The centre of mass says which way, and how much.** A circle r0 from the
+axis turned uniformly through θ has its centroid at
+`r0·(sin θ/θ, ±(1 − cos θ)/θ)`; the sign of y gave the twist's direction and
+its size the twist's units ([features/09](../features/09-twisted-sweep.md)).
+With one tooth space cut from a round blank, the part's centre of mass moved
+to −y for a right-hand helical space and +y for a left-hand one, which is how
+the gear's hand was checked ([features/10](../features/10-swept-cut.md)).
+
+**A twin, when there is no formula.** A section swept along a line with a
+twist encloses the same volume as the same section cut straight (Cavalieri).
+So a helical gear was checked against the same build plan with its swept cut
+replaced by a straight one. From
+[`p5_helical.py`](../../code/python/gear_generator/probe/p5_helical.py):
+
+```python
+def twin(plan: BuildPlan, path: str) -> BuildPlan:
+    """The plan with its twisted sweep cut straight, saved elsewhere."""
+    ops = []
+    for op in plan.ops:
+        if isinstance(op, SweepCut):
+            ops.append(Cut(op.id, op.profile, op.name))
+        elif isinstance(op, LinkDimension) and op.dimension.startswith("Twist@"):
+            continue
+        elif isinstance(op, SaveAs):
+            ops.append(SaveAs(path))
+        else:
+            ops.append(op)
+    return replace(plan, ops=tuple(ops), path=path)
+```
+
+The tolerance there is 5e-4 relative. The helical gear weighed 4961.165 mm³
+against its twin's 4961.035, and the herringbone 6005.963 against 6005.623.
+
+**A fresh build, after an edit.** A part changed through its globals and a
+new part built straight from the changed values should weigh the same, and
+here they did to 1e-13 or better: a ring gear after 60 → 64 teeth,
+34284.14386641376 against 34284.143866418235 mm³, and a bevel pinion after
+20 → 21 teeth, 43638.719829502406 against 43638.719829502304. That catches an
+equation that did not propagate, which no formula for the new part would.
+
 ## What it does not do
 
-- Mass, density and centre of mass were not read. These parts had no material
-  assigned, so only volume was meaningful.
+- Mass and density were not read: these parts had no material assigned.
+  Centre of mass was read on later probes, above.
 - Whether a rebuild is needed before `CreateMassProperty` sees a change was not
   tested: every reading here was straight after `ForceRebuild3`.
 - Assemblies were not measured.
@@ -104,6 +151,15 @@ the helper is in
   pattern leaves 10304.424 mm³"; "after one rebuild the part is 12283.627 mm³".
 - `volume_mm3_z12 = {'volume': 3531.5674902883707, 'root_cylinder': 2332.6325452904216, 'od_cylinder': 5654.8667764616275}`;
   `volume_mm3_z13 = {'volume': 5545.110964056051, 'root_cylinder': 3880.971393350672, 'od_cylinder': 8443.521130374693}`.
+- Run 20260915-023929 (54 of 54 probes passed),
+  [`probe-results-20260915-023929.txt`](../../code/python/gear_generator/probe/results/probe-results-20260915-023929.txt):
+  `helical_volumes_mm3 = {'part': 4961.164729903562, 'twin': 4961.0349155102585}`;
+  `herringbone_volumes_mm3 = {'part': 6005.962761822714, 'twin': 6005.622503453732}`;
+  `helical_right_one_space_centre_mm = (-0.35200349853589447, -0.06554931397919656, 4.999985102287864)`;
+  `helical_left_one_space_centre_mm = (-0.3520003644086587, 0.06557239075310127, 4.999984857178944)`;
+  `spur_ring_volumes_mm3 = {'ring': 32287.475563673983, 'blank': 41728.20442130643, 'one_space': 157.49383390868024, 'expected': 32278.574386785614}`;
+  `spur_volumes_after_mm3 = {'updated': 34284.14386641376, 'fresh': 34284.143866418235}`;
+  `bevel_volumes_after_mm3 = {'updated': 43638.719829502406, 'fresh': 43638.719829502304}`.
 
 ## See also
 
@@ -115,4 +171,6 @@ the helper is in
 - [reading/09 — Bounding box as a check](09-bounding-box.md) — the part's extents as the same kind of check
 - [features/05 — Revolve](../features/05-revolve.md) — Pappus volume, and the centre of mass on the axis
 - [features/07 — Loft cut](../features/07-loft-cut.md) — a frustum's volume
+- [features/09 — Twisted sweep](../features/09-twisted-sweep.md) — the centroid of a twist
+- [features/10 — Swept cut](../features/10-swept-cut.md) — the twin and the one-space hand check
 - [assemblies/03 — Interference detection](../assemblies/03-interference-detection.md) — an interference volume checked against a lens

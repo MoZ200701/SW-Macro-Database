@@ -131,3 +131,4 @@ any machine and catches the transpose immediately.
 - [assemblies/04 — Mates between non-parallel axes](../assemblies/04-mates-between-non-parallel-axes.md) — writing the same sixteen numbers, by columns, to set a component's frame
 - [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — a plane's sketch frame read back this way
 - [features/05 — Revolve](../features/05-revolve.md) — drawing at model points through the transform
+- [features/08 — Offset reference plane](../features/08-offset-reference-plane.md) — measuring where a plane landed

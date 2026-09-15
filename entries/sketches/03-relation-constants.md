@@ -24,7 +24,7 @@ unverified. "What has been run", below, has the details.
 | Point on entity | `sgCOINCIDENT` | Same constant; the selection decides which it is. **Verified** (point on a circle, origin on a line) |
 | Midpoint | `sgMIDPOINT` | |
 | Horizontal | `sgHORIZONTAL2D` | 2D only, in effect. **Verified** on a line |
-| Vertical | `sgVERTICAL2D` | 2D only, in effect |
+| Vertical | `sgVERTICAL2D` | 2D only, in effect. **Verified** on two lines along the model Z axis on the Top plane |
 | Parallel | `sgPARALLEL` | |
 | Perpendicular | `sgPERPENDICULAR` | |
 | Tangent | `sgTANGENT` | **Verified** line to arc; also arc to arc in a fully defined build |
@@ -171,8 +171,17 @@ Also:
 - The tool's gear build used `sgCOINCIDENT`, `sgTANGENT` (line to arc, arc to
   arc), `sgSAMELENGTH` (two fillet arcs) and `sgFIXED` in one sketch, which read
   fully defined before and after its globals changed (probe `end_to_end`).
+- `sgVERTICAL2D`, through `SketchAddConstraints`, on a construction lead-in
+  line and a path line drawn along model Z on the Top plane (sketch-vertical
+  there, `axis_is_sketch_vertical = True`), with the lead-in's start coincident
+  with the origin and both lengths dimensioned: `GetConstrainedStatus` read 3.
+  With the lead-in's length linked to a global of 3 and one rebuild, the path
+  started at `path_start_after_link_mm = (-1.2246467991473535e-16, 0.0, -3.0)`,
+  still on the axis. Probe `path_sketch_relations` in
+  [`p2_helical.py`](../../code/python/gear_generator/probe/p2_helical.py), runs
+  20260915-002812 and 20260915-023929, SolidWorks 2026 (revision 34.0.0).
 
-Not run: `sgMIDPOINT`, `sgVERTICAL2D`, `sgPARALLEL`, `sgPERPENDICULAR`,
+Not run: `sgMIDPOINT`, `sgPARALLEL`, `sgPERPENDICULAR`,
 `sgCONCENTRIC`, `sgCOLINEAR`, and `ISketchManager.AddConstraint` itself. Whether
 `sgEQUAL` works on two lines was not tried. Why it did nothing on circles is
 not known.

@@ -21,6 +21,13 @@ Their excerpts are in
 [`probe-log-excerpts-20260915.txt`](code/python/gear_generator/probe/results/probe-log-excerpts-20260915.txt).
 As before, a member a probe listed but never reached is left unverified.
 
+Rows marked "helical runs 2026-09-15" come from two full runs of the same
+probe on SolidWorks 2026 (revision 34.0.0): 20260915-002812, 43 of 43 probes
+passed, after helical and herringbone gears were added, and 20260915-023929,
+54 of 54, after internal, crossed and bevel gears. Their reports and JSON sit
+beside the earlier results, with the user's documents and profile path
+replaced by placeholders, and `latest.json` is now 20260915-023929.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -161,11 +168,16 @@ As before, a member a probe listed but never reached is left unverified.
 | `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed | Verified, SW 2026 |
 | `FeatureExtrusion3` (23 arguments) | Blind boss from the selected sketch, depth in metres; returns the feature | Verified, SW 2026 (34.0.0) |
 | `FeatureCut4` (27 arguments) | Cut from the selected sketch. **Through all in the default direction returned `None`**; both directions (end condition 9) cut | Verified, SW 2026 (34.0.0) |
-| `FeatureCircularPattern5` (14 arguments) | Pattern the feature at mark 4 about the axis at mark 1; two `"NULL"` strings | Verified, SW 2026 (34.0.0) |
+| `FeatureCircularPattern5` (14 arguments) | Pattern the feature at mark 4 about the axis at mark 1; two `"NULL"` strings. On twisted cuts the fifth argument (geometry pattern) `True` made the same solid and rebuilt in about half the time (helical runs 2026-09-15) | Verified, SW 2026 (34.0.0) |
 | `FeatureRevolve2` (20 arguments) | Revolve the selected sketch a full turn (radians) about its centreline, or about the line at mark 16; returns a `Revolution` | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `InsertRefPlane(2, 0, 4, 0, 0, 0)` | Plane perpendicular to the line at mark 0 and coincident with the point at mark 1. Its sketch frame kept its signs as the line moved; the plane has no dimension | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `InsertCutBlend` (12 arguments) | Lofted cut through the sketches selected at mark 1, in order; returns a `BlendCut`. Removed the frustum exactly | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `InsertMoveCopyBody2` (12 arguments) | Turned the body selected at mark 1 by 30° about Y; returns a `MoveCopyBody`. **The feature has no dimension**, so no global can drive it (GOTCHAS §44) | Verified, SW 2026 (34.0.0), run 20260915-015506 |
+| `InsertRefPlane(8 \| 256, d, 0, 0, 0, 0)` | Plane at distance `d` (metres) from the selected plane. From the Front plane, unflipped is on the +Z side and `256` OR-ed in puts it on −Z; both sketches face +Z. Its one dimension, `D1`, links to a global | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `InsertProtrusionSwept4` (20 arguments) | Swept boss: profile at mark 1, path at mark 4; third argument twist control (8, constant along path), sixteenth the twist in **radians**. **The twist's sign is ignored** (GOTCHAS §45). Returns a `Sweep` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `InsertCutSwept5` (22 arguments) | Swept cut, same marks; third argument twist control, fifteenth the twist in radians. Started ahead of the face it removed A·w and left one body. Returns a `SweepCut` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `InsertCutSwept4` (19 arguments) | Listed by the probe as a fallback, never called | Unverified |
+| `InsertMirrorFeature2(True, False, True, False, 0)` | Mirror the body at mark 256 about the plane at mark 2, merged into one `MirrorSolid` body. **With the body at mark 1 it returned `None`** (GOTCHAS §47) | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
 | `FeatureCut3` | Listed by the probe, never called | Unverified |
 | `FeatureCircularPattern4` | Listed by the probe, never called | Unverified |
 
@@ -197,6 +209,15 @@ As before, a member a probe listed but never reached is left unverified.
 |---|---|---|
 | `LoadPointsFromFile(path)` | Replace the points from a file, in place | Verified, SW 2026 |
 | `PointArray` | The points it holds, flat, in metres | Verified, SW 2026 |
+
+## ISweepFeatureData (from `IFeature.GetDefinition` on a `Sweep` or `SweepCut`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `TwistControlType` | Read `8` on a sweep made with constant twist along path | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `GetTwistAngle` | The twist in **radians**; read 1.5707963267948966 for a quarter turn | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `AccessSelections(doc, component)` | Called before changing the definition, component a typed null in a part; returned `True` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `D1ReverseTwistDir` | Read `False` by default; set `True` and committed with `IFeature.ModifyDefinition(data, doc, null)`, which returned `True`, it turned the twist the other way. The only way found to get the other hand (GOTCHAS §45). The tool applies it to a `SweepCut` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
 
 ## ISketchManager
 
@@ -249,7 +270,7 @@ As before, a member a probe listed but never reached is left unverified.
 | `GetSelectedObject6(index, mark)` | The selected object, 1-based | Verified |
 | `GetSelectedObjectType3(index, mark)` | A `swSelectType_e` number | Verified |
 | `GetSelectedObjectsSketch(index)` | The sketch a selected entity belongs to | Verified |
-| `CreateSelectData` | A selection data object; set `Mark` on it before `IBody2.Select2` | Verified, SW 2026 (34.0.0), run 20260915-015506 |
+| `CreateSelectData` | A selection data object; set `Mark` on it before `IBody2.Select2` | Verified, SW 2026 (34.0.0), run 20260915-015506 and helical runs 2026-09-15 |
 
 ## Geometry interrogation
 
@@ -272,7 +293,7 @@ As before, a member a probe listed but never reached is left unverified.
 | Member | Purpose | Status |
 |---|---|---|
 | `Volume` | The part's volume in **cubic metres**; matched π r² w to 16 significant figures | Verified, SW 2026 (34.0.0) |
-| `CenterOfMass` | Centre of mass, three doubles in **metres**, after `ForceRebuild3`; put a revolved ring's on its axis | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `CenterOfMass` | Centre of mass, three doubles in **metres**, after `ForceRebuild3`; put a revolved ring's on its axis, and told which way a twisted sweep turned | Verified, SW 2026 (34.0.0), dev runs and helical runs 2026-09-15 |
 
 ## IMathUtility (from `ISldWorks.GetMathUtility`)
 
@@ -285,7 +306,7 @@ As before, a member a probe listed but never reached is left unverified.
 | Member | Purpose | Status |
 |---|---|---|
 | `IPartDoc.GetBodies2(0, True)` | The part's solid bodies; `len` of it counted one body after a cut | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
-| `Select2(False, selectData)` | Select the body, at the mark set on `ISelectionMgr.CreateSelectData` | Verified at mark 1, SW 2026 (34.0.0), run 20260915-015506 |
+| `Select2(append, selectData)` | Select the body, at the mark set on `ISelectionMgr.CreateSelectData` | Verified at mark 1, SW 2026 (34.0.0), run 20260915-015506; at mark 256, appended, for a mirror, helical runs 2026-09-15 |
 
 ## IDimension / IDisplayDimension
 
@@ -337,7 +358,7 @@ Relations, passed to `AddConstraint` as strings:
 `sgPERPENDICULAR`, `sgTANGENT`, `sgEQUAL`, `sgCONCENTRIC`, `sgCOLINEAR`,
 `sgSYMMETRIC`, `sgFIXED`. Verified by geometry on SW 2026 (34.0.0) through
 `IModelDoc2.SketchAddConstraints`: `sgCOINCIDENT`, `sgHORIZONTAL2D`,
-`sgTANGENT`, `sgSYMMETRIC`, `sgFIXED`, and `sgSAMELENGTH`, which made two
+`sgTANGENT`, `sgSYMMETRIC`, `sgFIXED`, `sgVERTICAL2D`, and `sgSAMELENGTH`, which made two
 circles' radii equal where **`sgEQUAL` did nothing**. See
 [sketches/03](entries/sketches/03-relation-constants.md).
 
@@ -352,15 +373,20 @@ axis; `EXTSKETCHSEGMENT` for a closed sketch's line as `LineN@Sketch`;
 
 Selection marks that decided a feature, SW 2026 (34.0.0): revolve axis line
 16; `InsertRefPlane` references 0 and 1 in order; loft sections all 1;
-mates 1; circular pattern axis 1 and seed 4; mirror body 256 and plane 2 (the
-last from the probe's findings constants, not written up here).
+mates 1; circular pattern axis 1 and seed 4; sweep profile 1 and path 4;
+mirror body 256 and plane 2 (body at mark 1 mirrored nothing).
 
 Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
 `FtrFolder`, `RefPlane`. Also seen on SW 2026 (34.0.0): `RefAxis`,
 `ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut),
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
-`Revolution`, `BlendCut`, `MoveCopyBody`.
+`Revolution`, `BlendCut`, `MoveCopyBody`, and from the helical runs `Sweep`,
+`SweepCut`, `MirrorSolid`.
+
+`swTwistControlType_e`: `8` constant twist along path. `swRefPlaneReferenceConstraints_e`:
+`8` distance, `256` its flip option, `2` perpendicular, `4` coincident. All read from
+`swconst.tlb` and used in calls that ran on SW 2026 (34.0.0).
 
 `swFeatureTreeFolderType_e` for `InsertFeatureTreeFolder2`, by observed
 behaviour rather than by header: `2` wraps the selection in a new folder, `1`

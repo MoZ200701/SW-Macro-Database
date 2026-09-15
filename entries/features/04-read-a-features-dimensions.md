@@ -121,3 +121,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [features/07 — Loft cut](07-loft-cut.md) — two dimensions both named `D1`
 - [GOTCHAS §33](../../GOTCHAS.md)
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — the same walk over every feature, for a whole part
+- [features/09 — Twisted sweep](09-twisted-sweep.md) — a sweep's one dimension, the twist, found by value

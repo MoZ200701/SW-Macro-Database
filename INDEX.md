@@ -33,6 +33,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 |---|---|
 | Add, read and change global variables | [equations/01 — Global variables from code](entries/equations/01-global-variables-from-code.md) |
 | Make a dimension follow a global | [equations/02 — Link a dimension to a global](entries/equations/02-link-a-dimension-to-a-global.md) |
+| Use inverse trig in a global (`atn`, not `arctan`) | [equations/01 — Global variables from code](entries/equations/01-global-variables-from-code.md) |
 
 ## Get geometry in
 
@@ -82,6 +83,10 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Revolve a profile about a centreline, choosing the axis line | [features/05 — Revolve](entries/features/05-revolve.md) |
 | Make a plane square to a sketch line at its end, and know which way its sketch faces | [features/06 — Reference plane normal to a line](entries/features/06-reference-plane-normal-to-a-line.md) |
 | Cut a loft between two sketched sections | [features/07 — Loft cut](entries/features/07-loft-cut.md) |
+| Make a plane at a distance from another, on the side I choose, driven by a global | [features/08 — Offset reference plane](entries/features/08-offset-reference-plane.md) |
+| Sweep a profile along a line with a twist, and choose its hand | [features/09 — Twisted sweep](entries/features/09-twisted-sweep.md) |
+| Cut along a path with a twist (a helical tooth space), and pattern it | [features/10 — Swept cut](entries/features/10-swept-cut.md) |
+| Mirror a body about a plane into one body (a herringbone) | [features/11 — Mirror a body](entries/features/11-mirror-body.md) |
 | Make a reference axis along a sketch line | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 
 ## Put parts together

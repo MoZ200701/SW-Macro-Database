@@ -210,3 +210,4 @@ those is how the conventions above got established.
 - [features/03 — Circular pattern](../features/03-circular-pattern.md) — selecting at two marks
 - [assemblies/02 — Mates from code](../assemblies/02-mates-from-code.md) — selecting inside a component
 - [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — a sketch line and a point by location, at marks 0 and 1
+- [features/11 — Mirror a body](../features/11-mirror-body.md) — a body selected at mark 256 through selection data

@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [python]
 api: [IModelDoc2.GetEquationMgr, IEquationMgr.Add2, IEquationMgr.Add3, IEquationMgr.GetCount, IEquationMgr.Equation, IEquationMgr.Value, IEquationMgr.GlobalVariable, IEquationMgr.Delete, IEquationMgr.Status, IEquationMgr.SetEquationAndConfigurationOption, IEquationMgr.AngularEquationUnits, IModelDoc2.ForceRebuild3]
-keywords: [equation manager, global variable, IEquationMgr, Add2, Add3, -1, Equation, indexed property, property put, SetEquationAndConfigurationOption, sqr, sqr(0), IIF, precedence, comparison, degrees, radians, sin, pi, parametric, Status]
+keywords: [equation manager, global variable, IEquationMgr, Add2, Add3, -1, Equation, indexed property, property put, SetEquationAndConfigurationOption, sqr, sqr(0), IIF, precedence, comparison, degrees, radians, sin, pi, parametric, Status, atn, arctan, arcsin, arccos, inverse trig, inverse tangent]
 answers: "How do I add, read and change global variables in the Equation Manager from code?"
 ---
 
@@ -139,6 +139,14 @@ untaken branch being rejected. `0 ^ 0.5` gave 0. So write square roots as
 `IIF ( 3 >= 1 + 5 , 1 , 0 )` gave **1**, which is what you get if it is read
 as `( 3 >= 1 ) + 5`. Bracket both sides of every comparison.
 
+**The inverse tangent is `atn`; `arctan` is refused.** `arctan ( 1 )` made
+`Add2` return `-1`. `atn ( 1 )` read 45, `arcsin ( 0.5 )` 30 and
+`arccos ( 0.5 )` 60: inverse trig answers in the same unit the part's `sin`
+takes, degrees here. A transverse pressure angle,
+`atn ( tan ( "Probe Alpha" ) / cos ( "Probe Beta" ) )` with 20 and 15, read
+20.646896487046472 against 20.64689648704647 by hand. See
+[GOTCHAS §46](../../GOTCHAS.md).
+
 ### What the Equation Manager accepted
 
 In a part whose trig read degrees, each added with `Add2` and read with `Value`:
@@ -164,6 +172,10 @@ In a part whose trig read degrees, each added with `Add2` and read with `Value`:
 | `IIF ( 1 > 1 , sqr ( 0 ) , 0 )` | **-1** | — |
 | `"Probe Pi" * 2` (a reference) | index | 6.283185307179586 |
 | `abs ( -2 )` | index | 2.0 |
+| `atn ( 1 )` | index | 45.0 |
+| `arctan ( 1 )` | **-1** | — |
+| `arcsin ( 0.5 )` | index | 30.000000000000004 |
+| `arccos ( 0.5 )` | index | 60.00000000000001 |
 | `( 1 +` | **-1** | `Status` -1 |
 | `"No Such Name" * 2` | **-1** | `Status` -1 |
 
@@ -214,6 +226,16 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
   which reported "Changed 1 variable ... and rebuilt it", gave 48.0, 30 and
   status 3 for all three again. That second rebuild's return value was not
   printed. That run's output is quoted here; its log is not kept in this repo.
+- `equation_inverse_trig`, in
+  [`p2_helical.py`](../../code/python/gear_generator/probe/p2_helical.py), runs
+  20260915-002812 and 20260915-023929 (43 of 43 and 54 of 54 passed), same facts
+  in both: `atn: "Probe Atn"= atn ( 1 ): returned 0`, `arctan: "Probe Arctan"= arctan ( 1 ): returned -1`,
+  `inverse_trig_accepted = {'atn': 'degrees', 'arcsin': 'degrees', 'arccos': 'degrees'}`,
+  `inverse_arcsin = {'value': 30.000000000000004, 'unit': 'degrees'}`,
+  `inverse_arccos = {'value': 60.00000000000001, 'unit': 'degrees'}`,
+  `transverse_pressure_angle_value = 20.646896487046472`, `angular_equation_units = 1`.
+  The tool's helical gears use `atn` for `"Transverse Pressure Angle"`, and probe
+  `helical_end_to_end` found every global matching its maths after a change.
 
 ## See also
 
@@ -222,5 +244,5 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [sketches/07 — Equation driven curve](../sketches/07-equation-driven-curve.md) — globals inside curve expressions, where trig is radians
 - [documents/01 — New part from a template](../documents/01-new-part-from-template.md) — document units
 - [curves/08 — Rebuild once, at the end](../curves/08-rebuild-once-at-the-end.md) — changing many globals in one batch
-- [GOTCHAS §26, §27, §28](../../GOTCHAS.md)
+- [GOTCHAS §26, §27, §28, §46](../../GOTCHAS.md)
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — reading the equations out of an existing part

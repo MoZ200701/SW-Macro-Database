@@ -146,3 +146,4 @@ second passing all 41 probes it ran), same facts in both. Excerpts:
 - [features/04 — Read a feature's dimensions](04-read-a-features-dimensions.md) — two `D1`s
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md) — lofting through imported curves instead of sketches
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
+- [features/09 — Twisted sweep](09-twisted-sweep.md) — a section that turns rather than shrinks

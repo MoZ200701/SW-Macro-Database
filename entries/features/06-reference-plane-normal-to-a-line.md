@@ -210,3 +210,4 @@ the same facts in both. Excerpts:
 - [sketches/04 — Dimensions](../sketches/04-dimensions.md) — placing the angle dimension
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md) — selection marks
 - [GOTCHAS §43](../../GOTCHAS.md)
+- [features/08 — Offset reference plane](08-offset-reference-plane.md) — the other `InsertRefPlane` form, with a dimension
