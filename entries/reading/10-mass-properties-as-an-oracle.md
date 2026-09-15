@@ -113,3 +113,6 @@ the helper is in
 - [connect/11 — Probe an API member on a live session](../connect/11-probe-an-api-member-on-a-live-session.md) — checking by outcome, not by return value
 - [reading/07 — Report the feature type on failure](07-report-feature-type-on-failure.md)
 - [reading/09 — Bounding box as a check](09-bounding-box.md) — the part's extents as the same kind of check
+- [features/05 — Revolve](../features/05-revolve.md) — Pappus volume, and the centre of mass on the axis
+- [features/07 — Loft cut](../features/07-loft-cut.md) — a frustum's volume
+- [assemblies/03 — Interference detection](../assemblies/03-interference-detection.md) — an interference volume checked against a lens

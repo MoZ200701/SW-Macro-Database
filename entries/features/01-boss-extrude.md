@@ -149,3 +149,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md)
 - [sketches/10 — Is the sketch fully defined](../sketches/10-is-the-sketch-fully-defined.md) — check the profile first
 - [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — another use of `IFeature.Select2`
+- [features/05 — Revolve](05-revolve.md) — the other way to make a blank

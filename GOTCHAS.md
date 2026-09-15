@@ -456,3 +456,98 @@ and the extrusion made from it five times over, then repeated the later features
 Step children with `IFeature.GetNextSubFeature`. Even then each consumed sketch
 appears twice: in the top-level chain just before its feature, and as that
 feature's sub-feature. See [connect/08](entries/connect/08-find-a-feature-by-name.md).
+
+## 38. With two centrelines in a sketch, the revolve axis has to be selected, at mark 16
+
+`IFeatureManager.FeatureRevolve2` with only the sketch selected revolved about
+the sketch's one centreline. A bevel blank's sketch has two construction lines,
+and there the axis line was selected as well: `SelectByID2("Line2@<sketch>",
+"EXTSKETCHSEGMENT", 0, 0, 0, True, 16, null, 0)` after the sketch, and the ring
+weighed exactly 2π r A about the meant line. Mark 16 was the first mark tried
+and worked; mark 4 and "sketch only" with two centrelines were never tried. A
+revolve about the wrong line still returns a feature, so weigh it. SolidWorks
+2026 (revision 34.0.0). See [features/05](entries/features/05-revolve.md).
+
+## 39. `IMathUtility.CreateTransform` is "Member not found" to late binding
+
+From pywin32's dynamic dispatch, `CreateTransform(data)` raised
+**`DISP_E_MEMBERNOTFOUND`** with a Python list and with a
+`VARIANT(VT_ARRAY | VT_R8, data)` alike, which reads as though the member does
+not exist. Invoking the same dispid with `pythoncom.DISPATCH_METHOD` and the
+typed array made the transform:
+
+```python
+oleobj = utility._oleobj_
+raw = oleobj.Invoke(oleobj.GetIDsOfNames("CreateTransform"), 0, pythoncom.DISPATCH_METHOD, True,
+                    VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, data))
+```
+
+The probe's reading is that late binding asked for a property get with an
+argument; that was not isolated. Put the result on `IComponent2.Transform2` by
+plain assignment, with the rotation **by columns** (§10), and read it back.
+SolidWorks 2026 (revision 34.0.0). See
+[assemblies/04](entries/assemblies/04-mates-between-non-parallel-axes.md).
+
+## 40. Interference detection: three `Get` members are properties, `Done` is a method
+
+On `IInterferenceDetectionMgr` through late binding, `GetInterferenceCount` and
+`GetInterferences` came back as their values by attribute access, and so did
+`IInterference.Volume` (cubic metres). `Done` came back as a Python `method`
+and runs only as `manager.Done()` — the §31 trap again, on a member whose name
+gives no hint. Also run the check on something that must fail: an
+interference check that never reports anything looks exactly like a good fit.
+SolidWorks 2026 (revision 34.0.0). See
+[assemblies/03](entries/assemblies/03-interference-detection.md).
+
+## 41. `AddComponent5` does not put the part's origin at the point you give
+
+A 10 mm thick cylinder inserted at (60, 0, 0) mm read a translation of
+(60.0, 0.0, −5.0) mm. Left where it landed and used as the reference for an
+origin-to-origin mate, it put the mated component's origin 5.0 mm from where
+its frame said, with the rotation exact. The probe's reading is that the
+part's middle goes at the point; only that one part thickness was tried, so
+the rule is not established. What worked either way: set **every**
+component's frame with `Transform2`, the first included, before mating.
+SolidWorks 2026 (revision 34.0.0). See
+[assemblies/04](entries/assemblies/04-mates-between-non-parallel-axes.md) and
+[assemblies/01](entries/assemblies/01-new-assembly-and-insert-components.md).
+
+## 42. A point-to-plane distance mate is measured along the plane's normal
+
+A component origin placed 8 mm below another component's Top plane (y = −8 mm),
+mated to that plane with an 8 mm distance and `AddMate5`'s `Flip` false, moved
+to **y = +8 mm** on rebuild: 16 mm from where it was placed, with nothing
+reported and the mate's `D1` reading 0.008 either way. With `Flip` (the third
+argument) `True` it stayed at −8 mm. Pass the distance positive and flip it
+when the point is on the plane's negative side. SolidWorks 2026 (revision
+34.0.0). See [assemblies/04](entries/assemblies/04-mates-between-non-parallel-axes.md).
+
+## 43. An angle dimension on the Top plane: give its placement point in model space
+
+The Top plane's sketch x is model +X and its sketch **y is model −Z**
+(`top_sketch_axes_in_model = {'x': [1.0, 0.0, 0.0], 'y': [0.0, 0.0, -1.0]}`).
+An angle dimension between two lines on it, placed with
+`IModelDoc2.AddDimension2` at a point inside the angle given in **model**
+coordinates, read the angle, 29.999999999999996° for 30°. The probe's own
+findings record that placed at that point's **sketch** coordinates, which lie
+mirrored across X and outside the angle, it had read the supplement; that
+earlier run's log is not among the evidence kept here, so that half is
+unverified in this repo. Either way the dimension is created without complaint,
+and a supplement linked to a global drives the geometry to the wrong angle.
+SolidWorks 2026 (revision 34.0.0). See
+[sketches/04](entries/sketches/04-dimensions.md).
+
+## 44. A Move/Copy Body turn records no dimension, so no global can drive it
+
+`IFeatureManager.InsertMoveCopyBody2(0, 0, 0, 0, 0, 0, 0, 0, radians(30), 0,
+False, 1)`, with the body selected at mark 1 through `IBody2.Select2`, made a
+`MoveCopyBody` feature (`Body-Move/Copy1`) and the body's centre of mass turned
+30° about Y as expected, (19.82050807568877, ~0, −5.6698729810778055) mm from
+(20, 0, 5). But the feature's dimensions were `[]`: the turn is not a dimension,
+and an equation cannot change it. A part that has to follow a global angle has
+to be built in its final orientation instead (planes and sketches that carry
+the angle as dimensions: [features/06](entries/features/06-reference-plane-normal-to-a-line.md),
+[features/03](entries/features/03-circular-pattern.md) for an axis from a line).
+SolidWorks 2026 (revision 34.0.0), run 20260915-015506, probe
+`move_body_rotate`, in
+[`p2_bevel.py`](code/python/gear_generator/probe/p2_bevel.py).

@@ -79,6 +79,10 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Cut a sketch through the part | [features/02 — Cut extrude](entries/features/02-cut-extrude.md) |
 | Repeat a feature around an axis | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 | Find an extrusion's depth or a pattern's count to name or link | [features/04 — Read a feature's dimensions](entries/features/04-read-a-features-dimensions.md) |
+| Revolve a profile about a centreline, choosing the axis line | [features/05 — Revolve](entries/features/05-revolve.md) |
+| Make a plane square to a sketch line at its end, and know which way its sketch faces | [features/06 — Reference plane normal to a line](entries/features/06-reference-plane-normal-to-a-line.md) |
+| Cut a loft between two sketched sections | [features/07 — Loft cut](entries/features/07-loft-cut.md) |
+| Make a reference axis along a sketch line | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 
 ## Put parts together
 
@@ -86,6 +90,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 |---|---|
 | Make an assembly and insert saved parts | [assemblies/01 — New assembly and insert components](entries/assemblies/01-new-assembly-and-insert-components.md) |
 | Mate components, and drive a mate from a global | [assemblies/02 — Mates from code](entries/assemblies/02-mates-from-code.md) |
+| Check an assembly for interference, and get the volumes | [assemblies/03 — Interference detection](entries/assemblies/03-interference-detection.md) |
+| Set a component's rotation, and mate parts on axes at an angle (bevel, crossed) | [assemblies/04 — Mates between non-parallel axes](entries/assemblies/04-mates-between-non-parallel-axes.md) |
 
 ## Read an existing model
 
@@ -112,14 +118,14 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 04, assemblies/01, assemblies/02, reading/04, reading/05, reading/10
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 07, assemblies/01 through 04, reading/04, reading/05, reading/10
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
 ## The thing you probably came here for
 
 If you are about to write a macro that drives a feature this collection does
-not cover — a revolve, a fillet, a loft — you still want
+not cover — a fillet, a shell, a sweep — you still want
 [connect/01](entries/connect/01-attach-from-vbscript.md) for the attach,
 [connect/07](entries/connect/07-find-the-open-document.md) for finding the
 part, [connect/08](entries/connect/08-find-a-feature-by-name.md) for finding
@@ -130,4 +136,5 @@ for the error handling. That is the whole scaffold. Only the one call in the
 middle is new — and [connect/11](entries/connect/11-probe-an-api-member-on-a-live-session.md)
 is how to find out whether that call works before you depend on it, with
 [reading/10](entries/reading/10-mass-properties-as-an-oracle.md) as the check.
-Extrude, cut and circular pattern are in [features/](entries/features/).
+Extrude, cut, revolve, loft cut, reference planes and circular pattern are in
+[features/](entries/features/).

@@ -101,6 +101,30 @@ dragging.
 (Unverified: no point-to-point distance was dimensioned in the probe, so this
 section is still as it was written.)
 
+**An angle on a plane other than Front: give the point in model space.** This
+part has been run. On SolidWorks 2026 (revision 34.0.0), probe
+`axis_from_sketch_line` drew a vertical centreline and a line 30° from it on
+the Top plane, both from the origin, selected both, and placed the angle
+dimension inside the 30° wedge at a point given as **model** coordinates:
+
+```python
+sc.select(doc, line, vertical)
+# Inside the 30° between the two lines, 15 mm out, given in model coordinates.
+inside = (-15.0 * math.sin(math.radians(TILT / 2.0)), 0.0, 15.0 * math.cos(math.radians(TILT / 2.0)))
+display = call(doc, "AddDimension2", inside[0] / sc.MM, inside[1] / sc.MM, inside[2] / sc.MM)
+```
+
+It read `line_angle_dimension_value_deg = 29.999999999999996`. The Top plane's
+sketch y is model −Z (`top_sketch_axes_in_model = {'x': [1.0, 0.0, 0.0], 'y': [0.0, 0.0, -1.0]}`,
+probe `center_of_mass`), so the same numbers read as sketch coordinates name a
+point mirrored across X, outside the wedge. The probe's findings record that a
+dimension placed at the sketch-space point had read the **supplement**; that
+run's log is not kept in this repo, so that half is unverified here. Both are
+accepted silently, and a supplement linked to a global drives the line to the
+wrong angle. Run 20260915-015506, in
+[`p2_bevel.py`](../../code/python/gear_generator/probe/p2_bevel.py); see
+[GOTCHAS §43](../../GOTCHAS.md).
+
 ## What a single entity's dimension measures
 
 Observed on SolidWorks 2026, selecting one entity and calling `AddDimension2`:
@@ -216,3 +240,5 @@ driven dimensions.
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md)
 - [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) — dimensions SolidWorks made and named itself
 - [sketches/10 — Is the sketch fully defined](10-is-the-sketch-fully-defined.md)
+- [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — an angle and a length dimension driving a plane
+- [GOTCHAS §43](../../GOTCHAS.md) — an angle placed in sketch space reads its supplement

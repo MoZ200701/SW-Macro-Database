@@ -14,6 +14,13 @@ the probe code: a member a probe listed but never invoked is not marked
 verified. `FixComponent` was not invoked in that run; it was verified in the
 rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See [connect/11](entries/connect/11-probe-an-api-member-on-a-live-session.md).
 
+Rows marked "dev runs 2026-09-15" come from three later development runs of
+the same probe on SolidWorks 2026 (revision 34.0.0): 20260915-015506,
+20260915-020933 and 20260915-022314, the last passing all 41 probes it ran.
+Their excerpts are in
+[`probe-log-excerpts-20260915.txt`](code/python/gear_generator/probe/results/probe-log-excerpts-20260915.txt).
+As before, a member a probe listed but never reached is left unverified.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -41,6 +48,7 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `CloseDoc(title)` | Close by title. **Discards unsaved changes without a prompt** | Verified, SW 2026 (34.0.0) |
 | `ActivateDoc3(title, False, 0, out long)` | Bring an open document to the front; returned the document, not a tuple | Verified, SW 2026 (34.0.0) |
 | `GetUserPreferenceToggle` / `SetUserPreferenceToggle(10, bool)` | `swInputDimValOnCreate`: turn off the modal value dialog around `AddDimension2`, then restore | Verified, SW 2026 (34.0.0) |
+| `GetMathUtility` | The `IMathUtility`, below | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 
 ## IModelDoc2 (a part, assembly or drawing)
 
@@ -75,14 +83,17 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `SaveAs3(path, 0, 1)` | Save as. **Returned `0` while the file was written**; see the extension's form | Verified, SW 2026 (34.0.0) |
 | `GetEquationMgr` | The Equation Manager, below | Verified, SW 2026 (34.0.0) |
 | `SketchAddConstraints(constant)` | Add a relation to the selected sketch entities, e.g. `"sgTANGENT"` | Verified, SW 2026 (34.0.0) |
-| `AddDimension2(x, y, z)` | Dimension the selection, text at a point in metres; returns an `IDisplayDimension` | Verified, SW 2026 (34.0.0) |
-| `InsertAxis2(True)` | Reference axis from two selected planes; returns `True`, not the axis | Verified, SW 2026 (34.0.0) |
+| `AddDimension2(x, y, z)` | Dimension the selection, text at a point in metres; returns an `IDisplayDimension`. On the Top plane an angle placed at a **model-space** point read the angle (GOTCHAS §43) | Verified, SW 2026 (34.0.0) |
+| `InsertAxis2(True)` | Reference axis from two selected planes; returns `True`, not the axis. Also from one sketch line selected at mark 0 by `LineN@Sketch`; the axis followed the line's linked angle | Verified, SW 2026 (34.0.0); from a line, dev runs 2026-09-15 |
 
 ## IModelDocExtension
 
 | Member | Purpose | Status |
 |---|---|---|
 | `SelectByID2` | Select a named entity by type string, with a selection mark. `"PLANE"` with a plane's name read from the tree selected it | Verified, SW 2026 |
+| `SelectByID2("LineN@Sketch", "EXTSKETCHSEGMENT", 0, 0, 0, append, mark, null, 0)` | A line of a closed sketch by name; the name from `ISketchSegment.GetName`. At mark 16 as a revolve's axis, at mark 0 for a plane or an axis | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `SelectByID2("", "EXTSKETCHPOINT", x, y, z, append, mark, null, 0)` | A closed sketch's point by its model location, metres | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `SelectByID2("Point1@<origin>@<component>@<assembly>", "EXTSKETCHPOINT", 0, 0, 0, append, 1, null, 0)` | A component's origin, for a mate; selected type 25 | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `AddDimension2(x, y, z)` | Add a dimension at a placement point, in metres. The `IModelDoc2` member of the same name is the one that has run | Unverified |
 | `GetPersistReference3(obj)` | A byte handle to a feature that survives renaming | Verified, SW 2026 |
 | `DeleteSelection2(options)` | Delete what is selected. On a folder it removes **only the folder**, leaving its contents in place | Verified, SW 2026 |
@@ -151,6 +162,10 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `FeatureExtrusion3` (23 arguments) | Blind boss from the selected sketch, depth in metres; returns the feature | Verified, SW 2026 (34.0.0) |
 | `FeatureCut4` (27 arguments) | Cut from the selected sketch. **Through all in the default direction returned `None`**; both directions (end condition 9) cut | Verified, SW 2026 (34.0.0) |
 | `FeatureCircularPattern5` (14 arguments) | Pattern the feature at mark 4 about the axis at mark 1; two `"NULL"` strings | Verified, SW 2026 (34.0.0) |
+| `FeatureRevolve2` (20 arguments) | Revolve the selected sketch a full turn (radians) about its centreline, or about the line at mark 16; returns a `Revolution` | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `InsertRefPlane(2, 0, 4, 0, 0, 0)` | Plane perpendicular to the line at mark 0 and coincident with the point at mark 1. Its sketch frame kept its signs as the line moved; the plane has no dimension | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `InsertCutBlend` (12 arguments) | Lofted cut through the sketches selected at mark 1, in order; returns a `BlendCut`. Removed the frustum exactly | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `InsertMoveCopyBody2` (12 arguments) | Turned the body selected at mark 1 by 30° about Y; returns a `MoveCopyBody`. **The feature has no dimension**, so no global can drive it (GOTCHAS §44) | Verified, SW 2026 (34.0.0), run 20260915-015506 |
 | `FeatureCut3` | Listed by the probe, never called | Unverified |
 | `FeatureCircularPattern4` | Listed by the probe, never called | Unverified |
 
@@ -224,6 +239,7 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `GetLength` | Length in metres | Verified, SW 2026 (34.0.0) |
 | `GetRadius` (ISketchArc) | Radius in metres, arcs and circles | Verified, SW 2026 (34.0.0) |
 | `GetPoints2` (ISketchSpline) | The spline's points as sketch point objects, not doubles | Verified, SW 2026 (34.0.0) |
+| `GetName` (ISketchSegment) | The segment's name, e.g. `'Line2'`, for `SelectByID2` after the sketch closes | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 
 ## ISelectionMgr
 
@@ -233,6 +249,7 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `GetSelectedObject6(index, mark)` | The selected object, 1-based | Verified |
 | `GetSelectedObjectType3(index, mark)` | A `swSelectType_e` number | Verified |
 | `GetSelectedObjectsSketch(index)` | The sketch a selected entity belongs to | Verified |
+| `CreateSelectData` | A selection data object; set `Mark` on it before `IBody2.Select2` | Verified, SW 2026 (34.0.0), run 20260915-015506 |
 
 ## Geometry interrogation
 
@@ -248,12 +265,27 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `Transform` → `ArrayData` | IRefPlane feature | Sixteen doubles: rotation **by columns**, translation, scale | Verified |
 | `ModelToSketchTransform` → `Inverse` → `ArrayData` | ISketch | Sketch space to model space | Verified |
 | `Transform2` → `ArrayData` | IComponent2 | Items 9–11 are the component's translation, in metres | Verified, SW 2026 (34.0.0) |
+| `GetRefAxisParams` | IRefAxis (from `GetSpecificFeature2` on a `RefAxis`) | Two points on the axis, six doubles; their difference is its direction | Verified, SW 2026 (34.0.0), run 20260915-015506 |
 
 ## IMassProperty (from `IModelDocExtension.CreateMassProperty`)
 
 | Member | Purpose | Status |
 |---|---|---|
 | `Volume` | The part's volume in **cubic metres**; matched π r² w to 16 significant figures | Verified, SW 2026 (34.0.0) |
+| `CenterOfMass` | Centre of mass, three doubles in **metres**, after `ForceRebuild3`; put a revolved ring's on its axis | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+
+## IMathUtility (from `ISldWorks.GetMathUtility`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `CreateTransform(double[16])` | An `IMathTransform` from sixteen doubles, rotation by columns. **Raised `DISP_E_MEMBERNOTFOUND` through late binding** with a list or a `VT_ARRAY\|VT_R8`; worked through `Invoke(..., DISPATCH_METHOD, True, VARIANT(VT_ARRAY\|VT_R8, data))` | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+
+## IBody2 (from `IPartDoc.GetBodies2`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IPartDoc.GetBodies2(0, True)` | The part's solid bodies; `len` of it counted one body after a cut | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `Select2(False, selectData)` | Select the body, at the mark set on `ISelectionMgr.CreateSelectData` | Verified at mark 1, SW 2026 (34.0.0), run 20260915-015506 |
 
 ## IDimension / IDisplayDimension
 
@@ -270,7 +302,7 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | Member | Purpose | Status |
 |---|---|---|
 | `AddComponent5(path, 0, "", False, "", x, y, z)` | Insert a saved, open part; position in metres; returns the component | Verified, SW 2026 (34.0.0) |
-| `AddMate5(type, 2, False, d, d, d, 1, 1, a, a, a, False, False, 0, out long)` | Mate the two entities at mark 1; returned the mate, not a tuple. An angle mate's `D1` (radians) linked to a global was accepted | Verified, SW 2026 (34.0.0) |
+| `AddMate5(type, 2, flip, d, d, d, 1, 1, a, a, a, False, False, 0, out long)` | Mate the two entities at mark 1; returned the mate, not a tuple. An angle mate's `D1` (radians) linked to a global was accepted. Also an angle between two axes (`MatePlanarAngleDim`), and a point's distance from a plane, **measured along the plane's normal**: `flip` `True` for a point on the negative side (GOTCHAS §42) | Verified, SW 2026 (34.0.0); axes and flip, dev runs 2026-09-15 |
 | `FixComponent()` | Fix the selected component; returns `None`. A free component's `IsFixed` went `False` → `True`. **Call it with parentheses**: reached by attribute access it came back as a Python `method` and never ran | Verified, SW 2026 (34.0.0), rerun 20260914-183429 |
 
 ## IComponent2
@@ -282,6 +314,21 @@ rerun 20260914-183429 (33 of 33 passed), whose results sit beside the first. See
 | `Select4(False, null, False)` | Select the component | Verified, SW 2026 (34.0.0) |
 | `Transform2` | Its placement; see Geometry interrogation | Verified, SW 2026 (34.0.0) |
 | `FeatureByName(name)` | A feature of the component, to select for a mate. Called; whether its result or the `SelectByID2` fallback made the selection was not recorded | Partly verified, SW 2026 (34.0.0) |
+| `Transform2 = transform` (put) | Set the component's whole frame from an `IMathTransform`; returned `None`, read back to 2.22e-16 and 0 mm | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `GetModelDoc2` | The component's part, to read its origin feature's name | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `SetTransformAndSolve2` | Listed by the probe as a fallback to the `Transform2` put, never reached | Unverified |
+| `GetCorresponding` | Listed by the probe as a fallback route to a component's origin, never reached | Unverified |
+
+## IInterferenceDetectionMgr (from `IAssemblyDoc.InterferenceDetectionManager`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IAssemblyDoc.InterferenceDetectionManager` | The manager, a property get | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `TreatCoincidenceAsInterference`, `TreatSubAssembliesAsComponents`, `IncludeMultibodyPartInterferences`, `MakeInterferingPartsTransparent`, `CreateFastenersFolder`, `IgnoreHiddenBodies`, `ShowIgnoredInterferences`, `UseTransform` | Options, each put before counting (False, True, True, False, False, True, False, False); each put returned `None`. Their effects were not varied | Put verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `GetInterferenceCount` | How many interferences. **A property get** under late binding, despite the name | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `GetInterferences` | The interferences, a tuple. **A property get** | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `Done` | Release the manager. **A method**: call `manager.Done()`; attribute access fetches it without running it | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `IInterference.Volume` | The interference's volume in **cubic metres**, a property get; matched a lens of two circles to 1e-3 | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 
 ## Constants used
 
@@ -298,13 +345,22 @@ Dimension types (`swDimensionType_e`):
 `swDistanceDim`, `swRadiusDim`, `swDiameterDim`, `swAngularDim`.
 
 Selection type strings for `SelectByID2`: `REFERENCECURVES` for a reference
-curve; `PLANE` for a reference plane by its tree name.
+curve; `PLANE` for a reference plane by its tree name; `AXIS` for a reference
+axis; `EXTSKETCHSEGMENT` for a closed sketch's line as `LineN@Sketch`;
+`EXTSKETCHPOINT` for a sketch point by location, or a component's origin as
+`Point1@Origin@<component>@<assembly>`.
+
+Selection marks that decided a feature, SW 2026 (34.0.0): revolve axis line
+16; `InsertRefPlane` references 0 and 1 in order; loft sections all 1;
+mates 1; circular pattern axis 1 and seed 4; mirror body 256 and plane 2 (the
+last from the probe's findings constants, not written up here).
 
 Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
 `FtrFolder`, `RefPlane`. Also seen on SW 2026 (34.0.0): `RefAxis`,
 `ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut),
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
-`MateDistanceDim`, `MatePlanarAngleDim`.
+`MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
+`Revolution`, `BlendCut`, `MoveCopyBody`.
 
 `swFeatureTreeFolderType_e` for `InsertFeatureTreeFolder2`, by observed
 behaviour rather than by header: `2` wraps the selection in a new folder, `1`
@@ -339,4 +395,5 @@ ran (the behaviour is verified, the member names are the type library's):
 `swEndConditions_e` 0 blind, 1 through all, 9 through all both;
 `swSaveAsVersion_e` 0 current; `swSaveAsOptions_e` 1 silent;
 `swMateType_e` 0 coincident, 5 distance, 6 angle; `swMateAlign_e` 2 closest;
-`swConstrainedStatus_e` 2 under, 3 fully, 4 over (4 not observed).
+`swConstrainedStatus_e` 2 under, 3 fully, 4 over (4 not observed);
+`swRefPlaneReferenceConstraints_e` 2 perpendicular, 4 coincident.

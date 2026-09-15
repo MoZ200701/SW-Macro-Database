@@ -75,3 +75,4 @@ Generating a checklist for that one manual pass is worth doing. See
 
 - [curves/01 — The .sldcrv format](01-sldcrv-file-format.md)
 - [surfacing/01 — The boundary surface recipe](../surfacing/01-boundary-surface-recipe.md)
+- [features/07 — Loft cut](../features/07-loft-cut.md) — a lofted cut between sketched sections

@@ -231,4 +231,5 @@ beside the first run's, and `latest.json` is that rerun.
 - [reading/07 — Report the feature type on failure](../reading/07-report-feature-type-on-failure.md) — the same principle inside a generated script
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
 - [documents/01 — New part from a template](../documents/01-new-part-from-template.md)
+- [assemblies/03 — Interference detection](../assemblies/03-interference-detection.md) — a check shown able to fail, and members probed as property or method
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — why only running it counts

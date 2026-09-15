@@ -114,4 +114,5 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [features/01 — Boss extrude](01-boss-extrude.md) — selecting the sketch, and the blank this cuts
 - [features/03 — Circular pattern](03-circular-pattern.md) — patterning the cut
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
+- [features/07 — Loft cut](07-loft-cut.md) — a cut whose section changes
 - [GOTCHAS §32](../../GOTCHAS.md)

@@ -82,7 +82,9 @@ def _mate(px: Px, asm: Any, label: str, kind: int, distance: float = 0.0, angle:
 `AddMate5` is on **IAssemblyDoc**. The fifteen arguments as they ran: type,
 alignment `2`, `False`, the distance three times in **metres**, `1`, `1`, the
 angle three times in **radians**, `False`, `False`, `0`, and a by-reference
-long. Nothing else was varied.
+long. Nothing else was varied here. The third argument, `Flip`, was later set
+`True` on a point-to-plane distance mate, where it put the point on the plane's
+negative side ([assemblies/04](04-mates-between-non-parallel-axes.md)).
 
 **Finding the mate it made** — mates live under the `MateGroup` feature as
 sub-features:
@@ -271,3 +273,5 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [equations/01 — Global variables from code](../equations/01-global-variables-from-code.md) — the indexed put that changed the global
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md)
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — sub-features
+- [assemblies/03 — Interference detection](03-interference-detection.md) — whether mated parts collide
+- [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — origins, angles between axes, and `Flip`

@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [python]
 api: [IModelDoc2.InsertAxis2, IFeatureManager.FeatureCircularPattern5, IFeature.Select2]
-keywords: [FeatureCircularPattern5, circular pattern, InsertAxis2, reference axis, RefAxis, CirPattern, selection mark, mark 1, mark 4, DName NULL, instance count, equal spacing, teeth]
+keywords: [FeatureCircularPattern5, circular pattern, InsertAxis2, reference axis, RefAxis, axis from sketch line, GetRefAxisParams, CirPattern, selection mark, mark 1, mark 4, DName NULL, instance count, equal spacing, teeth]
 answers: "How do I make a circular pattern of a feature about an axis from code?"
 ---
 
@@ -44,6 +44,38 @@ def insert_axis(self, handle: str, name: str, planes: Tuple[int, int]) -> str:
 diffing the top-level names before and after and taking the one new `RefAxis`
 (`_made_since`). `select_plane_by_order` selects the Nth `RefPlane` in tree
 order ([documents/01](../documents/01-new-part-from-template.md)).
+
+### From a sketch line
+
+A reference axis along a sketch line, which follows the line when the line's
+angle is driven. Select the line of the closed sketch by name at mark 0
+(`"Line2@<sketch>"`, `"EXTSKETCHSEGMENT"`, as in [features/05](05-revolve.md))
+and call the same `InsertAxis2(True)`. From probe `axis_from_sketch_line` in
+[`p2_bevel.py`](../../code/python/gear_generator/probe/p2_bevel.py):
+
+```python
+px.require(_select_segment(doc, sketch, line_name, False, 0), f"{line_name}@{sketch} selects")
+before = sc.feature_names(doc)
+made = call(doc, "InsertAxis2", True)
+call(doc, "ClearSelection2", True)
+new = [n for n, t in sc.new_features(doc, before) if t == "RefAxis"]
+px.require(bool(made) and len(new) == 1, "InsertAxis2 makes one axis from the line")
+axis = sc.feature_by_name(doc, new[0])
+
+def direction() -> Vec:
+    params = [float(v) for v in call(call(axis, "GetSpecificFeature2"), "GetRefAxisParams")]
+    d = (params[3] - params[0], params[4] - params[1], params[5] - params[2])
+    n = math.sqrt(sum(v * v for v in d))
+    return (d[0] / n, d[1] / n, d[2] / n)
+```
+
+`GetRefAxisParams` is on **IRefAxis**, reached by `GetSpecificFeature2`: six
+doubles, two points on the axis. On SolidWorks 2026 (revision 34.0.0), run
+20260915-015506, a line on the Top plane at 30° from +Z toward −X gave
+`axis_direction = (-0.49999999999999994, 0.0, 0.8660254037844387)`; with the
+line's angle dimension linked to a global of 50 and one rebuild,
+`axis_direction_linked = (-0.766044443118979, 0.0, 0.6427876096865381)`.
+The angle dimension had to be placed in model space ([GOTCHAS §43](../../GOTCHAS.md)).
 
 ## The call
 
@@ -128,5 +160,7 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [features/04 — Read a feature's dimensions](04-read-a-features-dimensions.md)
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md)
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
+- [features/05 — Revolve](05-revolve.md) — selecting a sketch line by name
+- [features/06 — Reference plane normal to a line](06-reference-plane-normal-to-a-line.md) — a plane, rather than an axis, from a line
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md) — selection marks and counts
 - [GOTCHAS §33](../../GOTCHAS.md)

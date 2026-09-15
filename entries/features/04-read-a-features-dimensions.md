@@ -117,5 +117,7 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [sketches/04 — Dimensions](../sketches/04-dimensions.md)
 - [curves/07 — Rename a feature](../curves/07-rename-a-feature.md) — read names back
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — walking features and the sketches under them
+- [features/05 — Revolve](05-revolve.md) — a revolve's angle, `D1` in radians
+- [features/07 — Loft cut](07-loft-cut.md) — two dimensions both named `D1`
 - [GOTCHAS §33](../../GOTCHAS.md)
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — the same walk over every feature, for a whole part

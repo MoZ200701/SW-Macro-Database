@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 55,
+  "count": 60,
   "by_status": {
     "partly-verified": 7,
     "unverified": 3,
-    "verified": 45
+    "verified": 50
   },
   "entries": [
     {
@@ -84,6 +84,90 @@
         "drive mate from global"
       ],
       "answers": "How do I add coincident, distance and angle mates between assembly components from code?"
+    },
+    {
+      "id": "assemblies-03-interference-detection",
+      "title": "Check an assembly for interference and read the volumes",
+      "path": "entries/assemblies/03-interference-detection.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IAssemblyDoc.InterferenceDetectionManager",
+        "IInterferenceDetectionMgr.GetInterferenceCount",
+        "IInterferenceDetectionMgr.GetInterferences",
+        "IInterferenceDetectionMgr.Done",
+        "IInterference.Volume"
+      ],
+      "keywords": [
+        "InterferenceDetectionManager",
+        "interference detection",
+        "clash detection",
+        "collision",
+        "GetInterferenceCount",
+        "GetInterferences",
+        "IInterference",
+        "Volume",
+        "Done",
+        "TreatCoincidenceAsInterference",
+        "IgnoreHiddenBodies",
+        "UseTransform",
+        "property or method",
+        "late binding",
+        "negative control",
+        "gear mesh check"
+      ],
+      "answers": "How do I check an assembly for interfering components from code and get the interference volume?"
+    },
+    {
+      "id": "assemblies-04-mates-between-non-parallel-axes",
+      "title": "Place and mate components whose axes are not parallel",
+      "path": "entries/assemblies/04-mates-between-non-parallel-axes.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISldWorks.GetMathUtility",
+        "IMathUtility.CreateTransform",
+        "IComponent2.Transform2",
+        "IComponent2.GetModelDoc2",
+        "IModelDocExtension.SelectByID2",
+        "IAssemblyDoc.AddMate5"
+      ],
+      "keywords": [
+        "CreateTransform",
+        "IMathUtility",
+        "GetMathUtility",
+        "DISP_E_MEMBERNOTFOUND",
+        "Member not found",
+        "DISPATCH_METHOD",
+        "VT_ARRAY",
+        "VT_R8",
+        "Transform2 put",
+        "set component transform",
+        "component frame",
+        "rotation by columns",
+        "AddComponent5 offset",
+        "component origin",
+        "Point1@Origin",
+        "EXTSKETCHPOINT",
+        "angle mate between axes",
+        "point to plane distance mate",
+        "Flip",
+        "mate flip",
+        "negative side",
+        "bevel gears",
+        "crossed helical",
+        "skew axes",
+        "shaft angle"
+      ],
+      "answers": "How do I set a component's rotation from code and mate it so its axis sits at an angle to another component's, such as bevel or crossed gears?"
     },
     {
       "id": "connect-01-attach-vbscript",
@@ -930,6 +1014,8 @@
         "InsertAxis2",
         "reference axis",
         "RefAxis",
+        "axis from sketch line",
+        "GetRefAxisParams",
         "CirPattern",
         "selection mark",
         "mark 1",
@@ -975,6 +1061,112 @@
         "FullName"
       ],
       "answers": "How do I list a feature's dimensions from code and pick out one, such as an extrusion's depth or a pattern's count?"
+    },
+    {
+      "id": "features-05-revolve",
+      "title": "Revolve a sketch about a centreline",
+      "path": "entries/features/05-revolve.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.FeatureRevolve2",
+        "ISketchManager.CreateCenterLine",
+        "IModelDocExtension.SelectByID2",
+        "ISketchSegment.GetName",
+        "IMassProperty.CenterOfMass"
+      ],
+      "keywords": [
+        "FeatureRevolve2",
+        "revolve",
+        "revolved boss",
+        "Revolution",
+        "centreline",
+        "centerline",
+        "CreateCenterLine",
+        "axis of revolution",
+        "selection mark 16",
+        "mark 16",
+        "EXTSKETCHSEGMENT",
+        "LineN@Sketch",
+        "two centrelines",
+        "Pappus",
+        "bevel blank",
+        "20 arguments"
+      ],
+      "answers": "How do I revolve a sketch about a centreline from code, and pick which line is the axis when the sketch has more than one?"
+    },
+    {
+      "id": "features-06-reference-plane-normal-to-a-line",
+      "title": "A reference plane square to a sketch line, through its end",
+      "path": "entries/features/06-reference-plane-normal-to-a-line.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertRefPlane",
+        "IModelDocExtension.SelectByID2",
+        "ISketch.ModelToSketchTransform",
+        "IMathTransform.Inverse",
+        "IMathTransform.ArrayData"
+      ],
+      "keywords": [
+        "InsertRefPlane",
+        "reference plane",
+        "perpendicular plane",
+        "normal to curve",
+        "plane normal to line",
+        "plane through point",
+        "swRefPlaneReferenceConstraint_Perpendicular",
+        "swRefPlaneReferenceConstraint_Coincident",
+        "2",
+        "4",
+        "EXTSKETCHPOINT",
+        "EXTSKETCHSEGMENT",
+        "sketch frame",
+        "plane orientation",
+        "cone generatrix",
+        "bevel heel plane",
+        "back cone"
+      ],
+      "answers": "How do I make a reference plane perpendicular to a sketch line at its end, and which way does a sketch on that plane face?"
+    },
+    {
+      "id": "features-07-loft-cut",
+      "title": "Cut a loft between two sketched sections",
+      "path": "entries/features/07-loft-cut.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertCutBlend",
+        "IFeature.Select2"
+      ],
+      "keywords": [
+        "InsertCutBlend",
+        "lofted cut",
+        "loft cut",
+        "cut loft",
+        "blend",
+        "BlendCut",
+        "loft profiles",
+        "selection mark 1",
+        "section order",
+        "frustum",
+        "tapered cut",
+        "bevel tooth space",
+        "12 arguments"
+      ],
+      "answers": "How do I make a lofted cut between two closed sketches from code?"
     },
     {
       "id": "files-01-batch-convert-step",

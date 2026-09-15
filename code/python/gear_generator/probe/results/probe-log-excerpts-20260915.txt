@@ -1,0 +1,488 @@
+Excerpts from three development runs of the Gear Generator probe on SolidWorks 2026 (revision 34.0.0),
+2026-09-15, copied from their console logs. Line ranges are kept whole; lines between ranges are omitted
+and marked. The user's own open documents and the Windows profile path are replaced by placeholders.
+Long lines of the tool's build log are cut at 400 characters.
+
+================================================================================
+Run 20260915-015506 (25 pass, 1 FAIL): nonparallel_mates before gear 1 was set on a frame
+and before the Flip argument was used
+================================================================================
+attach  SolidWorks 2026 (revision 34.0.0), PID 27868
+pass    attach  (0.0 s)
+  fact   revision = '34.0.0'
+  fact   version = 'SolidWorks 2026 (revision 34.0.0)'
+  ok     revision 34.0.0 is SolidWorks 2026 or newer
+  fact   open_at_start = [<user document 1>, <user document 2>, <user document 3>]
+[... lines 7-183 omitted ...]
+pass    center_of_mass  (3.7 s)
+  ok     the boss sketch selects
+  ok     the boss is extruded
+  fact   boss_centre_of_mass_mm = (12.0, 5.000000000000001, 5.000000000000001)
+  ok     x and y of the centre are the sketch's, in metres: (12.0, 5.000000000000001, 5.000000000000001)
+  ok     the centre is half the depth off the plane: 5.000000000000001
+  fact   a blank from the Front plane extrudes toward +Z
+  fact   top_sketch_axes_in_model = {'x': [1.0, 0.0, 0.0], 'y': [0.0, 0.0, -1.0]}
+  ok     one of the Top sketch's axes is the model's Z axis
+[... lines 193-267 omitted ...]
+pass    move_body_rotate  (3.6 s)
+  ok     the body sketch selects
+  ok     the body is extruded
+  ok     the body selects at mark 1
+  try    InsertMoveCopyBody2 turn 30° about Y, body at mark 1: returned 'CDispatch'
+  fact   move_body_mark = 1
+  ok     a move body feature is made
+  fact   move_body_features = [('Body-Move/Copy1', 'MoveCopyBody')]
+  fact   move_body_type = 'MoveCopyBody'
+  fact   move_body_centre_mm = {'got': (19.82050807568877, -8.113550478606212e-49, -5.6698729810778055), 'want': (19.820508075688775, 0.0, -5.669872981077805)}
+  fact   move_body_turn_sign = 1
+  ok     the body's centre of mass turned about Y by 30° one way or the other: (19.82050807568877, -8.113550478606212e-49, -5.6698729810778055)
+  fact   move_body_dimensions = []
+  fact   move_body_turn_is_dimension = False
+  note   the turn is not a dimension, so a global cannot drive it
+pass    axis_from_sketch_line  (3.1 s)
+  ok     the two lines are made
+  ok     an angle dimension between the lines is made
+  fact   line_angle_dimension_value_deg = 29.999999999999996
+  fact   angle_dimension_placed_in_model_space_reads_the_angle = True
+  ok     placed inside the angle in model space, it reads 30.000000°
+  fact   line_segment_name = 'Line2'
+  ok     Line2@Axis Line Sketch selects
+  ok     InsertAxis2 makes one axis from the line
+  fact   axis_direction = (-0.49999999999999994, 0.0, 0.8660254037844387)
+  ok     the axis lies along the line: (-0.49999999999999994, 0.0, 0.8660254037844387)
+  ok     a tilt global is added
+  ok     the angle dimension links
+  fact   axis_direction_linked = (-0.766044443118979, 0.0, 0.6427876096865381)
+  ok     linked to 50° the axis follows: (-0.766044443118979, 0.0, 0.6427876096865381)
+[... lines 298-370 omitted ...]
+FAIL    nonparallel_mates  (14.5 s)
+  ok     there is a scratch folder to save parts in
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  fact   place_route = 'Transform2 put'
+  fact   transform_array_order = 'columns'
+  fact   create_transform_argument = 'Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8'
+  ok     a component's frame is set by Transform2 put with ArrayData in columns
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  try    select origin of Probe Skew A-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     both origins select by the same route
+  fact   origin_select_route = 'SelectByID2 EXTSKETCHPOINT Point1@Origin'
+  fact   origin_select_types = [25, 25]
+  try    AddMate5 bevel: origins coincident: returned 'CDispatch'
+  fact   mate bevel: origins coincident = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: origins coincident: one mate appears under Mates
+  ok     B's axis and A's top plane select
+  try    AddMate5 bevel: axis in top plane: returned 'CDispatch'
+  fact   mate bevel: axis in top plane = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: axis in top plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 bevel: angle between axes: returned 'CDispatch'
+  fact   mate bevel: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: angle between axes: one mate appears under Mates
+  fact   axis_angle_mate_dimensions = [('D1', 1.2217304763960306)]
+  ok     the two top planes select
+  try    AddMate5 bevel: spin by the top planes: returned 'CDispatch'
+  fact   mate bevel: spin by the top planes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: spin by the top planes: one mate appears under Mates
+  fact   bevel_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 5.0, 'mates': [('Coincident1', 'MateCoincident'), ('Coincident2', 'MateCoincident'), ('Angle1', 'MatePlanarAngleDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the point and axis-angle mates are made
+  FAIL   mated, B holds the bevel frame (rotation off 2.22e-16, origin 5.00e+00 mm)
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  ok     B's axis and A's right plane select
+  try    AddMate5 crossed: axis to right plane: returned 'CDispatch'
+  fact   mate crossed: axis to right plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: axis to right plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 crossed: angle between axes: returned 'CDispatch'
+  fact   mate crossed: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: angle between axes: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Top Plane selects
+  try    AddMate5 crossed: origin to Top Plane: returned 'CDispatch'
+  fact   mate crossed: origin to Top Plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: origin to Top Plane: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Front Plane selects
+  try    AddMate5 crossed: origin to Front Plane: returned 'CDispatch'
+  fact   mate crossed: origin to Front Plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: origin to Front Plane: one mate appears under Mates
+  fact   point_distance_mate_dimensions = {'Top Plane': [('D1', 0.008)], 'Front Plane': [('D1', 0.012)]}
+  fact   crossed_spin_mate_angle = 97.00000000000001
+  ok     B's top and A's right planes select
+  try    AddMate5 crossed: spin by B's top to A's right: returned 'CDispatch'
+  fact   mate crossed: spin by B's top to A's right = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: spin by B's top to A's right: one mate appears under Mates
+  fact   crossed_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 16.76305461424021, 'mates': [('Distance1', 'MateDistanceDim'), ('Angle1', 'MatePlanarAngleDim'), ('Distance2', 'MateDistanceDim'), ('Distance3', 'MateDistanceDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the distance mates are made
+  FAIL   mated, B holds the crossed frame (rotation off 2.22e-16, origin 1.68e+01 mm)
+[... decide lines omitted ...]
+done    25 pass, 1 FAIL
+
+================================================================================
+Run 20260915-020933 (38 pass, 1 FAIL): gear 1 set on a frame, the Flip argument not yet used
+================================================================================
+attach  SolidWorks 2026 (revision 34.0.0), PID 27868
+pass    attach  (0.0 s)
+  fact   revision = '34.0.0'
+  fact   version = 'SolidWorks 2026 (revision 34.0.0)'
+  ok     revision 34.0.0 is SolidWorks 2026 or newer
+  fact   open_at_start = [<user document 1>, <user document 2>, <user document 3>]
+[... lines 7-584 omitted ...]
+FAIL    nonparallel_mates  (15.6 s)
+  ok     there is a scratch folder to save parts in
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 0.00e+00, origin by 0.00e+00 mm
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  fact   place_route = 'Transform2 put'
+  fact   transform_array_order = 'columns'
+  fact   create_transform_argument = 'Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8'
+  ok     a component's frame is set by Transform2 put with ArrayData in columns
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  try    select origin of Probe Skew A-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     both origins select by the same route
+  fact   origin_select_route = 'SelectByID2 EXTSKETCHPOINT Point1@Origin'
+  fact   origin_select_types = [25, 25]
+  try    AddMate5 bevel: origins coincident: returned 'CDispatch'
+  fact   mate bevel: origins coincident = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: origins coincident: one mate appears under Mates
+  ok     B's axis and A's top plane select
+  try    AddMate5 bevel: axis in top plane: returned 'CDispatch'
+  fact   mate bevel: axis in top plane = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: axis in top plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 bevel: angle between axes: returned 'CDispatch'
+  fact   mate bevel: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: angle between axes: one mate appears under Mates
+  fact   axis_angle_mate_dimensions = [('D1', 1.2217304763960306)]
+  ok     the two top planes select
+  try    AddMate5 bevel: spin by the top planes: returned 'CDispatch'
+  fact   mate bevel: spin by the top planes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: spin by the top planes: one mate appears under Mates
+  fact   bevel_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 0.0, 'mates': [('Coincident1', 'MateCoincident'), ('Coincident2', 'MateCoincident'), ('Angle1', 'MatePlanarAngleDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the point and axis-angle mates are made
+  ok     mated, B holds the bevel frame (rotation off 2.22e-16, origin 0.00e+00 mm)
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 0.00e+00, origin by 0.00e+00 mm
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  ok     B's axis and A's right plane select
+  try    AddMate5 crossed: axis to right plane: returned 'CDispatch'
+  fact   mate crossed: axis to right plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: axis to right plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 crossed: angle between axes: returned 'CDispatch'
+  fact   mate crossed: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: angle between axes: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Top Plane selects
+  try    AddMate5 crossed: origin to Top Plane: returned 'CDispatch'
+  fact   mate crossed: origin to Top Plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: origin to Top Plane: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Front Plane selects
+  try    AddMate5 crossed: origin to Front Plane: returned 'CDispatch'
+  fact   mate crossed: origin to Front Plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: origin to Front Plane: one mate appears under Mates
+  fact   point_distance_mate_dimensions = {'Top Plane': [('D1', 0.008)], 'Front Plane': [('D1', 0.012)]}
+  fact   crossed_spin_mate_angle = 97.00000000000001
+  ok     B's top and A's right planes select
+  try    AddMate5 crossed: spin by B's top to A's right: returned 'CDispatch'
+  fact   mate crossed: spin by B's top to A's right = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: spin by B's top to A's right: one mate appears under Mates
+  fact   crossed_first_frame_error = (0.0, 0.0)
+  fact   crossed_second_origin_mm = (60.0, 8.0, 12.000000000000002)
+  fact   crossed_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 16.0, 'mates': [('Distance1', 'MateDistanceDim'), ('Angle1', 'MatePlanarAngleDim'), ('Distance2', 'MateDistanceDim'), ('Distance3', 'MateDistanceDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the distance mates are made
+  FAIL   mated, B holds the crossed frame (rotation off 2.22e-16, origin 1.60e+01 mm)
+[... lines 664-2801 omitted ...]
+done    38 pass, 1 FAIL
+
+================================================================================
+Run 20260915-022314 (41 pass)
+================================================================================
+attach  SolidWorks 2026 (revision 34.0.0), PID 27868
+pass    attach  (0.0 s)
+  fact   revision = '34.0.0'
+  fact   version = 'SolidWorks 2026 (revision 34.0.0)'
+  ok     revision 34.0.0 is SolidWorks 2026 or newer
+  fact   open_at_start = [<user document 1>, <user document 2>, <user document 3>]
+[... lines 7-440 omitted ...]
+pass    revolve  (9.0 s)
+  ok     Revolve Z: the centreline is made
+  ok     Revolve Z: the sketch selects
+  try    Revolve Z: FeatureRevolve2 [sketch only]: returned 'CDispatch'
+  ok     Revolve Z: a revolve is made
+  fact   revolve_z_type = 'Revolution'
+  ok     Revolve Z: the ring weighs 1507.9645 mm³ (Pappus 1507.9645)
+  fact   revolve_z_centre_mm = (-1.2056305644163638e-16, -1.3619874161106644e-31, 20.000000000000014)
+  ok     Revolve Z: its centre of mass is on the centreline: (-1.2056305644163638e-16, -1.3619874161106644e-31, 20.000000000000014)
+  fact   revolve_z_dimensions = [('D1', 6.283185307179586)]
+  ok     Revolve Tilted: the centreline is made
+  ok     Revolve Tilted: the sketch selects
+  try    Revolve Tilted: FeatureRevolve2 [sketch only]: returned 'CDispatch'
+  ok     Revolve Tilted: a revolve is made
+  fact   revolve_tilted_type = 'Revolution'
+  ok     Revolve Tilted: the ring weighs 1507.9645 mm³ (Pappus 1507.9645)
+  fact   revolve_tilted_centre_mm = (-10.000000000000009, -1.3619874161106652e-31, 17.32050807568879)
+  ok     Revolve Tilted: its centre of mass is on the centreline: (-10.000000000000009, -1.3619874161106652e-31, 17.32050807568879)
+  fact   revolve_tilted_dimensions = [('D1', 6.283185307179586)]
+  ok     Revolve Selected: the centreline is made
+  ok     Revolve Selected: the second centreline is made
+  ok     Revolve Selected: the sketch selects
+  try    Revolve Selected: FeatureRevolve2 [sketch and its centreline at mark 16]: returned 'CDispatch'
+  ok     Revolve Selected: a revolve is made
+  fact   revolve_selected_type = 'Revolution'
+  ok     Revolve Selected: the ring weighs 1507.9645 mm³ (Pappus 1507.9645)
+  fact   revolve_selected_centre_mm = (-1.2056305644163638e-16, -1.3619874161106644e-31, 20.000000000000014)
+  ok     Revolve Selected: its centre of mass is on the centreline: (-1.2056305644163638e-16, -1.3619874161106644e-31, 20.000000000000014)
+  fact   revolve_selected_dimensions = [('D1', 6.283185307179586)]
+  fact   revolve_routes = ['sketch only', 'sketch only', 'sketch and its centreline at mark 16']
+pass    loft_cut_sections  (7.2 s)
+  ok     the blank sketch selects
+  ok     the loft blank is extruded
+  ok     heel then toe, mark 1: both sections select
+  try    InsertCutBlend [heel then toe, mark 1]: returned 'CDispatch'
+  fact   loft_cut_route = 'heel then toe, mark 1'
+  ok     a lofted cut is made
+  fact   loft_cut_type = 'BlendCut'
+  fact   loft_cut_removed_mm3 = {'removed': 374.3999999999942, 'frustum': 374.40000000000003}
+  ok     the loft removes 374.4000 mm³, the frustum's 374.4000
+  ok     one solid body
+  fact   loft_cut_dimensions = [('D1', 0.005), ('D1', 0.035)]
+pass    ref_plane_normal  (4.1 s)
+  ok     the axis and the generatrix are drawn
+  fact   cone_dimensions_deg_mm = (29.999999999999996, 40.0)
+  ok     Line2@Cone Sketch selects at mark 0
+  ok     the line's end selects at mark 1 by its location
+  ok     InsertRefPlane(perpendicular 2, coincident 4) makes one plane
+  fact   ref_plane_normal_dimensions = []
+  fact   ref_plane_normal_frame_30 = {'origin_mm': (19.999999999999996, 0.0, 34.641016151377556), 'x': (0.8660254037844386, 0.0, -0.5000000000000001), 'y': (0.0, 1.0, 0.0), 'normal': (0.5000000000000001, 0.0, 0.8660254037844386), 'x_along_outward': 1.0, 'y_along_plus_y': 1.0, 'normal_along_line': 1.0}
+  ok     30: the sketch origin is the line's end (19.999999999999996, 0.0, 34.64101615137755): (19.999999999999996, 0.0, 34.641016151377556)
+  ok     30: the sketch's x, y and normal are the outward radial, Y and the line, each one way or the other
+  ok     the cone globals are added
+  ok     the angle and the length link
+  fact   ref_plane_normal_frame_50 = {'origin_mm': (34.47199994035407, 0.0, 28.9254424358942), 'x': (0.6427876096865379, 0.0, -0.7660444431189793), 'y': (0.0, 1.0, 0.0), 'normal': (0.7660444431189793, 0.0, 0.6427876096865379), 'x_along_outward': 1.0, 'y_along_plus_y': 1.0, 'normal_along_line': 1.0}
+  ok     50: the sketch origin is the line's end (34.47199994035401, 0.0, 28.925442435894272): (34.47199994035407, 0.0, 28.9254424358942)
+  ok     50: the sketch's x, y and normal are the outward radial, Y and the line, each one way or the other
+  fact   ref_plane_normal_signs = {'x_along_outward': 1, 'y_along_plus_y': 1, 'normal_along_line': 1}
+  ok     the plane's sketch keeps the same frame when the line moves
+[... lines 500-555 omitted ...]
+pass    interference  (15.0 s)
+  ok     there is a scratch folder to save parts in
+  try    overlap: IAssemblyDoc.InterferenceDetectionManager: returned 'CDispatch'
+  try    overlap: set TreatCoincidenceAsInterference = False: returned None
+  try    overlap: set TreatSubAssembliesAsComponents = True: returned None
+  try    overlap: set IncludeMultibodyPartInterferences = True: returned None
+  try    overlap: set MakeInterferingPartsTransparent = False: returned None
+  try    overlap: set CreateFastenersFolder = False: returned None
+  try    overlap: set IgnoreHiddenBodies = True: returned None
+  try    overlap: set ShowIgnoredInterferences = False: returned None
+  try    overlap: set UseTransform = False: returned None
+  try    overlap: GetInterferenceCount: returned 'tuple'
+  try    overlap: GetInterferences: returned 'tuple'
+  try    overlap: IInterference.Volume: returned 'tuple'
+  try    overlap: Done: returned 'tuple'
+  fact   interference_overlap = {'count': 1, 'count_form': 'property', 'listed': 1, 'list_form': 'property', 'volumes_mm3': [1813.2470159104396], 'done_form': 'method'}
+  ok     overlap: one interference is counted and listed (1, 1)
+  ok     overlap: its volume is the lens, 1813.247 mm³ (expected 1813.247)
+  try    apart: IAssemblyDoc.InterferenceDetectionManager: returned 'CDispatch'
+  try    apart: set TreatCoincidenceAsInterference = False: returned None
+  try    apart: set TreatSubAssembliesAsComponents = True: returned None
+  try    apart: set IncludeMultibodyPartInterferences = True: returned None
+  try    apart: set MakeInterferingPartsTransparent = False: returned None
+  try    apart: set CreateFastenersFolder = False: returned None
+  try    apart: set IgnoreHiddenBodies = True: returned None
+  try    apart: set ShowIgnoredInterferences = False: returned None
+  try    apart: set UseTransform = False: returned None
+  try    apart: GetInterferenceCount: returned 'tuple'
+  try    apart: GetInterferences: returned 'tuple'
+  try    apart: Done: returned 'tuple'
+  fact   interference_apart = {'count': 0, 'count_form': 'property', 'listed': 0, 'list_form': 'property', 'volumes_mm3': [], 'done_form': 'method'}
+  ok     apart: nothing interferes (0, 0)
+  fact   interference_route = {'count': 'property', 'list': 'property', 'done': 'method'}
+pass    nonparallel_mates  (15.2 s)
+  ok     there is a scratch folder to save parts in
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 0.00e+00, origin by 0.00e+00 mm
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  fact   place_route = 'Transform2 put'
+  fact   transform_array_order = 'columns'
+  fact   create_transform_argument = 'Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8'
+  ok     a component's frame is set by Transform2 put with ArrayData in columns
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  try    select origin of Probe Skew A-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     both origins select by the same route
+  fact   origin_select_route = 'SelectByID2 EXTSKETCHPOINT Point1@Origin'
+  fact   origin_select_types = [25, 25]
+  try    AddMate5 bevel: origins coincident: returned 'CDispatch'
+  fact   mate bevel: origins coincident = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: origins coincident: one mate appears under Mates
+  ok     B's axis and A's top plane select
+  try    AddMate5 bevel: axis in top plane: returned 'CDispatch'
+  fact   mate bevel: axis in top plane = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: axis in top plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 bevel: angle between axes: returned 'CDispatch'
+  fact   mate bevel: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: angle between axes: one mate appears under Mates
+  fact   axis_angle_mate_dimensions = [('D1', 1.2217304763960306)]
+  ok     the two top planes select
+  try    AddMate5 bevel: spin by the top planes: returned 'CDispatch'
+  fact   mate bevel: spin by the top planes = {'returned': 'CDispatch', 'status': None}
+  ok     bevel: spin by the top planes: one mate appears under Mates
+  fact   bevel_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 0.0, 'mates': [('Coincident1', 'MateCoincident'), ('Coincident2', 'MateCoincident'), ('Angle1', 'MatePlanarAngleDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the point and axis-angle mates are made
+  ok     mated, B holds the bevel frame (rotation off 2.22e-16, origin 0.00e+00 mm)
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 0.00e+00, origin by 0.00e+00 mm
+  try    IMathUtility.CreateTransform(list): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(VT_ARRAY|VT_R8): raised DISP_E_MEMBERNOTFOUND — Member not found.
+  try    IMathUtility.CreateTransform(Invoke DISPATCH_METHOD, VT_ARRAY|VT_R8): returned 'CDispatch'
+  try    Transform2 put (columns): returned None
+  note   Transform2 put (columns): rotation off by 2.22e-16, origin by 0.00e+00 mm
+  ok     B's axis and A's right plane select
+  try    AddMate5 crossed: axis to right plane: returned 'CDispatch'
+  fact   mate crossed: axis to right plane = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: axis to right plane: one mate appears under Mates
+  ok     the two axes select
+  try    AddMate5 crossed: angle between axes: returned 'CDispatch'
+  fact   mate crossed: angle between axes = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: angle between axes: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Top Plane selects
+  try    AddMate5 crossed: origin to Top Plane (flip True): returned 'CDispatch'
+  ok     crossed: origin to Top Plane: one mate appears under Mates
+  try    select origin of Probe Skew B-1: SelectByID2 EXTSKETCHPOINT Point1@Origin: returned True
+  ok     A's Front Plane selects
+  try    AddMate5 crossed: origin to Front Plane (flip False): returned 'CDispatch'
+  ok     crossed: origin to Front Plane: one mate appears under Mates
+  fact   point_distance_mate_dimensions = {'Top Plane': [('D1', 0.008)], 'Front Plane': [('D1', 0.012)]}
+  fact   crossed_spin_mate_angle = 97.00000000000001
+  ok     B's top and A's right planes select
+  try    AddMate5 crossed: spin by B's top to A's right: returned 'CDispatch'
+  fact   mate crossed: spin by B's top to A's right = {'returned': 'CDispatch', 'status': None}
+  ok     crossed: spin by B's top to A's right: one mate appears under Mates
+  fact   crossed_first_frame_error = (0.0, 0.0)
+  fact   crossed_second_origin_mm = (60.0, -8.0, 12.0)
+  fact   point_distance_flip_below_plane = True
+  fact   crossed_frame_error = {'rotation': 2.220446049250313e-16, 'origin_mm': 0.0, 'mates': [('Distance1', 'MateDistanceDim'), ('Angle1', 'MatePlanarAngleDim'), ('Distance2', 'MateDistanceDim'), ('Distance3', 'MateDistanceDim'), ('Angle2', 'MatePlanarAngleDim')]}
+  ok     the distance mates are made
+  ok     mated, B holds the crossed frame (rotation off 2.22e-16, origin 0.00e+00 mm)
+[... lines 667-2274 omitted ...]
+  note   bevel: build   Assem51 · pair · recipe  · trig degrees
+  note   bevel: ok      new assembly Assem51
+  note   bevel: ok      trig units measured: degrees
+  note   bevel: ok      global "Cone Distance"
+  note   bevel: ok      global "Shaft Angle"
+  note   bevel: ok      global "Ratio"
+  note   bevel: ok      global "Mesh Angle"
+  note   bevel: ok      component Probe bevel pinion-1
+  note   bevel: ok      component Probe bevel gear-1
+  note   bevel: ok      placed gear1
+  note   bevel: ok      placed gear2
+  note   bevel: ok      fixed gear1
+  note   bevel: ok      mate point gear2:origin ~ gear1:origin
+  note   bevel: ok      mate coincident gear2:Gear Axis ~ gear1:plane2
+  note   bevel: ok      mate axis angle gear2:Gear Axis ~ gear1:Gear Axis as Shaft Angle
+  note   bevel: ok      link "D1@Shaft Angle"
+  note   bevel: ok      mate angle gear2:plane2 ~ gear1:plane2 as Mesh Angle
+  note   bevel: ok      link "D1@Mesh Angle"
+  note   bevel: ok      4 globals read back and match the maths
+  note   bevel: ok      no interference between the gears
+  note   bevel: ok      rebuilt once
+  note   bevel: ok      saved %USERPROFILE%\Documents\GearGeneratorProbe\20260915-021146\Probe bevel pair.SLDASM
+  ok     bevel: the pair builds with no failures
+  ok     bevel: every sketch of Part861 is fully defined
+  ok     bevel: every sketch of Part862 is fully defined
+  ok     bevel: the gears mesh without interference
+  ok     bevel: the assembly rebuilds with gear 2 half a pitch round
+  fact   bevel_half_pitch_interference = {'count': 4, 'volume_mm3': 482.40878390053473}
+  ok     bevel: half a pitch round, the teeth interfere (4, 482.409 mm³)
+  fact   bevel_pinion_features = ['Comments', 'Favorites', 'History', 'Selection Sets', 'Sensors', 'Design Binder', 'Annotations', 'Notes', 'Notes1___EndTag___', 'Surface Bodies', 'Solid Bodies', 'Lights and Cameras', 'Ambient', 'Directional1', 'Directional2', 'Directional3', 'Markups', 'Equations', 'Material <not specified>', 'Front Plane', 'Top Plane', 'Right Plane', 'Origin', 'Gear Axis', 'Blan
+  ok     bevel: every feature the tool names is in the pinion's tree
+[... lines 2306-2764 omitted ...]
+  note   crossed: build   Assem52 · pair · recipe  · trig degrees
+  note   crossed: ok      new assembly Assem52
+  note   crossed: ok      trig units measured: degrees
+  note   crossed: ok      global "Centre Distance"
+  note   crossed: ok      global "Shaft Angle"
+  note   crossed: ok      global "Helix Angle 1"
+  note   crossed: ok      global "Helix Angle 2"
+  note   crossed: ok      global "Ratio"
+  note   crossed: ok      global "Mesh Angle"
+  note   crossed: ok      global "Offset Y"
+  note   crossed: ok      global "Offset Z"
+  note   crossed: ok      component Probe crossed pinion-1
+  note   crossed: ok      component Probe crossed gear-1
+  note   crossed: ok      placed gear1
+  note   crossed: ok      placed gear2
+  note   crossed: ok      fixed gear1
+  note   crossed: ok      mate distance gear2:Gear Axis ~ gear1:plane3 as Centre Distance
+  note   crossed: ok      link "D1@Centre Distance"
+  note   crossed: ok      mate axis angle gear2:Gear Axis ~ gear1:Gear Axis as Shaft Angle
+  note   crossed: ok      link "D1@Shaft Angle"
+  note   crossed: ok      mate point distance gear2:origin ~ gear1:plane2 as Offset Y
+  note   crossed: ok      link "D1@Offset Y"
+  note   crossed: ok      mate point distance gear2:origin ~ gear1:plane1 as Offset Z
+  note   crossed: ok      link "D1@Offset Z"
+  note   crossed: ok      mate angle gear2:plane2 ~ gear1:plane3 as Mesh Angle
+  note   crossed: ok      link "D1@Mesh Angle"
+  note   crossed: ok      8 globals read back and match the maths
+  note   crossed: ok      no interference between the gears
+  note   crossed: ok      rebuilt once
+  note   crossed: ok      saved %USERPROFILE%\Documents\GearGeneratorProbe\20260915-021146\Probe crossed pair.SLDASM
+  ok     crossed: the pair builds with no failures
+  ok     crossed: every sketch of Part864 is fully defined
+  ok     crossed: every sketch of Part865 is fully defined
+  ok     crossed: the gears mesh without interference
+  fact   crossed_route = 'mates'
+  ok     crossed: the assembly rebuilds with gear 2 half a pitch round
+  fact   crossed_half_pitch_interference = {'count': 3, 'volume_mm3': 102.56289208058003}
+  ok     crossed: half a pitch round, the teeth interfere (3, 102.563 mm³)
+decide  flank_recipe = A
+[... lines 2804-2830 omitted ...]
+decide  interference_route = {'count': 'property', 'list': 'property', 'done': 'method'}
+decide  internal_end_to_end = False
+decide  revolve_axis_mark = 16
+decide  bevel_section_x_sign = 1
+decide  loft_cut_route = heel then toe, mark 1
+decide  loft_cut_type = BlendCut
+decide  place_route = Transform2 put
+decide  transform_array_order = columns
+decide  origin_select_route = SelectByID2 EXTSKETCHPOINT Point1@Origin
+decide  bevel_mate_route = mates
+decide  crossed_route = mates
+decide  bevel_end_to_end = True
+decide  crossed_end_to_end = True
+decide  manual_steps = ['material', 'link the centre distance mate in Equations']
+done    41 pass

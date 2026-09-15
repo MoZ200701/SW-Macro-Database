@@ -221,6 +221,13 @@ def _type_name(obj: Any) -> str:
         return "?"
 
 
+def _segment_name(segment: Any) -> str:
+    try:
+        return str(call(segment, "GetName"))
+    except Exception:  # noqa: BLE001 - an entity that will not name itself cannot be selected by name
+        return ""
+
+
 def _put_indexed(obj: Any, name: str, index: int, value: Any) -> None:
     """An indexed property put, which late binding cannot spell as an assignment.
 
@@ -522,7 +529,15 @@ class Session:
         call(self._app, "CloseDoc", title)
 
     def activate(self, title: str) -> None:
+        """Bring an open document forward, and make it the one this session reads and changes.
+
+        Without forgetting the last build's document, a volume or body count
+        asked for after activating a part would still be of the assembly built
+        last (probe internal_end_to_end, SolidWorks 2026: GetBodies2 was asked
+        of an assembly).
+        """
         call(self._app, "ActivateDoc3", title, False, 0, _out_long())
+        self._build_doc = None
 
     def document_title(self) -> str:
         return str(call(self._doc(), "GetTitle"))
@@ -716,10 +731,17 @@ class Session:
         self._handles[handle] = kept
         return kept
 
-    def open_sketch(self, handle: str, plane: int) -> None:
+    def open_sketch(self, handle: str, plane: "int | str") -> None:
+        """On the Nth reference plane in tree order, or on a plane this build made, by its handle."""
         doc = self._doc()
         before = self._top_names()
-        self.select_plane_by_order(plane)
+        if isinstance(plane, str):
+            name = self._handles.get(plane)
+            if not isinstance(name, str):
+                raise SolidWorksError(f"The plane {plane!r} has not been made in this build.")
+            self._select_feature(self._by_name(name))
+        else:
+            self.select_plane_by_order(plane)
         manager = call(doc, "SketchManager")
         manager.AddToDB = True
         manager.DisplayWhenAdded = False
@@ -778,7 +800,9 @@ class Session:
                     construction: bool = False) -> None:
         m = MM_PER_METRE
         entity = call(self._manager(), "CreateLine", start[0] / m, start[1] / m, 0.0, end[0] / m, end[1] / m, 0.0)
-        self._keep(handle, entity, "a line")
+        # Its segment name and its sketch, so a feature made after the sketch is
+        # closed can select it by name (probes revolve and ref_plane_normal).
+        self._keep(handle, entity, "a line", sketch=self._open_sketch, segment=_segment_name(entity))
         if construction:
             entity.ConstructionGeometry = True
 
@@ -898,11 +922,30 @@ class Session:
         call(self._doc(), "ClearSelection2", True)
         return ""
 
+    def _sketch_point_in_model(self, at: Tuple[float, float]) -> Tuple[float, float, float]:
+        """A point of the open sketch, in model metres, through the sketch's own transform (reading/05)."""
+        sketch = self._handles[self._open_sketch]["sketch"] if self._open_sketch else None
+        x, y = at[0] / MM_PER_METRE, at[1] / MM_PER_METRE
+        if sketch is None:
+            return x, y, 0.0
+        data = [float(v) for v in call(call(call(sketch, "ModelToSketchTransform"), "Inverse"), "ArrayData")]
+        scale = data[12] if len(data) > 12 and data[12] else 1.0
+        return (scale * (data[0] * x + data[3] * y) + data[9], scale * (data[1] * x + data[4] * y) + data[10],
+                scale * (data[2] * x + data[5] * y) + data[11])
+
     def dimension(self, name: str, refs: Sequence[str], at: Tuple[float, float]) -> str:
-        """``AddDimension2`` at a point in metres, then named and read back (probe dimensions)."""
+        """``AddDimension2`` at a point, then named and read back (probe dimensions).
+
+        ``at`` is in the sketch's own coordinates and is handed over in the
+        model's: on SolidWorks 2026 an angle dimension on the Top plane placed at
+        sketch coordinates read 150° for a 30° angle, and placed at the same
+        point in model coordinates read 30° (probe axis_from_sketch_line). On
+        the Front plane, and planes parallel to it, the two are the same.
+        """
         doc = self._doc()
         self._select_entities(refs)
-        display = call(doc, "AddDimension2", at[0] / MM_PER_METRE, at[1] / MM_PER_METRE, 0.0)
+        where = self._sketch_point_in_model(at)
+        display = call(doc, "AddDimension2", where[0], where[1], where[2])
         call(doc, "ClearSelection2", True)
         if display is None:
             raise SolidWorksError(f"AddDimension2 would not dimension {' and '.join(refs)} as {name}.")
@@ -996,6 +1039,195 @@ class Session:
         self._handles[handle] = {"feature": kept}
         return kept, dim
 
+    def ref_plane(self, handle: str, name: str, plane: int, offset: float, flip: bool,
+                  offset_dim: str) -> Tuple[str, str]:
+        """``InsertRefPlane(8 | flip 256, d, 0, 0, 0, 0)`` on the Nth plane; returns ``(name, offset dimension)``.
+
+        Probe ref_plane_offset, SolidWorks 2026: from the Front plane the
+        unflipped plane was at +d on Z and the flipped one at -d, both facing +Z;
+        the offset was the plane's only dimension, D1, and followed a global.
+        """
+        doc = self._doc()
+        before = self._top_names()
+        self.select_plane_by_order(plane)
+        m = offset / MM_PER_METRE
+        constraint = findings.REF_PLANE_DISTANCE | (findings.REF_PLANE_FLIP if flip else 0)
+        made = call(call(doc, "FeatureManager"), "InsertRefPlane", constraint, m, 0, 0.0, 0, 0.0)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"InsertRefPlane would not make {name} {offset:g} mm from plane {plane}.")
+        feature = self._made_since(before, "RefPlane", "InsertRefPlane")
+        kept = self._rename(feature, name)
+        dim = self._name_dimension_by_value(feature, m, offset_dim, "offset")
+        self._handles[handle] = kept
+        return kept, dim
+
+    def sweep_cut(self, handle: str, profile: str, path: str, name: str, twist: float, reverse: bool,
+                  twist_dim: str) -> Tuple[str, str]:
+        """A cut of one sketch along another with a constant twist; returns ``(name, twist dimension)``.
+
+        Probes sweep_twist and sweep_cut_ends, SolidWorks 2026: profile at mark
+        1, path at mark 4, ``InsertCutSwept5`` with twist control 8 and the twist
+        in radians. A negative twist turned the same way as a positive one, so
+        the other hand is ``D1ReverseTwistDir`` set through the feature's
+        definition. The twist was the sweep's one dimension; it is named before
+        the definition is touched.
+        """
+        doc = self._doc()
+        self._select_feature(self._sketch_feature(profile), mark=findings.SWEEP_PROFILE_MARK)
+        self._select_feature(self._sketch_feature(path), append=True, mark=findings.SWEEP_PATH_MARK)
+        angle = math.radians(twist)
+        before = self._top_names()
+        made = call(call(doc, "FeatureManager"), "InsertCutSwept5", False, False, findings.TWIST_CONSTANT_ALONG_PATH,
+                    False, False, 0, 0, False, 0.0, 0.0, 0, 0, True, True, angle, True, False, False, False, False,
+                    0.0, findings.SWEEP_DIRECTION)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"InsertCutSwept5 would not sweep {profile} along {path} as {name}.")
+        feature = self._made_since(before, "SweepCut", "InsertCutSwept5")
+        kept = self._rename(feature, name)
+        dim = self._name_dimension_by_value(feature, angle, twist_dim, "twist")
+        if reverse:
+            data = call(feature, "GetDefinition")
+            if data is None or not call(data, "AccessSelections", doc, _null_dispatch()):
+                raise SolidWorksError(f"The definition of {kept} ({_type_name(feature)}) could not be opened to "
+                                      "reverse its twist.")
+            data.D1ReverseTwistDir = True
+            if not call(feature, "ModifyDefinition", data, doc, _null_dispatch()):
+                raise SolidWorksError(f"ModifyDefinition would not reverse the twist of {kept} ({_type_name(feature)}).")
+        self._handles[handle] = {"feature": kept}
+        return kept, dim
+
+    def _select_segment(self, ref: str, append: bool, mark: int) -> None:
+        """A line of a closed sketch, by ``LineN@Sketch`` (probes revolve, ref_plane_normal)."""
+        record = self._handles.get(ref) or {}
+        sketch = (self._handles.get(record.get("sketch") or "") or {}).get("name")
+        if not record.get("segment") or not sketch:
+            raise SolidWorksError(f"The line {ref!r} is not a line of a closed sketch this build made.")
+        doc = self._doc()
+        before = self._selected() if append else 0
+        if not append:
+            call(doc, "ClearSelection2", True)
+        full = f"{record['segment']}@{sketch}"
+        if not (call(call(doc, "Extension"), "SelectByID2", full, "EXTSKETCHSEGMENT", 0.0, 0.0, 0.0, append, mark,
+                     _null_dispatch(), 0) and self._selected() > before):
+            raise SolidWorksError(f"{full} could not be selected {self._selection_context()}.")
+
+    def _select_sketch_point(self, ref: str, append: bool, mark: int) -> None:
+        """An end of a closed sketch's line, by its location in model space (probe ref_plane_normal)."""
+        handle = ref.partition(".")[0]
+        record = self._handles.get(handle) or {}
+        sketch = (self._handles.get(record.get("sketch") or "") or {}).get("sketch")
+        if sketch is None:
+            raise SolidWorksError(f"{ref!r} is not a point of a sketch this build made.")
+        point = self._entity(ref)
+        x, y = float(call(point, "X")), float(call(point, "Y"))
+        data = [float(v) for v in call(call(call(sketch, "ModelToSketchTransform"), "Inverse"), "ArrayData")]
+        scale = data[12] if len(data) > 12 and data[12] else 1.0
+        model = (scale * (data[0] * x + data[3] * y) + data[9], scale * (data[1] * x + data[4] * y) + data[10],
+                 scale * (data[2] * x + data[5] * y) + data[11])
+        doc = self._doc()
+        before = self._selected()
+        if not (call(call(doc, "Extension"), "SelectByID2", "", "EXTSKETCHPOINT", model[0], model[1], model[2], append,
+                     mark, _null_dispatch(), 0) and self._selected() > before):
+            raise SolidWorksError(f"The point {ref} could not be selected at its place {self._selection_context()}.")
+
+    def revolve(self, handle: str, sketch: str, name: str, axis: str) -> str:
+        """A full turn about a line of the sketch; the sketch, then the line at mark 16, selected.
+
+        Probe revolve, SolidWorks 2026: FeatureRevolve2 (20 arguments) made a
+        Revolution of 2 pi r A about the centreline, and with a second
+        centreline in the sketch the one meant had to be selected at mark 16.
+        """
+        doc = self._doc()
+        self._select_feature(self._sketch_feature(sketch))
+        self._select_segment(axis, append=True, mark=findings.REVOLVE_AXIS_MARK)
+        before = self._top_names()
+        made = call(call(doc, "FeatureManager"), "FeatureRevolve2", True, True, False, False, False, False, 0, 0,
+                    2.0 * math.pi, 0.0, False, False, 0.0, 0.0, 0, 0.0, 0.0, True, True, True)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"FeatureRevolve2 would not revolve {sketch} about {axis} into {name}.")
+        kept = self._rename(self._made_since(before, findings.REVOLVE_TYPE, "FeatureRevolve2"), name)
+        self._handles[handle] = {"feature": kept}
+        return kept
+
+    def ref_plane_normal(self, handle: str, name: str, line: str, point: str) -> str:
+        """A plane square to a closed sketch's line, through a point on it (probe ref_plane_normal).
+
+        The line at mark 0, the point by its model location at mark 1, and
+        InsertRefPlane(perpendicular 2, 0, coincident 4, 0, 0, 0). On SolidWorks
+        2026 the plane's sketch had its origin at the point, x along the cone's
+        outward radial, y along +Y, and kept that frame as the line moved.
+        """
+        doc = self._doc()
+        self._select_segment(line, append=False, mark=0)
+        self._select_sketch_point(point, append=True, mark=1)
+        before = self._top_names()
+        made = call(call(doc, "FeatureManager"), "InsertRefPlane", findings.REF_PLANE_PERPENDICULAR, 0.0,
+                    findings.REF_PLANE_COINCIDENT, 0.0, 0, 0.0)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"InsertRefPlane would not make {name} square to {line} through {point}.")
+        kept = self._rename(self._made_since(before, "RefPlane", "InsertRefPlane"), name)
+        self._handles[handle] = kept
+        return kept
+
+    def loft_cut(self, handle: str, name: str, profiles: Sequence[str]) -> str:
+        """A cut lofted through closed sketches, each at mark 1 in order (probe loft_cut_sections)."""
+        doc = self._doc()
+        for position, sketch in enumerate(profiles):
+            self._select_feature(self._sketch_feature(sketch), append=position > 0, mark=findings.LOFT_PROFILE_MARK)
+        before = self._top_names()
+        made = call(call(doc, "FeatureManager"), "InsertCutBlend", False, False, False, 1.0, 0, 0, False, 0.0, 0.0,
+                    0, True, True)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"InsertCutBlend would not loft a cut through {', '.join(profiles)} as {name}.")
+        kept = self._rename(self._made_since(before, findings.LOFT_CUT_TYPE, "InsertCutBlend"), name)
+        self._handles[handle] = {"feature": kept}
+        return kept
+
+    def mirror_body(self, handle: str, name: str, plane: str) -> str:
+        """The part's body mirrored about a plane this build made, merged into one.
+
+        Probe mirror_body_merge, SolidWorks 2026: the plane at mark 2 and the
+        body at mark 256, ``InsertMirrorFeature2(True, False, True, False, 0)``,
+        made one body of twice the volume; the body at mark 1 mirrored nothing.
+        """
+        doc = self._doc()
+        plane_name = self._handles.get(plane)
+        if not isinstance(plane_name, str):
+            raise SolidWorksError(f"The mirror {name} needs the plane {plane} first.")
+        bodies = call(doc, "GetBodies2", 0, True)
+        if not bodies or len(bodies) != 1:
+            raise SolidWorksError(f"The mirror {name} needs exactly one solid body; the part has {len(bodies or ())}.")
+        self._select_feature(self._by_name(plane_name), mark=findings.MIRROR_PLANE_MARK)
+        data = call(call(doc, "SelectionManager"), "CreateSelectData")
+        data.Mark = findings.MIRROR_BODY_MARK
+        before_count = self._selected()
+        if not call(bodies[0], "Select2", True, data) or self._selected() <= before_count:
+            raise SolidWorksError(f"The body could not be selected to mirror {self._selection_context()}.")
+        before = self._top_names()
+        made = call(call(doc, "FeatureManager"), "InsertMirrorFeature2", True, False, True, False, 0)
+        call(doc, "ClearSelection2", True)
+        if made is None:
+            raise SolidWorksError(f"InsertMirrorFeature2 would not mirror the body about {plane_name}.")
+        kept = self._rename(self._made_since(before, "MirrorSolid", "InsertMirrorFeature2"), name)
+        self._handles[handle] = {"feature": kept}
+        return kept
+
+    def center_of_mass_mm(self) -> Tuple[float, float, float]:
+        """The build document's centre of mass in mm (probe center_of_mass: metres, a three-element array)."""
+        centre = call(call(call(self._doc(), "Extension"), "CreateMassProperty"), "CenterOfMass")
+        if centre is None or len(centre) < 3:
+            raise SolidWorksError(f"CenterOfMass returned {centre!r} for {call(self._doc(), 'GetTitle')}.")
+        return (float(centre[0]) * MM_PER_METRE, float(centre[1]) * MM_PER_METRE, float(centre[2]) * MM_PER_METRE)
+
+    def solid_body_count(self) -> int:
+        bodies = call(self._doc(), "GetBodies2", 0, True)
+        return len(bodies) if bodies else 0
+
     def volume_mm3(self) -> float:
         props = call(call(self._doc(), "Extension"), "CreateMassProperty")
         return float(call(props, "Volume")) * 1e9
@@ -1043,11 +1275,15 @@ class Session:
         """``gear1:plane2`` or ``gear2:Gear Axis``, selected at mark 1 for a mate."""
         handle, _, target = ref.partition(":")
         component = self._handles[handle]["component"]
+        if target == "origin":
+            self._select_component_origin(component, append)
+            return
         if target.startswith("plane") and target[5:].isdigit():
             planes = self._planes(call(component, "GetModelDoc2"))
             name, kind = str(call(planes[int(target[5:]) - 1], "Name")), "PLANE"
         else:
-            name, kind = target, "AXIS"
+            # The tool names its axis "Gear Axis" and its planes "Mid Plane" and "Profile Plane".
+            name, kind = target, "AXIS" if target.endswith("Axis") else "PLANE"
         doc = self._doc()
         if not append:
             call(doc, "ClearSelection2", True)
@@ -1061,6 +1297,56 @@ class Session:
                 and self._selected() > before:
             return
         raise SolidWorksError(f"{full} could not be selected for a mate.")
+
+    def _select_component_origin(self, component: Any, append: bool) -> None:
+        """A component's origin point, by ``Point1@<origin>@<component>@<assembly>`` (probe nonparallel_mates)."""
+        part = call(component, "GetModelDoc2")
+        feature = call(part, "FirstFeature")
+        origin = ""
+        while feature is not None and not origin:
+            if _type_name(feature) == "OriginProfileFeature":
+                origin = str(call(feature, "Name"))
+            feature = call(feature, "GetNextFeature")
+        if not origin:
+            raise SolidWorksError(f"{call(component, 'Name2')} has no origin to mate to.")
+        doc = self._doc()
+        if not append:
+            call(doc, "ClearSelection2", True)
+        before = self._selected()
+        asm = os.path.splitext(str(call(doc, "GetTitle")))[0]
+        full = f"{findings.ORIGIN_POINT}@{origin}@{call(component, 'Name2')}@{asm}"
+        if not self._retry_select(lambda: call(call(doc, "Extension"), "SelectByID2", full, "EXTSKETCHPOINT", 0.0, 0.0,
+                                               0.0, append, 1, _null_dispatch(), 0), before):
+            raise SolidWorksError(f"{full} could not be selected for a mate.")
+
+    def place_component(self, handle: str, rotation: Sequence[float], at: Tuple[float, float, float]) -> None:
+        """Set a component's frame: a rotation given by rows, and its origin in mm (probe nonparallel_mates).
+
+        ``IMathUtility.CreateTransform`` answered "member not found" to late
+        binding's property get, so it is invoked as the method it is, with the
+        16 numbers as a double array — the rotation in columns, then the
+        translation in metres, the scale and three zeros — and put on
+        ``Transform2``. The frame is read back.
+        """
+        component = self._handles[handle]["component"]
+        m = MM_PER_METRE
+        columns = [float(rotation[i * 3 + j]) for j in range(3) for i in range(3)]
+        data = columns + [at[0] / m, at[1] / m, at[2] / m, 1.0, 0.0, 0.0, 0.0]
+        utility = call(self._app, "GetMathUtility")
+        oleobj = utility._oleobj_  # noqa: SLF001 - the method, not the property get
+        raw = oleobj.Invoke(oleobj.GetIDsOfNames("CreateTransform"), 0, pythoncom.DISPATCH_METHOD, True,
+                            VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, data))
+        if raw is None:
+            raise SolidWorksError("CreateTransform made no transform.")
+        transform = raw if hasattr(raw, "ArrayData") else _dynamic.Dispatch(raw)
+        component.Transform2 = transform
+        call(self._doc(), "ForceRebuild3", False)
+        got = [float(v) for v in call(call(component, "Transform2"), "ArrayData")]
+        error = max(abs(got[i] - data[i]) for i in range(9))
+        moved = max(abs(got[9 + i] - data[9 + i]) for i in range(3)) * m
+        if error > 1e-6 or moved > 1e-6:
+            raise SolidWorksError(f"{call(component, 'Name2')} did not take its frame "
+                                  f"(rotation off {error:.1e}, origin {moved:.1e} mm).")
 
     def _mate_names(self) -> List[str]:
         names = []
@@ -1092,16 +1378,22 @@ class Session:
         Probe assembly_components_and_mates: coincident, distance and angle
         mates were made this way and the component moved to where they said.
         """
+        # Probe nonparallel_mates: a point on a point or a plane is a coincident
+        # mate, a point's distance from a plane a distance mate, and the angle
+        # between two axes an angle mate, each with its value as dimension D1.
         types = {"coincident": findings.MATE_COINCIDENT, "distance": findings.MATE_DISTANCE,
-                 "angle": findings.MATE_ANGLE}
+                 "angle": findings.MATE_ANGLE, "point": findings.MATE_COINCIDENT,
+                 "point distance": findings.MATE_DISTANCE, "axis angle": findings.MATE_ANGLE}
         if kind not in types:
             raise SolidWorksError(f"There is no verified mate type for {kind!r}.")
         before = self._mate_names()
         self._component_ref(a, append=False)
         self._component_ref(b, append=True)
-        distance = value / MM_PER_METRE if kind == "distance" else 0.0
-        angle = math.radians(value) if kind == "angle" else 0.0
-        mate = call(self._doc(), "AddMate5", types[kind], findings.MATE_ALIGN_CLOSEST, False, distance, distance,
+        distance = abs(value) / MM_PER_METRE if types[kind] == findings.MATE_DISTANCE else 0.0
+        angle = math.radians(value) if types[kind] == findings.MATE_ANGLE else 0.0
+        # A point distance is taken along the plane's normal; a negative one is flipped (probe nonparallel_mates).
+        flip = kind == "point distance" and value < 0
+        mate = call(self._doc(), "AddMate5", types[kind], findings.MATE_ALIGN_CLOSEST, flip, distance, distance,
                     distance, 1, 1, angle, angle, angle, False, False, 0, _out_long())
         call(self._doc(), "ClearSelection2", True)
         made = [n for n in self._mate_names() if n not in before]
@@ -1110,12 +1402,35 @@ class Session:
         feature = self._mate_feature(made[0])
         kept = self._rename(feature, name) if name else made[0]
         dim = ""
-        if kind in ("distance", "angle"):
-            wanted = distance if kind == "distance" else angle
+        if types[kind] != findings.MATE_COINCIDENT:
+            wanted = distance if types[kind] == findings.MATE_DISTANCE else angle
             matches = [d for d in self._dimensions(feature) if abs(float(call(d, "SystemValue")) - wanted) < 1e-9]
             dim = str(call(matches[0], "Name")) if len(matches) == 1 else ""
         self._handles[handle] = {"mate": kept}
         return kept, dim
+
+    def interference_count(self) -> Tuple[int, float]:
+        """How many interferences the build's assembly has, and their volume in mm³.
+
+        Probe interference, SolidWorks 2026: two cylinders overlapping by a lens
+        counted one interference of exactly the lens's volume, and none apart.
+        ``GetInterferenceCount``, ``GetInterferences`` and ``Volume`` are
+        property gets through late binding; ``Done`` is a method, and is called
+        whatever the count came to.
+        """
+        doc = self._doc()
+        manager = call(doc, "InterferenceDetectionManager")
+        if manager is None:
+            raise SolidWorksError(f"{call(doc, 'GetTitle')} has no interference detection manager.")
+        for name, value in findings.INTERFERENCE_OPTIONS:
+            setattr(manager, name, value)
+        try:
+            count = int(call(manager, "GetInterferenceCount"))
+            items = list(call(manager, "GetInterferences") or ())
+            volume = sum(float(call(item, "Volume")) for item in items) * 1e9
+        finally:
+            manager.Done()
+        return count, volume
 
     def component_translation(self, handle: str) -> Tuple[float, float, float]:
         data = call(call(self._handles[handle]["component"], "Transform2"), "ArrayData")

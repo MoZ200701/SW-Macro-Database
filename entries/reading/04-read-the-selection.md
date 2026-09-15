@@ -209,3 +209,4 @@ those is how the conventions above got established.
 - [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — a call that consumes the selection rather than reading it
 - [features/03 — Circular pattern](../features/03-circular-pattern.md) — selecting at two marks
 - [assemblies/02 — Mates from code](../assemblies/02-mates-from-code.md) — selecting inside a component
+- [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — a sketch line and a point by location, at marks 0 and 1

@@ -179,6 +179,14 @@ cylinder 10 mm deep from its front plane; that the 5 mm is half its depth is a
 likely explanation, not an established one. Mate it into place rather than
 relying on the insertion point.
 
+It was seen again in development run 20260915-015506: a component left where
+`AddComponent5` put it at (0, 0, 0), used as the reference for an
+origin-to-origin mate, put the mated component's origin 5.0 mm from the
+assembly origin. Setting that first component's frame with `Transform2` too
+made the error 0 mm. The same 10 mm part both times, so the rule is still not
+established; setting every frame is the fix. See
+[assemblies/04](04-mates-between-non-parallel-axes.md) and [GOTCHAS §41](../../GOTCHAS.md).
+
 ## What it does not do
 
 - The parts were saved **and still open** when inserted, because the API help
@@ -227,3 +235,5 @@ in `assembly_components_and_mates`:
 - [features/03 — Circular pattern](../features/03-circular-pattern.md) — the `InsertAxis2` call used on each part
 - [reading/05 — Sketch to model transform](../reading/05-sketch-to-model-transform.md) — `ArrayData` layout
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md)
+- [assemblies/03 — Interference detection](03-interference-detection.md) — checking inserted parts for overlap
+- [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — setting a component's frame

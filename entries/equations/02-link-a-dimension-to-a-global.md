@@ -153,3 +153,5 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [assemblies/02 — Mates from code](../assemblies/02-mates-from-code.md)
 - [documents/01 — New part from a template](../documents/01-new-part-from-template.md) — document units
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — listing a part's dimensions and their full names
+- [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — a plane that follows a linked line
+- [assemblies/04 — Mates between non-parallel axes](../assemblies/04-mates-between-non-parallel-axes.md) — shaft-angle and offset mates linked in the tool's builds

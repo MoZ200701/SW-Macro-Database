@@ -202,6 +202,25 @@ a pattern count and an assembly mate distance through their globals, and
 changed a built gear's teeth and module. See
 [equations/01](../equations/01-global-variables-from-code.md).
 
+**The same `Invoke` makes a method call that late binding refuses.**
+`IMathUtility.CreateTransform(data)` raised `DISP_E_MEMBERNOTFOUND`, "Member not
+found", through `call` with a list and with a `VT_ARRAY | VT_R8` variant.
+Invoked with `DISPATCH_METHOD` it worked:
+
+```python
+utility = call(self._app, "GetMathUtility")
+oleobj = utility._oleobj_  # noqa: SLF001 - the method, not the property get
+raw = oleobj.Invoke(oleobj.GetIDsOfNames("CreateTransform"), 0, pythoncom.DISPATCH_METHOD, True,
+                    VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, data))
+if raw is None:
+    raise SolidWorksError("CreateTransform made no transform.")
+transform = raw if hasattr(raw, "ArrayData") else _dynamic.Dispatch(raw)
+```
+
+SolidWorks 2026 (revision 34.0.0), three development runs on 2026-09-15; see
+[assemblies/04](../assemblies/04-mates-between-non-parallel-axes.md) and
+[GOTCHAS §39](../../GOTCHAS.md).
+
 ## A zero-argument method that returns nothing is not invoked by `call`
 
 The `call` rule above — attribute access for zero-argument members — held for
@@ -219,6 +238,11 @@ nothing ran. That pywin32 treats a zero-argument member with a return value as
 a property and one without as a method is the likely reason; it was not
 established. See [assemblies/01](../assemblies/01-new-assembly-and-insert-components.md)
 and [GOTCHAS §31](../../GOTCHAS.md).
+
+The name is no guide. On `IInterferenceDetectionMgr`, `GetInterferenceCount`
+and `GetInterferences` came back as values by attribute access, while `Done`
+came back as a `method` and had to be called, `manager.Done()` (SolidWorks 2026,
+revision 34.0.0; [assemblies/03](../assemblies/03-interference-detection.md)).
 
 ## Bundled into a one-file exe
 
@@ -275,4 +299,6 @@ that application testable without SolidWorks.
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — typed nulls and out longs on `SaveAs3`
 - [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — the `FixComponent` case
 - [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md)
+- [assemblies/03 — Interference detection](../assemblies/03-interference-detection.md) — `Get` members that are properties, `Done` a method
+- [assemblies/04 — Mates between non-parallel axes](../assemblies/04-mates-between-non-parallel-axes.md) — `CreateTransform` through `Invoke`
 - [`code/python/gear_generator/swcom.py`](../../code/python/gear_generator/swcom.py) — a later version of the module, with `_put_indexed`
