@@ -23,6 +23,14 @@ so everything referring to it carries on referring to it.
 Confirmed on a real part: all 12 curves refreshed, `ForceRebuild3` returned
 True, the boundary surface rebuilt with no reference re-picked.
 
+The same holds for a loft. On SolidWorks 2026 a loft already in the part,
+built from code on imported curves and composites of them
+([features/12](../features/12-guided-loft.md)), followed its curves when they
+were reloaded this way, so the tool leaves an existing loft exactly as it is
+rather than rebuilding it. The one change reloading cannot carry is a change in
+*how many* curves there are: see [curves/06](06-composite-curve.md) for a
+composite whose pieces change.
+
 ## The three calls
 
 ```vb
@@ -156,4 +164,5 @@ interface PushState {
 
 - [curves/08 — Rebuild once, at the end](08-rebuild-once-at-the-end.md)
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md)
+- [features/12 — Insert a guided loft](../features/12-guided-loft.md) — a loft that follows reloaded curves
 - [`code/vbscript/ImportCurves.vbs`](../../code/vbscript/ImportCurves.vbs)

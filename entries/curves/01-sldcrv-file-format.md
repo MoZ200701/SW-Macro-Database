@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2025 and 2026
 language: [any]
 api: []
-keywords: [sldcrv, curve through xyz points, file format, mm suffix, units, tab delimited, CRLF, closed curve]
+keywords: [sldcrv, curve through xyz points, file format, mm suffix, units, tab delimited, CRLF, closed curve, duplicate points, near-duplicate, refused file, thin points, natural cubic spline, chord length parametrisation, interpolation]
 answers: "What exactly do I write into a .sldcrv file so SolidWorks reads it correctly?"
 ---
 
@@ -154,6 +154,62 @@ if not math.isfinite(value):
 
 A NaN in a curve file produces a feature that looks fine and rebuilds wrong.
 
+## Points closer than 0.01 mm: thin them
+
+SolidWorks 2026 refused curve files that held near-duplicate points: two
+neighbouring rows all but on top of each other, as an offset or a trim easily
+leaves. A spline forced through two nearly coincident points ties a knot in
+itself. Dropping any point closer than **0.01 mm** (in the file's millimetres)
+to the one kept before it, while keeping both ends, fixed it. From the Airfoil
+Converter's `geometry.py`:
+
+```python
+# Points of an exported curve closer together than this, in mm, are one point.
+# A spline forced through two all but coincident points ties a knot in itself,
+# and SolidWorks refuses the file.
+MIN_STEP = 0.01
+
+
+def thin_curve(points: Sequence[Sequence[float]], min_step: float = MIN_STEP) -> List:
+    """Drop points that crowd the one before, keeping both ends where they are."""
+    pts = list(points)
+    if len(pts) <= 2:
+        return pts
+    kept = [pts[0]]
+    for p in pts[1:-1]:
+        if math.dist(p, kept[-1]) >= min_step:
+            kept.append(p)
+    last = pts[-1]
+    while len(kept) > 1 and math.dist(last, kept[-1]) < min_step:
+        kept.pop()
+    kept.append(last)
+    return kept
+```
+
+A closed curve's repeated last point is an end, so it is kept; that is the
+deliberate duplicate described above, and it was accepted. What the refusal
+looked like (a `False` from `InsertCurveFile`, or the dialog's message) and the
+exact spacing at which it starts were not recorded; 0.01 mm is the step that
+worked, not a measured threshold. See [GOTCHAS §53](../../GOTCHAS.md).
+
+## The curve SolidWorks draws through the points
+
+**A Curve Through XYZ Points is a natural cubic spline through the file's
+points, parametrised by chord length**: the parameter advances by the straight
+distance from each point to the next, and the ends have zero second
+derivative. Modelled that way, the curve matched the same curve read out of a
+SolidWorks STEP export to **0.0007 mm** on SolidWorks 2026. Straight lines
+between the same 57 points of a wing rib sat 0.18 mm inside the drawn curve at
+its nose.
+
+This matters whenever anything else has to meet the curve between its points,
+for instance a loft guide
+([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)): compute
+the meeting point on the natural cubic spline, not on the polyline. Guides whose
+ends were placed that way, between the file's points, were accepted by a loft.
+Where they must meet exactly, the shared-characters rule above still applies:
+a point written into both files is the safest crossing there is.
+
 ## Reading one back
 
 A curve file carries no metadata. Points, and nothing else. Neither chord nor
@@ -166,3 +222,5 @@ yourself.
 - [curves/02 — Insert a curve from a file](02-insert-curve-from-file.md)
 - [curves/09 — Curves as loft profiles](09-curves-as-loft-profiles.md)
 - [surfacing/02 — Axis conventions](../surfacing/02-axis-conventions.md)
+- [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — guides that meet the drawn spline
+- [GOTCHAS §53](../../GOTCHAS.md)

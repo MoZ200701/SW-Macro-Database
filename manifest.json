@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 64,
+  "count": 68,
   "by_status": {
-    "partly-verified": 7,
+    "partly-verified": 9,
     "unverified": 3,
-    "verified": 54
+    "verified": 56
   },
   "entries": [
     {
@@ -516,7 +516,14 @@
         "units",
         "tab delimited",
         "CRLF",
-        "closed curve"
+        "closed curve",
+        "duplicate points",
+        "near-duplicate",
+        "refused file",
+        "thin points",
+        "natural cubic spline",
+        "chord length parametrisation",
+        "interpolation"
       ],
       "answers": "What exactly do I write into a .sldcrv file so SolidWorks reads it correctly?"
     },
@@ -637,7 +644,10 @@
       "api": [
         "IModelDoc2.InsertCompositeCurve",
         "IModelDocExtension.SelectByID2",
-        "IModelDoc2.ClearSelection2"
+        "IModelDoc2.ClearSelection2",
+        "AccessSelections",
+        "GetEntitiesToJoin",
+        "ReleaseSelectionAccess"
       ],
       "keywords": [
         "InsertCompositeCurve",
@@ -645,7 +655,15 @@
         "SelectByID2",
         "selection mark",
         "REFERENCECURVES",
-        "sharp corner"
+        "sharp corner",
+        "loft profile",
+        "piece count",
+        "delete composite deletes loft",
+        "rename aside",
+        "edit composite",
+        "GetEntitiesToJoin",
+        "hairpin",
+        "select after rebuild"
       ],
       "answers": "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
     },
@@ -1351,6 +1369,46 @@
       "answers": "How do I mirror a part's solid body about a reference plane from code so the result is one merged body?"
     },
     {
+      "id": "features-12-guided-loft",
+      "title": "Insert a loft through curves along guide curves, as a hand-made loft would be",
+      "path": "entries/features/12-guided-loft.md",
+      "category": "features",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 for the solid loft and its settings; the surface fallback's arguments were not examined",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertProtrusionBlend2",
+        "IModelDoc2.InsertLoftRefSurface2",
+        "IModelDocExtension.SelectByID2",
+        "IModelDoc2.ClearSelection2",
+        "IModelDoc2.ForceRebuild3",
+        "ISketchManager.ActiveSketch"
+      ],
+      "keywords": [
+        "InsertProtrusionBlend2",
+        "InsertLoftRefSurface2",
+        "loft",
+        "boss loft",
+        "surface loft",
+        "guide curves",
+        "guide curve influence",
+        "swGuideCurveInfluence_e",
+        "To next guide",
+        "maintain tangency",
+        "selection mark 2",
+        "Blend",
+        "BlendRefSurface",
+        "REFERENCECURVES",
+        "composite profile",
+        "surface fallback",
+        "18 arguments",
+        "guide order"
+      ],
+      "answers": "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
+    },
+    {
       "id": "files-01-batch-convert-step",
       "title": "Batch-convert a tree of STEP files to SolidWorks parts",
       "path": "entries/files/01-batch-convert-step.md",
@@ -1449,6 +1507,38 @@
         "read-only attribute"
       ],
       "answers": "How do I re-save a whole folder of parts in the current SolidWorks file format?"
+    },
+    {
+      "id": "files-04-export-a-body-to-step",
+      "title": "Write one body of a part to its own STEP file",
+      "path": "entries/files/04-export-a-body-to-step.md",
+      "category": "files",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2026 for the STEP export; the suppression that isolates one body was run but its effect on the file was not recorded",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDocExtension.SaveAs",
+        "IFeature.SetSuppression2",
+        "IModelDoc2.ForceRebuild3"
+      ],
+      "keywords": [
+        "STEP",
+        "export STEP",
+        "SaveAs",
+        "swSaveAsOptions_Copy",
+        "save as copy",
+        "neutral format export",
+        "one body",
+        "suppress",
+        "SetSuppression2",
+        "swFeatureSuppressionAction_e",
+        "swInConfigurationOpts_e",
+        "measure loft",
+        "out parameter"
+      ],
+      "answers": "How do I write a part, or just one of its lofts, to a STEP file from code without the open document changing name?"
     },
     {
       "id": "reading-01-dependencies-closed-file",
@@ -1560,7 +1650,13 @@
         "vertex",
         "edge",
         "plane",
-        "duck typing"
+        "duck typing",
+        "ClearSelection2 crash",
+        "access violation",
+        "ClearSelectionsNotify",
+        "read-only pick",
+        "selection changed",
+        "ActiveSketch"
       ],
       "answers": "How do I let a user click something in SolidWorks and read what it was?"
     },
@@ -1747,6 +1843,39 @@
         "fresh build"
       ],
       "answers": "How do I check from code that a feature actually changed the solid the way I intended?"
+    },
+    {
+      "id": "reading-11-cheap-change-detection",
+      "title": "Notice that the part changed without making SolidWorks stutter",
+      "path": "entries/reading/11-cheap-change-detection.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.GetFeatureCount",
+        "IModelDoc2.GetUpdateStamp",
+        "IFeatureManager.GetFeatures"
+      ],
+      "keywords": [
+        "polling",
+        "poll",
+        "change detection",
+        "GetUpdateStamp",
+        "GetFeatureCount",
+        "GetFeatures",
+        "stutter",
+        "lag",
+        "orbit",
+        "feature tree walk",
+        "UI thread",
+        "slow",
+        "every second",
+        "watch the part"
+      ],
+      "answers": "My tool polls SolidWorks every second and orbiting the model stutters. What can I ask that is cheap and still tells me the part changed?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",
@@ -2045,6 +2174,38 @@
         "standard views"
       ],
       "answers": "Why does my exported geometry come out lying on its side?"
+    },
+    {
+      "id": "surfacing-03-how-a-loft-fills-between-profiles",
+      "title": "How SolidWorks shapes a loft between two profiles, and how its accuracy scaled with the number of guides",
+      "path": "entries/surfacing/03-how-a-loft-fills-between-profiles.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026",
+      "language": [
+        "n/a"
+      ],
+      "api": [],
+      "keywords": [
+        "loft accuracy",
+        "loft deviation",
+        "guide curves",
+        "number of guides",
+        "accuracy versus guides",
+        "guide spacing",
+        "sag between guides",
+        "linear blend",
+        "chordwise stretch",
+        "section scaling",
+        "taper",
+        "sharp corner",
+        "guide near corner",
+        "loft fails",
+        "dome",
+        "STEP measurement",
+        "0.05 mm"
+      ],
+      "answers": "If I loft two profiles along guide curves, how far does SolidWorks' surface stray from the shape I meant, and how does that change as I add guides?"
     }
   ]
 }

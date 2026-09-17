@@ -111,3 +111,4 @@ FeatureManager shows for that sketch's external references.
 
 - [reading/04 — Read the selection](04-read-the-selection.md)
 - [connect/06 — One apartment thread](../connect/06-one-apartment-thread.md)
+- [reading/11 — Cheap change detection](11-cheap-change-detection.md) — what to ask every second so SolidWorks does not stutter

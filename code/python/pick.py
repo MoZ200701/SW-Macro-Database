@@ -108,6 +108,21 @@ class Pick:
         return self._at >= len(self._steps)
 
     @property
+    def steps(self) -> Tuple[Step, ...]:
+        """Every step of this pick, so a tracker can draw the ones not reached yet."""
+        return self._steps
+
+    @property
+    def index(self) -> int:
+        """How many steps are behind us, which is also the active step's position."""
+        return self._at
+
+    @property
+    def refusal(self) -> str:
+        """The last click that could not be used, or empty. Shown in red, not grey."""
+        return self._note
+
+    @property
     def step(self) -> Optional[Step]:
         return None if self.finished else self._steps[self._at]
 
@@ -180,6 +195,32 @@ class Pick:
             points=(anchor, add(anchor, along)),
             leading_edge=nose,
         )
+
+
+class SelectionWatch:
+    """Tells a new click from a selection that is simply still there.
+
+    The app polls SolidWorks rather than being told, so the same selection is
+    read again and again. It cannot be cleared to mark it as used — doing that
+    from outside has crashed SolidWorks — so a click is recognised as the
+    selection *changing*: to something else, or to something again after
+    nothing. Whatever is already selected when the pick starts is not a click.
+    """
+
+    def __init__(self) -> None:
+        self._started = False
+        self._last: Optional[Picked] = None
+
+    def fresh(self, picked: Optional[Picked]) -> Optional[Picked]:
+        """The click this reading shows, or None if there is no new one."""
+        if not self._started:
+            self._started = True
+            self._last = picked
+            return None
+        if picked == self._last:
+            return None
+        self._last = picked
+        return picked
 
 
 def _nose_to_tail(line: PickedLine, nose: Optional[Vec3]) -> Vec3:

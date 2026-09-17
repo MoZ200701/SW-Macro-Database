@@ -50,6 +50,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Track a feature that might get renamed | [curves/10 — Persistent references](entries/curves/10-persistent-references.md) |
 | Know whether I must wrap curves in sketches before lofting | [curves/09 — Curves as loft profiles](entries/curves/09-curves-as-loft-profiles.md) |
 | Group features into a folder in the tree | [curves/11 — Feature-tree folders](entries/curves/11-feature-tree-folders.md) |
+| Use a composite curve as a loft profile, or change what one joins without losing the loft | [curves/06 — Composite curves](entries/curves/06-composite-curve.md) |
+| Know what curve SolidWorks draws through my points, and why it refused my file | [curves/01 — The .sldcrv format](entries/curves/01-sldcrv-file-format.md) |
 
 ## Draw a sketch from code
 
@@ -71,6 +73,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Turn a folder of STEP files into SolidWorks parts | [files/01 — Batch-convert STEP](entries/files/01-batch-convert-step.md) |
 | Write one file per configuration out of a configurable part | [files/02 — Explode configurations](entries/files/02-explode-configurations.md) |
 | Re-save a whole library in the current file format | [files/03 — Upgrade a file version](entries/files/03-upgrade-file-version.md) |
+| Write a part, or one loft of it, to a STEP file without renaming the document | [files/04 — Export a body to STEP](entries/files/04-export-a-body-to-step.md) |
 
 ## Build solid features
 
@@ -87,6 +90,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Sweep a profile along a line with a twist, and choose its hand | [features/09 — Twisted sweep](entries/features/09-twisted-sweep.md) |
 | Cut along a path with a twist (a helical tooth space), and pattern it | [features/10 — Swept cut](entries/features/10-swept-cut.md) |
 | Mirror a body about a plane into one body (a herringbone) | [features/11 — Mirror a body](entries/features/11-mirror-body.md) |
+| Loft through curves along guide curves, with a hand-made loft's settings | [features/12 — Insert a guided loft](entries/features/12-guided-loft.md) |
 | Make a reference axis along a sketch line | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 
 ## Put parts together
@@ -112,18 +116,21 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Read the dimensions and equations of an existing part | [reading/08 — Dimensions and equations](entries/reading/08-dimensions-and-equations.md) |
 | Check that a generated file is the size it should be | [reading/09 — Bounding box as a check](entries/reading/09-bounding-box.md) |
 | Check that a feature changed the solid the way I meant | [reading/10 — Mass properties as an oracle](entries/reading/10-mass-properties-as-an-oracle.md) |
+| Poll for changes every second without making SolidWorks stutter | [reading/11 — Cheap change detection](entries/reading/11-cheap-change-detection.md) |
+| Read a pick without crashing SolidWorks | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 
-## Build a surface, and get the orientation right
+## Build a surface or loft, and get the orientation right
 
 | I want to… | Entry |
 |---|---|
 | Turn imported curves into a surface | [surfacing/01 — The boundary surface recipe](entries/surfacing/01-boundary-surface-recipe.md) |
 | Land geometry the right way up | [surfacing/02 — Axis conventions](entries/surfacing/02-axis-conventions.md) |
+| See how a loft's accuracy scaled with the number of guides, in one measured case | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 07, assemblies/01 through 04, reading/04, reading/05, reading/10
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 04, reading/04, reading/05, reading/10, reading/11, files/04
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
@@ -141,5 +148,5 @@ for the error handling. That is the whole scaffold. Only the one call in the
 middle is new — and [connect/11](entries/connect/11-probe-an-api-member-on-a-live-session.md)
 is how to find out whether that call works before you depend on it, with
 [reading/10](entries/reading/10-mass-properties-as-an-oracle.md) as the check.
-Extrude, cut, revolve, loft cut, reference planes and circular pattern are in
+Extrude, cut, revolve, loft cut, guided loft, reference planes and circular pattern are in
 [features/](entries/features/).

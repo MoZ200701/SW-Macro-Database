@@ -109,7 +109,8 @@ one list is another reason to find a dimension by value
 ## What it does not do
 
 - Guide curves, tangency at the ends, more than two sections, a boss loft and a
-  thin loft were not tried.
+  thin loft were not tried here. A boss loft through curves with guide curves
+  is [features/12](12-guided-loft.md).
 - Sections on non-parallel planes were not probed on a scratch part. The tool's
   bevel parts do loft between planes built square to a cone's generatrix
   ([features/06](06-reference-plane-normal-to-a-line.md)), but there only "the
@@ -147,3 +148,4 @@ second passing all 41 probes it ran), same facts in both. Excerpts:
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md) — lofting through imported curves instead of sketches
 - [reading/10 — Mass properties as an oracle](../reading/10-mass-properties-as-an-oracle.md)
 - [features/09 — Twisted sweep](09-twisted-sweep.md) — a section that turns rather than shrinks
+- [features/12 — Insert a guided loft](12-guided-loft.md) — a boss loft through curves, with guides at mark 2

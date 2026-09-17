@@ -137,3 +137,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — parts must be saved before they can be inserted
 - [GOTCHAS §34](../../GOTCHAS.md)
 - [files/01 — Batch-convert STEP](../files/01-batch-convert-step.md) — `CloseDoc` in a batch, and `IModelDocExtension.SaveAs` with error codes
+- [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — `IModelDocExtension.SaveAs` with the copy option, so the document keeps its name

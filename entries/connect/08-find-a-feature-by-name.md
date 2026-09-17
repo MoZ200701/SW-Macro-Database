@@ -187,3 +187,4 @@ survives renaming, use a persistent reference:
 - [GOTCHAS §37](../../GOTCHAS.md)
 - [assemblies/02 — Mates from code](../assemblies/02-mates-from-code.md) — walking sub-features to find a mate
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — a feature walk that reads each feature's dimensions
+- [reading/11 — Cheap change detection](../reading/11-cheap-change-detection.md) — `IFeatureManager.GetFeatures` lists every feature in one call, and why a walk every second is too slow

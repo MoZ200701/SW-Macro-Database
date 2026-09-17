@@ -24,7 +24,7 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-64 entries, grouped ten ways:
+68 entries, grouped ten ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, keeping the connection alive safely, and
@@ -36,14 +36,15 @@ code. You never need to open the projects the entries came from.
   parametric.
 - **[entries/curves/](entries/curves/)** — the Curve Through XYZ Points
   workflow end to end: the file format, inserting, refreshing in place, reading
-  points back, joining curves, naming features, and gathering them into
-  folders.
+  points back, joining curves (and lofting through the joins), naming
+  features, and gathering them into folders.
 - **[entries/sketches/](entries/sketches/)** — generating 2D and 3D sketches as
   VBA, with the full relation and dimension constant tables, equation driven
   curves, checking a sketch is fully defined, and an honest list of what the
   sketch API cannot be made to do.
 - **[entries/features/](entries/features/)** — boss extrude, cut extrude,
-  revolve, lofted cut, planes square to a line and offset from another, a
+  revolve, lofted cut, a loft through curves along guide curves, planes square
+  to a line and offset from another, a
   twisted sweep and swept cut, mirroring a body, and circular pattern, and
   finding the dimensions they make.
 - **[entries/assemblies/](entries/assemblies/)** — inserting components and
@@ -52,12 +53,14 @@ code. You never need to open the projects the entries came from.
 - **[entries/reading/](entries/reading/)** — interrogating a model: a closed
   file's references, reference trees, what the user has selected, sketch to
   model coordinates, and reading dimensions, equations and sizes back out.
-  It also covers the part's volume as a check on what a feature did.
-- **[entries/surfacing/](entries/surfacing/)** — the parts that stay manual, and
-  the axis conventions that decide which way geometry lands.
+  It also covers the part's volume as a check on what a feature did, and
+  polling for changes cheaply enough that SolidWorks does not stutter.
+- **[entries/surfacing/](entries/surfacing/)** — the parts that stay manual, the
+  axis conventions that decide which way geometry lands, and how far a loft
+  between two profiles strays, measured against the number of guides.
 - **[entries/files/](entries/files/)** — whole-library operations: importing
   neutral formats such as STEP in bulk, writing one file per configuration, and
-  moving a tree onto a newer file version.
+  moving a tree onto a newer file version, and writing one body out to STEP.
 
 ## The status field is the whole point
 
@@ -70,7 +73,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **50 verified, 7 partly verified, 3 unverified.**
+Currently: **56 verified, 9 partly verified, 3 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.
@@ -104,7 +107,7 @@ result.
 | Project | What it does | Language |
 |---|---|---|
 | **Fuselage-Builder** | Parametric fuselage exported as curve files, pushed live into an open part | TypeScript emitting VBScript and VBA |
-| **Airfoil-Converter** | Airfoil sections placed on a picked plane and inserted into a part | Python with pywin32 |
+| **Airfoil-Converter** | Airfoil sections placed on a picked plane and inserted into a part; since 2026-09-16 also whole wings, lofted in SolidWorks along guide curves and written to STEP to be measured | Python with pywin32 |
 | **SW-File-Manager** | Reference trees, broken-reference detection, safe rename | C# on .NET 8 |
 | **Gear-Generator** | Parametric spur gears and gear pairs built straight into SolidWorks, and the API probe that verified every call first. Since extended to helical, herringbone, internal and straight bevel gears, and to pairs on crossed and intersecting shafts checked for interference; written back here as of its 54-probe run 20260915-023929 | Python with pywin32 |
 
@@ -114,4 +117,7 @@ in [`code/python/gear_generator/`](code/python/gear_generator/probe/harness.py),
 with the reports of its full runs 20260915-002812 and 20260915-023929, and
 excerpts of its 2026-09-15 development runs, beside the results;
 its gear maths and interface are application logic and are not copied.
+The Airfoil-Converter's COM module, its push and loft orchestration and its
+pick logic are in [`code/python/`](code/python/swcom.py) as of 2026-09-16; its
+airfoil, wing and offset geometry is application logic and is not copied.
 Where an entry reproduces code, that code is the real thing, not a paraphrase.

@@ -19,11 +19,14 @@ answers: "Which parts of building a surface from curves are automatable, and wha
 | Import them as features | Yes — [curves/02](../curves/02-insert-curve-from-file.md) |
 | Name them predictably | Yes — [curves/07](../curves/07-rename-a-feature.md) |
 | **Build the boundary surface over them** | **No** |
+| Build a loft over them, with guides | Yes, since 2026-09-16 — [features/12](../features/12-guided-loft.md) |
 | Refresh the curves afterwards | Yes — [curves/04](../curves/04-reload-curve-in-place.md) |
 | Knit, trim, thicken | No |
 
 There is no automation here for creating a boundary surface from a set of
-curves. The practical answer is to **build it once by hand and then never touch
+curves. (A loft is different: see [features/12](../features/12-guided-loft.md),
+and [surfacing/03](03-how-a-loft-fills-between-profiles.md) for how close it
+comes.) The practical answer is to **build it once by hand and then never touch
 it again**: once the surface exists, refreshing the curves under it updates the
 shape in place with no reference re-picked.
 
@@ -103,3 +106,5 @@ them, so this is a preference, not a measured result.
 
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md)
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md)
+- [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the loft, automated
+- [surfacing/03 — How a loft fills between two profiles](03-how-a-loft-fills-between-profiles.md)

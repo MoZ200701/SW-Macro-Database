@@ -28,6 +28,17 @@ passed, after helical and herringbone gears were added, and 20260915-023929,
 beside the earlier results, with the user's documents and profile path
 replaced by placeholders, and `latest.json` is now 20260915-023929.
 
+Rows marked "Airfoil Converter 2026-09-16" come from that tool's lofting and
+polling work on SolidWorks 2026, from Python over pywin32: a loft built from
+code reproduced the user's hand-made loft, its lofts were written to STEP and
+measured, and a stutter was traced to the poll. The evidence is in
+[features/12](entries/features/12-guided-loft.md),
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md),
+[files/04](entries/files/04-export-a-body-to-step.md) and
+[reading/11](entries/reading/11-cheap-change-detection.md). A member that is
+in that code but whose result nobody recorded stays unverified; its tests run
+against a fake SolidWorks only.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -68,7 +79,7 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | `InsertCurveFileBegin` / `InsertCurveFilePoint` / `InsertCurveFileEnd` | Stream a curve point by point, in metres | Verified, SW 2025 |
 | `InsertCompositeCurve` | Join the selected curves into one | Verified, SW 2026 |
 | `ForceRebuild3(topOnly)` | Rebuild. Call once, after the last change | Verified |
-| `ClearSelection2(all)` | Empty the selection | Verified |
+| `ClearSelection2(all)` | Empty the selection. **Called while the user was picking in a sketch, it crashed SolidWorks 2026** (access violation in `ClearSelectionsNotify`, GOTCHAS §51); never call it on a selection the user is making | Verified; crash observed, Airfoil Converter 2026-09-16 |
 | `SelectionManager` | The selection, for reading what was clicked | Verified |
 | `SketchManager` | The sketch API | Partly verified |
 | `GetType` | Document type of what you actually got. 1 part, 2 assembly. A neutral import decides this for you | Verified, SW 2026 SP1.1 |
@@ -91,6 +102,9 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | `GetEquationMgr` | The Equation Manager, below | Verified, SW 2026 (34.0.0) |
 | `SketchAddConstraints(constant)` | Add a relation to the selected sketch entities, e.g. `"sgTANGENT"` | Verified, SW 2026 (34.0.0) |
 | `AddDimension2(x, y, z)` | Dimension the selection, text at a point in metres; returns an `IDisplayDimension`. On the Top plane an angle placed at a **model-space** point read the angle (GOTCHAS §43) | Verified, SW 2026 (34.0.0) |
+| `GetFeatureCount` | How many features; half of a cheap change key | Verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `GetUpdateStamp` | A number that moves when the model changes and stood still while it was only orbited; with `GetFeatureCount`, under a millisecond | Verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | Surface loft through the curves at mark 1 along those at mark 2; returns nothing useful, so judge by the tree. A fallback where a solid was refused; that such a surface was made was observed, the arguments' meanings were not examined | Partly verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertAxis2(True)` | Reference axis from two selected planes; returns `True`, not the axis. Also from one sketch line selected at mark 0 by `LineN@Sketch`; the axis followed the line's linked angle | Verified, SW 2026 (34.0.0); from a line, dev runs 2026-09-15 |
 
 ## IModelDocExtension
@@ -98,6 +112,7 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | Member | Purpose | Status |
 |---|---|---|
 | `SelectByID2` | Select a named entity by type string, with a selection mark. `"PLANE"` with a plane's name read from the tree selected it | Verified, SW 2026 |
+| `SelectByID2(name, "REFERENCECURVES", 0, 0, 0, append, mark, null, 0)` | An imported or composite curve by name: at mark 1 to join ([curves/06](entries/curves/06-composite-curve.md)), at mark 1 as a loft profile and mark 2 as a loft guide. Straight after an insert it sometimes returned `False` until a `ForceRebuild3` | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `SelectByID2("LineN@Sketch", "EXTSKETCHSEGMENT", 0, 0, 0, append, mark, null, 0)` | A line of a closed sketch by name; the name from `ISketchSegment.GetName`. At mark 16 as a revolve's axis, at mark 0 for a plane or an axis | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `SelectByID2("", "EXTSKETCHPOINT", x, y, z, append, mark, null, 0)` | A closed sketch's point by its model location, metres | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `SelectByID2("Point1@<origin>@<component>@<assembly>", "EXTSKETCHPOINT", 0, 0, 0, append, 1, null, 0)` | A component's origin, for a mate; selected type 25 | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
@@ -106,6 +121,7 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | `DeleteSelection2(options)` | Delete what is selected. On a folder it removes **only the folder**, leaving its contents in place | Verified, SW 2026 |
 | `GetObjectByPersistReference3(ref, out)` | Resolve that handle back. Needs a by-ref out parameter | Verified, SW 2026 |
 | `SaveAs(path, version, options, exportData, ByRef err, ByRef warn)` | Save under a new name, with an error and a warning code back. Prefer over `SaveAs3` | Verified, SW 2026 SP1.1 |
+| `SaveAs(path.STEP, 0, 1 \| 2, null, out, out)` | Export to STEP, silent (1) **as a copy** (2), so the open document keeps its name; format from the extension | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `ListExternalFileReferences` | External references of a document | Unverified |
 | `GetUserPreferenceInteger(pref, 0)` | Read a document setting, e.g. 47 `swUnitsLinear` (0 mm, 3 inches) | Verified, SW 2026 (34.0.0) |
 | `SetUserPreferenceInteger(263, 0, 5)` | Set the document's unit system to MMGS; returned `True` and took | Verified, SW 2026 (34.0.0) |
@@ -177,6 +193,8 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | `InsertProtrusionSwept4` (20 arguments) | Swept boss: profile at mark 1, path at mark 4; third argument twist control (8, constant along path), sixteenth the twist in **radians**. **The twist's sign is ignored** (GOTCHAS §45). Returns a `Sweep` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
 | `InsertCutSwept5` (22 arguments) | Swept cut, same marks; third argument twist control, fifteenth the twist in radians. Started ahead of the face it removed A·w and left one body. Returns a `SweepCut` | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
 | `InsertCutSwept4` (19 arguments) | Listed by the probe as a fallback, never called | Unverified |
+| `InsertProtrusionBlend2` (18 arguments) | Solid loft through the curves at mark 1, in order, along the guides at mark 2: `False, keepTangency, False, 1.0, 0, 0, 1.0, 1.0, False, False, False, 0.0, 0.0, 0, merge, False, True, guideInfluence`. With tangency on and influence `0` (To next guide) it **reproduced a hand-made loft exactly**. Some solids were refused where the same surface loft was made | Verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `GetFeatures(False)` | Every feature, sub-features included, in one call; about half the time of a `FirstFeature`/`GetNextFeature` walk. Order and folder end tags not checked | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertMirrorFeature2(True, False, True, False, 0)` | Mirror the body at mark 256 about the plane at mark 2, merged into one `MirrorSolid` body. **With the body at mark 1 it returned `None`** (GOTCHAS §47) | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
 | `FeatureCut3` | Listed by the probe, never called | Unverified |
 | `FeatureCircularPattern4` | Listed by the probe, never called | Unverified |
@@ -200,6 +218,7 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 | `GetSpecificFeature2` | The concrete feature behind a reference plane; on an `FtrFolder`, the `IFeatureFolder`; on a sketch feature, the `ISketch` | Verified |
 | `Select2(append, mark)` | Select this feature. Works where `SelectByID2` with `"BODYFEATURE"` returned `False`. Judge by the selection count | Verified, SW 2026 |
 | `ListExternalFileReferences2` | External references of one feature | Unverified |
+| `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration, to export one loft at a time. In the code whose STEP files were measured, but whether it accepted the bare `None` and isolated the body was not recorded | Unverified, Airfoil Converter 2026-09-16 |
 | `GetFirstDisplayDimension` / `GetNextDisplayDimension(prev)` | Walk a feature's dimensions; includes its sketch's | Verified, SW 2026 (34.0.0) |
 | `GetFirstSubFeature` / `GetNextSubFeature` | Children, e.g. the mates under `MateGroup`, or the sketch a feature was made from. **Step children with `GetNextSubFeature`**: `GetNextFeature` from a child walked on through the main tree and repeated names | Verified, SW 2026 (34.0.0) |
 
@@ -209,6 +228,16 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 |---|---|---|
 | `LoadPointsFromFile(path)` | Replace the points from a file, in place | Verified, SW 2026 |
 | `PointArray` | The points it holds, flat, in metres | Verified, SW 2026 |
+
+## Composite curve feature data (from `IFeature.GetDefinition` on a `CompositeCurve`)
+
+The interface name was not recorded in the source; see [curves/06](entries/curves/06-composite-curve.md).
+
+| Member | Purpose | Status |
+|---|---|---|
+| `AccessSelections(doc, null)` | Open the definition's selections for reading | Unverified: on a path the Airfoil Converter takes, result not recorded |
+| `GetEntitiesToJoin(ByRef types)` | The curves the composite joins, as objects with `Name`; `types` passed as `VARIANT(VT_BYREF \| VT_VARIANT, None)` | Unverified: as above |
+| `ReleaseSelectionAccess` | Close them again, in a `finally` | Unverified: as above |
 
 ## ISweepFeatureData (from `IFeature.GetDefinition` on a `Sweep` or `SweepCut`)
 
@@ -225,7 +254,7 @@ replaced by placeholders, and `latest.json` is now 20260915-023929.
 |---|---|---|
 | `InsertSketch(rebuild)` | Open a 2D sketch on the current selection; call again to close | Verified, SW 2026 (34.0.0) |
 | `Insert3DSketch2(rebuild)` | Open a 3D sketch; call again to close | Unverified |
-| `ActiveSketch` | The sketch being edited, or `Nothing` after closing | Verified, SW 2026 (34.0.0) |
+| `ActiveSketch` | The sketch being edited, or `Nothing` after closing. The Airfoil Converter refuses to select anything while it is not `None` (GOTCHAS §51) | Verified, SW 2026 (34.0.0) |
 | `AddToDB` / `DisplayWhenAdded` | Set `True` / `False` while drawing, restored after; `AddToDB` read back | Verified, SW 2026 (34.0.0) |
 | `CreatePoint(x, y, z)` | A sketch point, in metres | Verified, SW 2026 (34.0.0) |
 | `CreateLine(x1, y1, z1, x2, y2, z2)` | A line, in metres | Verified, SW 2026 (34.0.0) |
@@ -371,7 +400,8 @@ axis; `EXTSKETCHSEGMENT` for a closed sketch's line as `LineN@Sketch`;
 `EXTSKETCHPOINT` for a sketch point by location, or a component's origin as
 `Point1@Origin@<component>@<assembly>`.
 
-Selection marks that decided a feature, SW 2026 (34.0.0): revolve axis line
+Selection marks that decided a feature, SW 2026: loft profiles 1 and loft
+guides 2 (Airfoil Converter 2026-09-16); and on 34.0.0: revolve axis line
 16; `InsertRefPlane` references 0 and 1 in order; loft sections all 1;
 mates 1; circular pattern axis 1 and seed 4; sweep profile 1 and path 4;
 mirror body 256 and plane 2 (body at mark 1 mirrored nothing).
@@ -383,6 +413,18 @@ Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
 `Revolution`, `BlendCut`, `MoveCopyBody`, and from the helical runs `Sweep`,
 `SweepCut`, `MirrorSolid`.
+
+`swGuideCurveInfluence_e`: `0` to next guide (run, and the hand-made loft's
+value), `1` to next sharp, `2` to next edge, `3` global (read only).
+`swFeatureSuppressionAction_e`: `0` suppress, `1` unsuppress.
+`swInConfigurationOpts_e`: `1` this configuration. `swSaveAsOptions_e`: `1`
+silent, `2` copy. All read from `swconst.tlb` on SW 2026 by the Airfoil
+Converter; only the influence `0` and the save-as options are behind a
+recorded run.
+
+Loft type names the Airfoil Converter uses to find its lofts: `Blend` (solid)
+and `BlendRefSurface` (surface). They are the tool's constants; no recorded run
+printed them.
 
 `swTwistControlType_e`: `8` constant twist along path. `swRefPlaneReferenceConstraints_e`:
 `8` distance, `256` its flip option, `2` perpendicular, `4` coincident. All read from

@@ -91,3 +91,4 @@ dimensions and read every one back (probes `sketch_open_close`, `extrude`,
 - [GOTCHAS §8](../../GOTCHAS.md)
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md) — an equation names the feature, so a name that did not stick breaks it
 - [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) — dimensions are renamed and read back the same way
+- [curves/06 — Composite curves](06-composite-curve.md) — renaming a composite aside rather than deleting it

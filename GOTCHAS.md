@@ -154,7 +154,9 @@ which was tested and works, but the dialog route is closed to it.
 ## 14. Inserting a curve does not add it to your surface
 
 `InsertCurveFile` creates the curve and stops. Adding it to a boundary surface
-or loft is still a human job. An automatic insert therefore leaves a curve that
+or loft is still a human job. (Making a *new* loft over curves from code is
+not: [features/12](entries/features/12-guided-loft.md), since 2026-09-16.
+Adding a curve to a surface or loft that already exists still is.) An automatic insert therefore leaves a curve that
 looks connected and is not, which is a quieter failure than a missing curve.
 This is why insertion should be opt-in.
 
@@ -608,3 +610,64 @@ updated ring and a fresh build of the same ring agreed to 1e-13
 (34284.14386641376 and 34284.143866418235 mm³). SolidWorks 2026 (revision
 34.0.0), run 20260915-023929. See [features/09](entries/features/09-twisted-sweep.md),
 [features/10](entries/features/10-swept-cut.md).
+
+## 49. Deleting a composite curve deletes the loft built on it
+
+A loft whose profile is a composite curve goes with the composite: delete the
+composite and the loft is deleted too, not left with a dangling reference.
+Changing which curves an existing composite joins was no way out either;
+editing its sources could not be made to work. So when a composite's pieces
+change, rename the old one aside (it keeps holding up the loft), make a new one
+under the old name, and tell the user to re-pick it in the loft. Profiles must
+also be cut into the same number of pieces: a three-piece composite lofted only
+to another three-piece composite. SolidWorks 2026. See
+[curves/06](entries/curves/06-composite-curve.md).
+
+## 50. The order guides are picked in can change the loft
+
+Two lofts identical except for the order their guide curves were selected
+(all at mark 2) came out different by up to **0.04 mm** on one loft; on
+another, not at all. Nothing reports it. When comparing one run with the next,
+pick the guides in a fixed order. SolidWorks 2026. See
+[features/12](entries/features/12-guided-loft.md) and
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md).
+
+## 51. Clearing the selection during a user's pick crashed SolidWorks
+
+A tool polling the selection and clearing it after each read
+(`IModelDoc2.ClearSelection2(True)`), so that each click was an event, crashed
+SolidWorks 2026 twice on 2026-09-16: an access violation in SolidWorks' own
+`ClearSelectionsNotify`, while the user was in a sketch with the Point property
+page open on the point just clicked. The read and the clear were the last API
+calls both times. Read the selection only, tell clicks apart by the selection
+changing, and refuse to start anything that selects while
+`ISketchManager.ActiveSketch` is not `None`. See
+[reading/04](entries/reading/04-read-the-selection.md), which recommended the
+clear until this.
+
+## 52. Guides too close to a sharp corner break a loft, sometimes silently
+
+On an offset profile that came to a sharp corner at its nose, surface guides
+starting at 1 to 1.5 % of the chord made the loft **fail**; starting at 0.5 %
+it built, as a garbage dome, with no error; starting at 2 % it was right.
+Check the shape, not just that the feature built. SolidWorks 2026. See
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md).
+
+## 53. A curve file with near-duplicate points is refused
+
+SolidWorks 2026 refused Curve Through XYZ Points files in which two
+neighbouring points were all but coincident, as an offset or a trim leaves
+them. Dropping every point within **0.01 mm** of the one kept before it
+(keeping both ends) fixed it. A closed curve's deliberate repeat of its first
+point as its last is fine. See
+[curves/01](entries/curves/01-sldcrv-file-format.md).
+
+## 54. Walking the feature tree every second makes SolidWorks stutter
+
+API calls are served on SolidWorks' own thread, the one that draws the view.
+A once-a-second `FirstFeature`/`GetNextFeature` walk of a 120-feature part took
+about 650 ms of that thread each second, and orbiting the model stuttered for
+as long as the tool was open; nothing in the tool's own process showed it.
+Poll `IModelDoc2.GetFeatureCount` and `GetUpdateStamp` instead (under a
+millisecond together) and read the tree only when they move. SolidWorks 2026.
+See [reading/11](entries/reading/11-cheap-change-detection.md).

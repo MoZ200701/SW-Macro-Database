@@ -188,3 +188,4 @@ Runner.Dispose();
   same rule from a compiled exe, with `[STAThread]`
 - [`code/python/swcom.py`](../../code/python/swcom.py)
 - [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md) — one job per probe on the COM thread, with a timeout
+- [reading/11 — Cheap change detection](../reading/11-cheap-change-detection.md) — every call is also served on SolidWorks' own drawing thread, so what a poll asks matters

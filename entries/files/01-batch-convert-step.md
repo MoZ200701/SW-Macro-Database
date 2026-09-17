@@ -229,3 +229,4 @@ the interop enum:
 - [GOTCHAS §20, §21, §22](../../GOTCHAS.md)
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) —
   `CloseDoc` without a prompt, and what `SaveAs3` returned
+- [files/04 — Export a body to STEP](04-export-a-body-to-step.md) — the other direction: writing STEP

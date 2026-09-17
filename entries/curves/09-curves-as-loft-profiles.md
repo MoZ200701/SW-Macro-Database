@@ -59,9 +59,21 @@ either as one direction entry per side or as two separate boundary features.
 
 ## What is still manual
 
-Building the surface itself. There is no automation here for creating a
-boundary surface from a set of curves, and inserting a curve does not add it to
-an existing one.
+Building a **boundary surface** itself. There is no automation here for
+creating a boundary surface from a set of curves, and inserting a curve does
+not add it to an existing one.
+
+**Correction, 2026-09-16:** this section used to say the same of a loft. A loft
+through imported curves, with guide curves, is now made from code with
+`IFeatureManager.InsertProtrusionBlend2`, profiles at selection mark 1 and
+guides at mark 2, and it reproduced a hand-made loft of the same curves on
+SolidWorks 2026: [features/12](../features/12-guided-loft.md). How close such a
+loft comes to the shape you meant, against the number of guides, is
+[surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md). Adding a
+curve to a loft that already exists is still not automated.
+
+Composite curves are selectable as profiles too, with conditions:
+[curves/06](06-composite-curve.md).
 
 The practical approach is to build the surface **once**, by hand, and then
 refresh the curves under it forever after. That is the loop in
@@ -76,3 +88,6 @@ Generating a checklist for that one manual pass is worth doing. See
 - [curves/01 — The .sldcrv format](01-sldcrv-file-format.md)
 - [surfacing/01 — The boundary surface recipe](../surfacing/01-boundary-surface-recipe.md)
 - [features/07 — Loft cut](../features/07-loft-cut.md) — a lofted cut between sketched sections
+- [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the loft from code
+- [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md)
+- [curves/06 — Composite curves](06-composite-curve.md) — composite profiles
