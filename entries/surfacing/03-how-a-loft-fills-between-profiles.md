@@ -57,6 +57,12 @@ below, and the wall between the two lofts measured from their STEP files.
 | 7 | 2, 5, 15, 30, 50, 75, 90 % | 2.30–2.67 mm | 98.2 % within ±0.1 mm |
 | 16 | the list below, closer together toward the nose | 2.38–2.57 mm | 99.4 % of the inner skin within ±0.05 mm |
 
+The 16-guide row is not the guides alone. The same run also changed how the
+intended shape was computed: the profiles were modelled as the spline
+SolidWorks draws (below), an offset profile's sharp nose was cut into two
+halves, and the section between root and tip was taken as the airfoil scaled
+to the local chord. The first two rows differ only in their guides.
+
 **Between two guides SolidWorks sags**: by up to **0.15 mm** where neighbouring
 guides were 10 to 25 % of the chord apart, in the same case. That sag is what
 the closer spacing near the nose took out. The sixteen stations were:
