@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IModelDoc2.GetFeatureCount, IModelDoc2.GetUpdateStamp, IFeatureManager.GetFeatures]
-keywords: [polling, poll, change detection, GetUpdateStamp, GetFeatureCount, GetFeatures, stutter, lag, orbit, feature tree walk, UI thread, slow, every second, watch the part]
+keywords: [polling, poll, change detection, GetUpdateStamp, GetFeatureCount, GetFeatures, stutter, lag, orbit, feature tree walk, UI thread, slow, every second, watch the part, 397 features, tree walk cost, ten seconds, nothing changed push]
 answers: "My tool polls SolidWorks every second and orbiting the model stutters. What can I ask that is cheap and still tells me the part changed?"
 ---
 
@@ -106,6 +106,21 @@ The timing in the tool: the key every 1000 ms, the full read at most every
 fifth tick and only while the tool's window has the focus, and during an
 interactive pick only the selection read, every 200 ms.
 
+## What a walk costs on a bigger part
+
+The 650 ms above is a 120-feature part. On a **397-feature** part, one walk —
+`feature_names()` or `curve_features()`, either way — costs about **10 seconds**
+of SolidWorks' thread. That is no longer only a stutter problem: a push that
+found nothing to do still took **17 to 20 seconds**, and all of it was two
+tree walks, one to list the features and one to list the curve features.
+
+So on a part of that size, a walk is not something to do "just to check". Read
+it once and pass the result down, or ask the cheap key above and skip the read.
+The same ten seconds is what makes the suppression snapshot in
+[reading/12](12-snapshot-suppression-before-you-suppress.md) expensive.
+SolidWorks 2026 SP0.0 (revision 34.0.0), 2026-09-22, experiments `e16`, `e20`
+and `e24`.
+
 ## Why it is not obvious
 
 - **The cost lands in SolidWorks, not in your tool.** Your process sees a call
@@ -151,4 +166,6 @@ once-a-second poll from stalling SolidWorks' view", 2026-09-16):
 - [reading/04 — Read the selection](04-read-the-selection.md) — the other thing a tool polls
 - [connect/06 — One apartment thread](../connect/06-one-apartment-thread.md) — where the calls are made from
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — the walk this replaces in the poll
+- [reading/12 — Snapshot suppression before you suppress](12-snapshot-suppression-before-you-suppress.md) — a walk per cycle, and what it costs
+- [curves/12 — Roll the tree back before reloading](../curves/12-roll-the-tree-back-before-reloading.md) — the other half of what a push on a big part spends
 - [GOTCHAS §54](../../GOTCHAS.md)

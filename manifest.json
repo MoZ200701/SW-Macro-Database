@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 68,
+  "count": 72,
   "by_status": {
     "partly-verified": 9,
     "unverified": 3,
-    "verified": 56
+    "verified": 60
   },
   "entries": [
     {
@@ -227,6 +227,12 @@
         "Equation(i)",
         "zero-argument method not invoked",
         "method object",
+        "method object is not iterable",
+        "GetEdges",
+        "GetTessTriangles",
+        "ReleaseSelectionAccess",
+        "AddBodies",
+        "bool object is not callable",
         "PyInstaller",
         "hidden-import",
         "onefile exe",
@@ -603,7 +609,10 @@
         "refresh curve",
         "in place",
         "reload",
-        "live update"
+        "live update",
+        "slow reload",
+        "25 seconds per curve",
+        "rollback bar"
       ],
       "answers": "How do I change a curve's geometry without re-picking it in the boundary surface?"
     },
@@ -663,7 +672,12 @@
         "edit composite",
         "GetEntitiesToJoin",
         "hairpin",
-        "select after rebuild"
+        "select after rebuild",
+        "AccessSelections",
+        "ReleaseSelectionAccess",
+        "rolls the tree back",
+        "IsRolledBack",
+        "method object never ran"
       ],
       "answers": "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
     },
@@ -703,7 +717,8 @@
       ],
       "api": [
         "ISldWorks.CommandInProgress",
-        "IModelDoc2.ForceRebuild3"
+        "IModelDoc2.ForceRebuild3",
+        "IModelDoc2.EditRebuild3"
       ],
       "keywords": [
         "ForceRebuild3",
@@ -711,7 +726,13 @@
         "suppress rebuild",
         "batch update",
         "transient error",
-        "finally"
+        "finally",
+        "EditRebuild3",
+        "ForceRebuild3 slow",
+        "rebuild only what changed",
+        "EditRebuild3 returns False",
+        "feature in error",
+        "25 seconds rebuild"
       ],
       "answers": "Why does my part show errors halfway through my batch update, and how do I make it fast?"
     },
@@ -794,6 +815,43 @@
         "BODYFEATURE"
       ],
       "answers": "How do I put features into a folder in the feature tree from code?"
+    },
+    {
+      "id": "curves-12-roll-the-tree-back-before-reloading",
+      "title": "Roll the tree back before reloading curves, because a reload is charged for the tree below it",
+      "path": "entries/curves/12-roll-the-tree-back-before-reloading.md",
+      "category": "curves",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP0.0 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.EditRollback",
+        "IModelDoc2.FeatureByPositionReverse",
+        "IFeature.IsRolledBack",
+        "IFeature.ModifyDefinition",
+        "IModelDoc2.EditRebuild3"
+      ],
+      "keywords": [
+        "EditRollback",
+        "swMoveRollbackBarTo_e",
+        "rollback bar",
+        "roll back",
+        "roll forward",
+        "previous position",
+        "slow reload",
+        "LoadPointsFromFile slow",
+        "ModifyDefinition slow",
+        "25 seconds per curve",
+        "IsRolledBack",
+        "FeatureByPositionReverse",
+        "GetRollbackBarPosition",
+        "rolled back part",
+        "loft with no faces",
+        "insert at the bar"
+      ],
+      "answers": "Why does reloading each curve take 25 seconds on a big part, and how do I make it half a second?"
     },
     {
       "id": "documents-01-new-part-from-template",
@@ -1404,7 +1462,11 @@
         "composite profile",
         "surface fallback",
         "18 arguments",
-        "guide order"
+        "guide order",
+        "returns Nothing",
+        "silent refusal",
+        "solid refused",
+        "capped loft"
       ],
       "answers": "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
     },
@@ -1514,13 +1576,14 @@
       "path": "entries/files/04-export-a-body-to-step.md",
       "category": "files",
       "status": "partly-verified",
-      "verified_on": "SolidWorks 2026 for the STEP export; the suppression that isolates one body was run but its effect on the file was not recorded",
+      "verified_on": "SolidWorks 2026 for the STEP export and for the suppression and its cascade; that each file of an earlier batch held only its own loft was never checked file by file",
       "language": [
         "python"
       ],
       "api": [
         "IModelDocExtension.SaveAs",
         "IFeature.SetSuppression2",
+        "IFeature.IsSuppressed",
         "IModelDoc2.ForceRebuild3"
       ],
       "keywords": [
@@ -1536,7 +1599,13 @@
         "swFeatureSuppressionAction_e",
         "swInConfigurationOpts_e",
         "measure loft",
-        "out parameter"
+        "out parameter",
+        "suppression cascade",
+        "74 features",
+        "suppression_state",
+        "restore_suppression",
+        "SewRefSurface",
+        "MANIFOLD_SOLID_BREP"
       ],
       "answers": "How do I write a part, or just one of its lofts, to a STEP file from code without the open document changing name?"
     },
@@ -1873,9 +1942,81 @@
         "UI thread",
         "slow",
         "every second",
-        "watch the part"
+        "watch the part",
+        "397 features",
+        "tree walk cost",
+        "ten seconds",
+        "nothing changed push"
       ],
       "answers": "My tool polls SolidWorks every second and orbiting the model stutters. What can I ask that is cheap and still tells me the part changed?"
+    },
+    {
+      "id": "reading-12-snapshot-suppression-before-you-suppress",
+      "title": "Snapshot every feature's suppression before you suppress one, because suppression cascades",
+      "path": "entries/reading/12-snapshot-suppression-before-you-suppress.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP0.0 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeature.SetSuppression2",
+        "IFeature.IsSuppressed",
+        "IModelDoc2.FirstFeature",
+        "IFeature.GetNextFeature",
+        "IFeature.GetFirstSubFeature"
+      ],
+      "keywords": [
+        "SetSuppression2",
+        "IsSuppressed",
+        "suppression cascade",
+        "suppressed children",
+        "unsuppress does not restore",
+        "swFeatureSuppressionAction_e",
+        "swInConfigurationOpts_e",
+        "74 features",
+        "Sketch9<3>",
+        "feature name not found",
+        "restore by object",
+        "parents first",
+        "export one body"
+      ],
+      "answers": "Why did suppressing one feature suppress 74 others, and how do I put the part back exactly as it was?"
+    },
+    {
+      "id": "reading-13-measure-a-wall-between-two-bodies",
+      "title": "Measure the wall between two bodies without leaving SolidWorks",
+      "path": "entries/reading/13-measure-a-wall-between-two-bodies.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP0.0 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFace2.GetTessTriangles",
+        "IFace2.GetClosestPointOn",
+        "IFeature.GetFaces",
+        "IBody2.GetMassProperties",
+        "IFace2.GetArea"
+      ],
+      "keywords": [
+        "GetTessTriangles",
+        "GetClosestPointOn",
+        "wall thickness",
+        "skin thickness",
+        "offset check",
+        "distance between surfaces",
+        "tessellation",
+        "measure in SolidWorks",
+        "no STEP",
+        "GetMassProperties",
+        "volume slot",
+        "validate a measurement",
+        "closest point zero"
+      ],
+      "answers": "How do I check from code that the skin between two lofted surfaces really is the thickness I asked for?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",
@@ -2203,9 +2344,70 @@
         "loft fails",
         "dome",
         "STEP measurement",
-        "0.05 mm"
+        "0.05 mm",
+        "sliver face",
+        "extra face",
+        "one guide too many",
+        "solid loft refused",
+        "drop a guide",
+        "2% guide",
+        "tip loop",
+        "end loop edge count"
       ],
       "answers": "If I loft two profiles along guide curves, how far does SolidWorks' surface stray from the shape I meant, and how does that change as I add guides?"
+    },
+    {
+      "id": "surfacing-04-cap-a-refused-loft-into-a-solid",
+      "title": "Get a solid out of a loft SolidWorks refuses, by capping the surface and knitting it",
+      "path": "entries/surfacing/04-cap-a-refused-loft-into-a-solid.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP0.0 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.InsertLoftRefSurface2",
+        "IModelDoc2.InsertPlanarRefSurface",
+        "IFeatureManager.InsertSewRefSurface",
+        "IFeatureManager.InsertFillSurface2",
+        "IEntity.Select4",
+        "ISelectionMgr.CreateSelectData",
+        "IModelDocExtension.SelectByID2",
+        "IFeature.GetFaces",
+        "IFace2.GetBody",
+        "IFace2.GetArea",
+        "IBody2.GetEdges",
+        "IEdge.GetCurveParams2",
+        "IPartDoc.GetBodies2",
+        "IBody2.GetMassProperties"
+      ],
+      "keywords": [
+        "InsertProtrusionBlend2 returns Nothing",
+        "loft refused",
+        "silent refusal",
+        "InsertPlanarRefSurface",
+        "planar surface cap",
+        "InsertSewRefSurface",
+        "knit",
+        "sew",
+        "SewRefSurface",
+        "PlanarSurface",
+        "TryToFormSolid",
+        "SURFACEBODY",
+        "Select4",
+        "CreateSelectData",
+        "GetEdges",
+        "GetCurveParams2",
+        "end loop",
+        "sliver face",
+        "cap area check",
+        "solid body count",
+        "InsertFillSurface2",
+        "VT_ARRAY",
+        "composite curve as boundary"
+      ],
+      "answers": "SolidWorks refuses my solid loft but makes the surface — how do I get a solid out of it from code?"
     }
   ]
 }

@@ -83,7 +83,9 @@ def call(obj, name, *args):
 **It has an exception.** A zero-argument member that *returns nothing* is not
 invoked by attribute access: `IAssemblyDoc.FixComponent` came back as a Python
 `method` object and never ran. Called with parentheses, `asm.FixComponent()`,
-it ran and worked. See §31.
+it ran and worked. So does a member returning an **array**: `IBody2.GetEdges`
+and `IFace2.GetTessTriangles` both come back as uncalled methods. See §31 for
+the first case and **§55 for the rule that covers all of them**.
 
 ## 6. The Running Object Table hands back an `IUnknown`
 
@@ -370,7 +372,8 @@ second component returned `None` and its `IsFixed` went from `False` to `True`
 (SolidWorks 2026, revision 34.0.0, run 20260914-183429; see
 [assemblies/01](entries/assemblies/01-new-assembly-and-insert-components.md)). That pywin32 exposes a zero-argument member
 with a return value as a property and one without as a method is the likely
-cause; it was not established. See
+cause; it was not established. Two more of the family, and a test that catches
+them without knowing the member, are in **§55**. See
 [connect/02](entries/connect/02-attach-from-python.md).
 
 ## 32. A through-all cut in the default direction made nothing
@@ -671,3 +674,137 @@ as long as the tool was open; nothing in the tool's own process showed it.
 Poll `IModelDoc2.GetFeatureCount` and `GetUpdateStamp` instead (under a
 millisecond together) and read the tree only when they move. SolidWorks 2026.
 See [reading/11](entries/reading/11-cheap-change-detection.md).
+
+## 55. A zero-argument member that returns nothing *or an array* comes back uncalled
+
+§5's rule — reach a zero-argument member by attribute access — and §31's
+exception for `FixComponent` are the same fact seen twice. On SolidWorks 2026
+it has a third and fourth case, and together they give the rule that works:
+
+| Member | Attribute access gives | Symptom |
+|---|---|---|
+| composite feature data `ReleaseSelectionAccess` | an uncalled `method` | the tree silently stays rolled back |
+| `IBody2.GetEdges` | an uncalled `method` | `TypeError: 'method' object is not iterable` |
+| `IFace2.GetTessTriangles(True)` | an uncalled `method` | the same |
+| `IAssemblyDoc.FixComponent` | an uncalled `method` | nothing happens (§31) |
+
+A member that returns **nothing or an array** is handed over as a bound method;
+a member that returns a value is invoked for you. A *value* never comes back
+looking like a method object, so testing what came back is safe where testing
+the member's name is not:
+
+```python
+member = getattr(obj, name)
+if args:
+    return member(*args)
+if type(member).__name__ == "method":
+    return member()
+return member
+```
+
+Members observed **not** to need this on the same session: `GetFaces`,
+`GetBody`, `GetCurve`, `GetCurveParams2`, `GetMassProperties`, `IsRolledBack`,
+`Name`, `GetTypeName2`, `GetNextFeature`, `EditRebuild3` and
+`InsertPlanarRefSurface` — the last two of which *do* something and still come
+back as their result.
+
+One case this does not cover: `IMassProperty.AddBodies` reached by `getattr`
+answered a `bool` — it had already run, with no bodies — and then could not be
+called with its bodies at all (`'bool' object is not callable`). Where a member
+both takes arguments and might be exposed as a property, check the effect.
+SolidWorks 2026 SP0.0. See [connect/02](entries/connect/02-attach-from-python.md).
+
+## 56. Reloading a curve is charged for the whole tree below it
+
+`IFeature.ModifyDefinition` after `LoadPointsFromFile` cost **25 seconds per
+curve** on a 397-feature part with the tree rolled forward — 39 curves, sixteen
+and a half minutes, which was the whole of a seventeen-minute export. With or
+without `ISldWorks.CommandInProgress`, which suppresses the *rebuild* and not
+this.
+
+Put the rollback bar just after the last curve first
+(`IFeatureManager.EditRollback(4, name)`) and the same reload is **0.5
+seconds**, because everything built on the curve is rolled back and has nothing
+to say. SolidWorks 2026 SP0.0. See
+[curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md).
+
+## 57. `EditRollback` to the previous position answers True and moves nothing
+
+`IFeatureManager.EditRollback(2, "")` —
+`swMoveRollbackBarToPreviousPosition` — returned `True` in 0.1 s and left the
+bar where it was. The part stayed rolled back, its lofts reading 0 faces and
+0 mm², the splits and inserts under them gone from view, and two whole pushes
+handed it back that way before it was noticed.
+
+Roll to **End** (`1`) instead, and then ask
+`IModelDoc2.FeatureByPositionReverse(0)` whether it `IsRolledBack` — that is a
+genuine bool. `IFeatureManager.GetRollbackBarPosition`, which would have made
+this visible, is not reachable through pywin32 late binding at all.
+SolidWorks 2026 SP0.0. See
+[curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md).
+
+## 58. `EditRebuild3` returns False whenever anything in the part is in error
+
+Including features that were in error before you touched the part. A part
+carrying 13 such features answered `False` to every `EditRebuild3` while doing
+exactly what it was asked, geometry and all. The return is not "did not run",
+and code that treats it as one stops for no reason.
+
+While you are there: `EditRebuild3` was **0.8 s** where `ForceRebuild3(False)`
+was **25 s** on that part, for geometry identical to twelve digits. Rebuild
+what changed. SolidWorks 2026 SP0.0. See
+[curves/08](entries/curves/08-rebuild-once-at-the-end.md).
+
+## 59. `AccessSelections` rolls the tree back, and the release that undoes it never ran
+
+Reading what a composite curve joins is not a read-only act:
+`AccessSelections` on its feature data rolls the model back to just before the
+feature (the help says so, and it is easy to read past). Afterwards the loft
+built on that composite read 0 faces and the splits below it were gone.
+
+`ReleaseSelectionAccess` puts it back — in 0.9 s — but it is a `Sub`, so late
+binding hands it over as an uncalled method object and reaching it through a
+helper that only fetches zero-argument members did nothing at all (§55). Every
+push the tool made while that check existed left the part rolled back.
+SolidWorks 2026 SP0.0. See [curves/06](entries/curves/06-composite-curve.md).
+
+## 60. A planar cap can span a sliver instead of the end, and answer True
+
+`IModelDoc2.InsertPlanarRefSurface` across the four edges of a loft's end loop
+returned `True` and made a `PlanarSurface` feature — of **0.078 mm²**, where
+the section it was meant to close encloses **4,046.8 mm²**. It had capped a
+sliver face's own little loop instead of the wing.
+
+Compare the cap's `IFace2.GetArea` with the area the profile encloses, and
+refuse a cap that is a fraction of it. Better still, refuse before capping:
+count the edges of the end loop against the number of pieces the profile is
+cut into — one edge per piece is what an end of a two-profile loft is.
+SolidWorks 2026 SP0.0. See
+[surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md).
+
+## 61. A knit asked for a solid can sew a sheet and still make a feature
+
+`IFeatureManager.InsertSewRefSurface(True, True, False, 1e-4, 1e-4)` — with
+`TryToFormSolid` `True` — took three sheet bodies to one sheet body, made a
+`SewRefSurface` feature, and answered as though it had done what was asked.
+The part gained **no** solid body, and the resulting body's
+`GetMassProperties` volume slot read 439,803,896.6 mm³ against a real
+2,551,504.3: a meaningless number off an unclosed shell.
+
+Count `IPartDoc.GetBodies2(0, False)` before and after, and delete the knit if
+the count did not go up. SolidWorks 2026 SP0.0. See
+[surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md).
+
+## 62. Suppressing one feature suppresses what is built on it, and unsuppressing does not undo it
+
+`IFeature.SetSuppression2(0, 1, None)` on one body feature — to write another
+body alone to STEP — suppressed **74 other features**: the splits and inserts
+built on that body, their folders, and the planes and sketches under those. The
+part went from 16 solid bodies to 6. Unsuppressing the feature that had been
+suppressed brought back **none** of them.
+
+Restoring by name does not work either: one of the 74 is called `Sketch9<3>`,
+which a name walk cannot find. Snapshot every feature's `IsSuppressed` with the
+feature **objects**, in tree order, before; restore from that, parents first,
+after. SolidWorks 2026 SP0.0. See
+[reading/12](entries/reading/12-snapshot-suppression-before-you-suppress.md).

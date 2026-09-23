@@ -5,7 +5,7 @@ status: partly-verified
 verified_on: SolidWorks 2026 for the solid loft and its settings; the surface fallback's arguments were not examined
 language: [python]
 api: [IFeatureManager.InsertProtrusionBlend2, IModelDoc2.InsertLoftRefSurface2, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, IModelDoc2.ForceRebuild3, ISketchManager.ActiveSketch]
-keywords: [InsertProtrusionBlend2, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order]
+keywords: [InsertProtrusionBlend2, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order, returns Nothing, silent refusal, solid refused, capped loft]
 answers: "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
 ---
 
@@ -236,6 +236,23 @@ Then one `ForceRebuild3(False)` after all the lofts, not one per loft
 - **The call returns the feature or not, but the name is SolidWorks'.** Diff the
   tree and rename, as for curves.
 
+**A refused solid says nothing at all.** When `InsertProtrusionBlend2` will
+not make the solid it returns `Nothing`, adds no feature, raises no error and
+puts up no dialog — so the only way to know is the feature-name diff this code
+already does. It takes its time about it, too: 7 to 9.5 seconds to refuse,
+against 10 to 12 to build. On one wing it refused at inward offsets of 1.30,
+1.35 and 1.40 mm and built at 1.25, 1.45, 1.50 and 1.60, from the same code
+with the same settings; the cause turned out to be one guide curve splitting a
+sliver face off the loft ([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)).
+
+**The surface fallback is not a solid.** Falling back to
+`InsertLoftRefSurface2` gets you a surface, which is enough to measure and not
+enough to split, cut or export as a body. Since 2026-09-22 the tool caps that
+surface at both ends and knits the three sheets into a solid instead:
+[surfacing/04](../surfacing/04-cap-a-refused-loft-into-a-solid.md). The
+surface loft call itself is unchanged and is still the first step of that.
+
+
 ## What it does not do
 
 - **The surface fallback is the thinnest part.** That SolidWorks refused some
@@ -280,7 +297,8 @@ profile at its nose, ...").
 
 ## See also
 
-- [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — how close the result came, and how that scaled with the number of guides
+- [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — how close the result came, how that scaled with the number of guides, and which guide refuses a solid
+- [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — what to build when the solid is refused
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md)
 - [curves/06 — Composite curves](../curves/06-composite-curve.md) — joined profiles, and what deleting one does to the loft
 - [curves/04 — Reload a curve in place](../curves/04-reload-curve-in-place.md) — the loft follows

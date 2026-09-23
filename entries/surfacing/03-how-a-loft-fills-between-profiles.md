@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [n/a]
 api: []
-keywords: [loft accuracy, loft deviation, guide curves, number of guides, accuracy versus guides, guide spacing, sag between guides, linear blend, chordwise stretch, section scaling, taper, sharp corner, guide near corner, loft fails, dome, STEP measurement, 0.05 mm]
+keywords: [loft accuracy, loft deviation, guide curves, number of guides, accuracy versus guides, guide spacing, sag between guides, linear blend, chordwise stretch, section scaling, taper, sharp corner, guide near corner, loft fails, dome, STEP measurement, 0.05 mm, sliver face, extra face, one guide too many, solid loft refused, drop a guide, 2% guide, tip loop, end loop edge count]
 answers: "If I loft two profiles along guide curves, how far does SolidWorks' surface stray from the shape I meant, and how does that change as I add guides?"
 ---
 
@@ -103,6 +103,68 @@ outer profile's at 1 %. The threshold is for that shape; the lesson is to keep
 guides a little way back from a corner and check the result, because one
 failure mode is silent.
 
+## One guide too many splits a sliver face, and that is what refuses the solid
+
+A year later, on the same wing's inner skin, `InsertProtrusionBlend2` began
+refusing the solid **silently** — `Nothing` back, no feature, no error, no
+dialog — while `InsertLoftRefSurface2` made the surface through the same
+curves every time. It refused at inward offsets of **1.30, 1.35 and 1.40 mm**
+and not at 1.25, 1.45, 1.50 or 1.60.
+
+Twelve rounds of experiments ruled out everything about the *section*: the
+point spacing at the nose (six different edits, including resampling the nose
+as a proper arc — identical outcomes), the nose corner angle, the
+trailing-edge corners, planarity (both end profiles flat to 1e-6 mm), the
+guides as such (it refused with **none**), keep-tangency, non-rational,
+tessellation factor and merge. The tip loop on its own could not bound a solid
+even as a **prism of itself** — lofted to a translated copy, no guides — and the
+splines SolidWorks fitted at its nose crease were indistinguishable from a
+passing offset's at 1 µm, sampled with `ICurve.Evaluate2`.
+
+What settled it was the **surface loft's own topology**:
+
+| Offset | Surface loft | Tip end loop |
+|---|---|---|
+| 1.45 mm (solid builds) | 3 faces | 3 edges: 120.03 mm spline, 0.500 mm line, 122.64 mm spline |
+| 1.30, 1.35, 1.40 mm (solid refused) | **4 faces** | **4 edges**, one of them a straight chord of 2.18–2.24 mm |
+
+That chord is in no curve file. It is where a **sliver face** — split off along
+the nose, 5.8 mm wide at the root and 2.2 mm at the tip — degenerates at the
+tip. A loop with it in cannot be closed by anything: a planar surface across
+those four edges is refused outright, and a fill across them is too.
+
+**One guide is responsible**: the lower-surface guide at **2 % of the chord**.
+Leave it out and the loft is three faces at every offset in the band, both ends
+cap, and knitting the three sheets gives one solid
+([surfacing/04](04-cap-a-refused-loft-into-a-solid.md)):
+
+| Offset | Volume, 32 guides, knitted |
+|---|---|
+| 1.30 mm | 2,551,504.3 mm³ |
+| 1.35 mm | 2,530,077.9 mm³ |
+| 1.40 mm | 2,508,086.5 mm³ |
+| 1.45 mm | 2,486,810.8 mm³ |
+
+Dropping the **upper** 2 % guide instead changes nothing — still four faces,
+still a refused cap. Dropping the lower one also rescued the *solid loft
+itself* at 1.40 mm, though not at 1.30 or 1.35.
+
+So the 2 % rule above is not a floor that is always safe. On a tight inner nose
+a guide that close can split a face rather than hold the section, and the
+symptom is not a failed loft but a **silently refused solid**, or a fourth face
+in a surface that looks right on screen. Two things to check, neither of which
+is the return value:
+
+- how many faces the surface loft has, against how many pieces its profiles are
+  cut into;
+- how many edges each end loop has, against the same number. One edge per
+  profile piece is what an end of a two-profile loft is; any more and the loft
+  has grown something the section does not have.
+
+Why this guide, at this offset band, was not established. It would take the
+same loft at finer offset steps with the nose curvature measured alongside.
+
+
 ## Guide order
 
 Changing only the order the guides were picked in moved the surface by up to
@@ -144,11 +206,42 @@ and loft it from the Wing tab") and in its source comments:
 - Guides landing anywhere on the drawn profile spline were accepted.
 - Guide order: up to 0.04 mm on one loft, none on another.
 
+The sliver-face findings are later and separate: SolidWorks 2026 SP0.0
+(revision 34.0.0), 2026-09-22, on a save-as copy of a real 397-feature part,
+experiments `e2`–`e4g` (the section edits), `e11`, `e14` (planarity), `e25`
+(the refusal band), `e29`, `e4d` (the prism), `e30`, `e31` (the crease
+splines), `e36b`, `e37`, `e39`, `e41`, `e42`, `e43` (the topology and the
+guide), carried into the Airfoil Converter by commits `1bdec01`, `7caf687` and
+`8555d5f`.
+
+- `e25`: solid loft refused at 1.30, 1.35 and 1.40 mm; built at 1.25
+  (2,576,169.1 mm³), 1.45 (2,487,078.9), 1.50 (2,464,421.2) and 1.60
+  (2,421,781.6).
+- `e14`: 3053 samples over each tip loop, out of plane by 4.3e-06 and 1.6e-06 mm.
+- `e4d`: the failing tip profile lofted to a copy of itself 200 mm away,
+  no guides — **refused**; the passing one — solid, 1 body.
+- `e31`: at the crease, the two fitted splines' gap at 0.01 / 0.05 / 0.10 /
+  0.20 / 0.30 mm along read 0.0207 / 0.0973 / 0.1868 / 0.3588 / 0.5244 mm on
+  the failing offset against 0.0195 / 0.0965 / 0.1913 / 0.3712 / 0.5282 on the
+  passing one.
+- `e36b`, `e37`: the face and edge counts and the 2.185 / 2.210 / 2.240 mm
+  chords in the table above; the tip cap refused at resolution 0, 1 and 3.
+- `e39`: with all 33 guides the failing offset lofts to 4 faces and refuses the
+  tip cap, with none or with only the three edge guides it lofts to 3 faces and
+  caps; the passing offset is 3 faces and caps in all three.
+- `e42`: dropping `_lower_02` gives 3 faces and one solid of 2,530,077.9 mm³;
+  dropping `_upper_02` leaves 4 faces and a 2.185 mm chord.
+- `e43`: the four volumes in the table, and the solid loft refused at 1.30 and
+  1.35 but accepted at 1.40 (2,508,068.0 mm³) and 1.45 (2,486,953.2) once
+  `_lower_02` was dropped.
+
 ## See also
 
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the call and its settings
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md) — the spline SolidWorks draws through a file's points
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md) — guides that meet profiles exactly
+- [surfacing/04 — Cap a refused loft into a solid](04-cap-a-refused-loft-into-a-solid.md) — what to do about a silently refused solid
 - [surfacing/01 — The boundary surface recipe](01-boundary-surface-recipe.md)
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — how the lofts were got out to be measured
+- [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — the same wall measured without leaving SolidWorks
 - [GOTCHAS §50, §52](../../GOTCHAS.md)

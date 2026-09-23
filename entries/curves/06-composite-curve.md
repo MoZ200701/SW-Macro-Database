@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IModelDoc2.InsertCompositeCurve, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, AccessSelections, GetEntitiesToJoin, ReleaseSelectionAccess]
-keywords: [InsertCompositeCurve, composite curve, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild]
+keywords: [InsertCompositeCurve, composite curve, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild, AccessSelections, ReleaseSelectionAccess, rolls the tree back, IsRolledBack, method object never ran]
 answers: "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
 ---
 
@@ -175,10 +175,11 @@ if join_as in present:
 `OLD_JOIN_SUFFIX` is `"_old"`. After this the function makes the new
 composite exactly as `insert_composite_curve` above does.
 
-### Reading what a composite joins (unverified)
+### Reading what a composite joins, and the two traps in it
 
 `composite_sources` reads the pieces back through the composite's feature
-data:
+data. As of 2026-09-22 this has been run and watched, and it needed fixing
+twice:
 
 ```python
 def composite_sources(self, name: str) -> List[str]:
@@ -198,10 +199,34 @@ def composite_sources(self, name: str) -> List[str]:
 `GetDefinition` is on **IFeature**; `AccessSelections(doc, component)`,
 `GetEntitiesToJoin(ByRef types)` and `ReleaseSelectionAccess` are on the
 composite curve's feature data (the interface was not named in the source).
-This is in the code the lofts above were built with, on the path taken
-whenever a join already exists, but what it returned was never recorded, and
-it has only been tested against a fake. Treat it as unverified: check that the
-names come back in join order before relying on the comparison.
+On SolidWorks 2026 it returned the three curves the tip composite joins, by
+name, in join order, in 3.2–4.5 s.
+
+**`AccessSelections` rolls the model back to just before the feature.** The
+help says so, and it is easy to read past. Straight after the call, the last
+feature in the tree answered `IsRolledBack` `True`, the loft built on the
+composite read **0 faces and 0.000000 mm²**, and the splits and inserts below
+it were gone from view. Reading what a curve joins is not a read-only act.
+
+**`ReleaseSelectionAccess` is what puts it back, and through late binding it
+never ran.** It is a `Sub` — no return value — so pywin32 hands it over as an
+**uncalled method object**, and `call(data, "ReleaseSelectionAccess")` under
+the old rule fetched it and dropped it. Watched step by step: after
+`AccessSelections` the tree was rolled back; after `call(...)` it was *still*
+rolled back; after `data.ReleaseSelectionAccess()` it came forward in 0.9 s.
+
+Every push the tool made while this check existed handed the part back rolled
+back. It is the same family as `IAssemblyDoc.FixComponent`
+([GOTCHAS §31](../../GOTCHAS.md)); the general rule, and the `call` that now
+handles it, are in [connect/02](../connect/02-attach-from-python.md) and
+[GOTCHAS §55](../../GOTCHAS.md).
+
+Verified on SolidWorks 2026 SP0.0 (revision 34.0.0), 2026-09-22, experiments
+`e21` and `e23`, and the Airfoil Converter commits `8566952` ("Actually
+release the selection access a composite read takes") and `a2c1914` ("Call a
+late-bound member that comes back uncalled"). A composite **above** the
+rollback bar could still be read while the tree was rolled back, and the read
+left the bar where it found it.
 
 ## See also
 
@@ -210,4 +235,6 @@ names come back in join order before relying on the comparison.
 - [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — putting the composite in a folder with the curves it is built from
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — a composite as a loft profile
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md) — the composite follows
-- [GOTCHAS §12, §49](../../GOTCHAS.md)
+- [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — putting a rolled-back tree right, and checking it went
+- [connect/02 — Attach from Python](../connect/02-attach-from-python.md) — why the release had to be called with parentheses
+- [GOTCHAS §12, §49, §55, §59](../../GOTCHAS.md)

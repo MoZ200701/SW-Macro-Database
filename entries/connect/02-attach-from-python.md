@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2024, 2025 and 2026 side by side
 language: [python]
 api: [ISldWorks.RevisionNumber, ISldWorks.ActiveDoc]
-keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID, indexed property, property put, DISPATCH_PROPERTYPUT, Invoke, _oleobj_, Equation(i), zero-argument method not invoked, method object, PyInstaller, hidden-import, onefile exe, frozen app]
+keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID, indexed property, property put, DISPATCH_PROPERTYPUT, Invoke, _oleobj_, Equation(i), zero-argument method not invoked, method object, method object is not iterable, GetEdges, GetTessTriangles, ReleaseSelectionAccess, AddBodies, bool object is not callable, PyInstaller, hidden-import, onefile exe, frozen app]
 answers: "How do I connect to SolidWorks from Python without launching a second copy?"
 ---
 
@@ -123,6 +123,64 @@ def call(obj, name, *args):
 
 Every SolidWorks access in this collection's Python code goes through that
 function.
+
+**The exception, and what `call` has to do about it.** A zero-argument member
+that returns **nothing**, or an **array**, is *not* invoked by attribute
+access: it comes back as a Python `method` object that has not run. Reading it
+as a value then silently does nothing, or hands a method to a `for` loop.
+Three of these were found on SolidWorks 2026 in one afternoon:
+
+| Member | What attribute access gives | What it should give |
+|---|---|---|
+| composite feature data `ReleaseSelectionAccess` | a `method`, never run — the tree stays rolled back | nothing, and the tree rolls forward in 0.9 s |
+| `IBody2.GetEdges` | a `method` — `TypeError: 'method' object is not iterable` | the body's edges |
+| `IFace2.GetTessTriangles(True)` | a `method` | a flat array of doubles |
+
+A *value* never looks like that, so a `method` object is the one thing it is
+safe to call. The rule the Airfoil Converter now uses, from
+[`code/python/swcom.py`](../../code/python/swcom.py):
+
+```python
+def call(obj: Any, name: str, *args: Any) -> Any:
+    """Reach a member of a late-bound COM object.
+
+    Attribute access already invokes a zero-argument member, so ``Name``,
+    ``RevisionNumber`` and ``GetNextFeature`` all come back as their results.
+    Testing ``callable`` and invoking would be wrong: a member returning a
+    document is itself callable, and calling it raises "Member not found".
+
+    Not every argument-less member is invoked that way, though. One that
+    returns nothing, or an array — ``ReleaseSelectionAccess``, ``GetEdges``,
+    ``GetTessTriangles`` on SolidWorks 2026 — comes back as a bound method
+    that has not run. A value never looks like that, so a method object is
+    the one thing it is safe to call.
+    """
+    member = getattr(obj, name)
+    if args:
+        return member(*args)
+    if type(member).__name__ == "method":
+        return member()
+    return member
+```
+
+Values and dispatch objects come back exactly as before, so this is a strict
+addition: everything that worked under the old rule still does.
+
+**A fourth kind, which this does not fix.** `IMassProperty.AddBodies` reached
+through `getattr` answered a `bool` — it had already run, with no bodies — and
+then could not be called with its bodies at all: `'bool' object is not
+callable`. Nothing in the returned value says which of the two things happened.
+Where a member both takes arguments and might be exposed as a property, check
+the effect rather than the return.
+
+**Members that behaved as ordinary property gets** and needed none of this, on
+the same session: `IFeature.GetFaces`, `IFace2.GetBody`, `IEdge.GetCurve`,
+`IEdge.GetCurveParams2`, `IBody2.GetMassProperties`, `IFeature.IsRolledBack`,
+`IFeature.Name`, `IFeature.GetTypeName2`, `IFeature.GetNextFeature`,
+`IModelDoc2.EditRebuild3` and `IModelDoc2.InsertPlanarRefSurface`. The last two
+are worth noticing: both *do* something and both come back as their result.
+There is no rule here that can be read off the member's name, which is why the
+test is on what came back.
 
 **Two calls need their arguments typed by hand.**
 
@@ -301,4 +359,9 @@ that application testable without SolidWorks.
 - [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md)
 - [assemblies/03 — Interference detection](../assemblies/03-interference-detection.md) — `Get` members that are properties, `Done` a method
 - [assemblies/04 — Mates between non-parallel axes](../assemblies/04-mates-between-non-parallel-axes.md) — `CreateTransform` through `Invoke`
+- [curves/06 — Composite curves](../curves/06-composite-curve.md) — the release that never ran, and what it left behind
+- [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — `GetEdges` and the rest of the family in use
+- [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — `GetTessTriangles`, and `AddBodies` that could not be called
+- [GOTCHAS §5, §31, §55](../../GOTCHAS.md)
+- [`code/python/swcom.py`](../../code/python/swcom.py) — the Airfoil Converter's module, with the `call` above
 - [`code/python/gear_generator/swcom.py`](../../code/python/gear_generator/swcom.py) — a later version of the module, with `_put_indexed`

@@ -47,6 +47,10 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Join several curves into one selectable curve | [curves/06 — Composite curves](entries/curves/06-composite-curve.md) |
 | Rename a feature I just made | [curves/07 — Rename a feature](entries/curves/07-rename-a-feature.md) |
 | Avoid spurious errors while updating many curves | [curves/08 — Rebuild once, at the end](entries/curves/08-rebuild-once-at-the-end.md) |
+| Stop each curve reload costing 25 seconds on a big part | [curves/12 — Roll the tree back before reloading](entries/curves/12-roll-the-tree-back-before-reloading.md) |
+| Put the rollback bar back, and know it went | [curves/12 — Roll the tree back before reloading](entries/curves/12-roll-the-tree-back-before-reloading.md) |
+| Rebuild only what changed, on a part too big to force | [curves/08 — Rebuild once, at the end](entries/curves/08-rebuild-once-at-the-end.md) |
+| Read back which curves a composite joins, without leaving the part rolled back | [curves/06 — Composite curves](entries/curves/06-composite-curve.md) |
 | Track a feature that might get renamed | [curves/10 — Persistent references](entries/curves/10-persistent-references.md) |
 | Know whether I must wrap curves in sketches before lofting | [curves/09 — Curves as loft profiles](entries/curves/09-curves-as-loft-profiles.md) |
 | Group features into a folder in the tree | [curves/11 — Feature-tree folders](entries/curves/11-feature-tree-folders.md) |
@@ -117,6 +121,9 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Check that a generated file is the size it should be | [reading/09 — Bounding box as a check](entries/reading/09-bounding-box.md) |
 | Check that a feature changed the solid the way I meant | [reading/10 — Mass properties as an oracle](entries/reading/10-mass-properties-as-an-oracle.md) |
 | Poll for changes every second without making SolidWorks stutter | [reading/11 — Cheap change detection](entries/reading/11-cheap-change-detection.md) |
+| Suppress one body feature without losing everything built on it | [reading/12 — Snapshot suppression before you suppress](entries/reading/12-snapshot-suppression-before-you-suppress.md) |
+| Measure the wall between two surfaces without exporting anything | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
+| Get one body's volume, where `IMassProperty` will not take bodies | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Read a pick without crashing SolidWorks | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 
 ## Build a surface or loft, and get the orientation right
@@ -126,11 +133,14 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Turn imported curves into a surface | [surfacing/01 — The boundary surface recipe](entries/surfacing/01-boundary-surface-recipe.md) |
 | Land geometry the right way up | [surfacing/02 — Axis conventions](entries/surfacing/02-axis-conventions.md) |
 | See how a loft's accuracy scaled with the number of guides, in one measured case | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
+| Get a solid out of a loft SolidWorks refuses as a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
+| Put a flat face across the end of a surface, and knit sheets into a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
+| Find out why a solid loft is refused while its surface builds | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 04, reading/04, reading/05, reading/10, reading/11, files/04
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 04, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, surfacing/04, files/04
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
@@ -149,4 +159,6 @@ middle is new — and [connect/11](entries/connect/11-probe-an-api-member-on-a-l
 is how to find out whether that call works before you depend on it, with
 [reading/10](entries/reading/10-mass-properties-as-an-oracle.md) as the check.
 Extrude, cut, revolve, loft cut, guided loft, reference planes and circular pattern are in
-[features/](entries/features/).
+[features/](entries/features/), and what to do when SolidWorks refuses one of
+them without saying so is
+[surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md).

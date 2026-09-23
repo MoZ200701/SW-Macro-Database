@@ -15,10 +15,14 @@ guessed, and each point is load-bearing:
   versions.
 * **The table hands back an IUnknown.** ``dynamic.Dispatch`` cannot ask it for
   type information until it has been asked for its IDispatch face.
-* **A zero-argument method is a property get.** Late binding turns
+* **A zero-argument method is a property get — usually.** Late binding turns
   ``RevisionNumber()`` into a plain string attribute and ``ActiveDoc`` into a
-  document object, and *invoking* either raises "Member not found". Only
-  members that take arguments are called. That is what :func:`call` encodes.
+  document object, and *invoking* either raises "Member not found". But a
+  member that returns nothing (``ReleaseSelectionAccess``) or an array
+  (``GetEdges``, ``GetTessTriangles``) comes back as an uncalled method
+  object, and reading it as a value silently does nothing, or hands a method
+  to a ``for`` loop. Three afternoons went on those. :func:`call` now tells
+  the two apart by what came back rather than by guessing the member's kind.
 * **Two calls need their arguments typed by hand.** ``ModifyDefinition`` takes
   a component that is absent for a part, and a plain ``None`` there is a type
   mismatch; it needs a null of dispatch type. ``GetObjectByPersistReference3``
@@ -91,6 +95,9 @@ LOFT_PROFILE_MARK = 1
 LOFT_GUIDE_MARK = 2
 LOFT_TYPE_NAME = "Blend"
 LOFT_SURFACE_TYPE_NAME = "BlendRefSurface"
+# What a knit calls itself in the tree, read off one made on SolidWorks 2026 on
+# 2026-09-22. A capped loft is a body under this type, not under a loft's.
+KNIT_TYPE_NAME = "SewRefSurface"
 
 # Values read out of the SolidWorks 2026 constant library (swconst.tlb) rather
 # than remembered: swGuideCurveInfluence_e, swFeatureSuppressionAction_e,
@@ -107,6 +114,59 @@ SW_DOC_PART = 1
 OPEN_SILENT = 1
 SAVE_SILENT = 1
 SAVE_AS_COPY = 2
+
+# swMoveRollbackBarTo_e, read off the same library. The bar goes after the
+# wing's last curve feature to reload them, and to the end afterwards. Not to
+# its "previous position": on SolidWorks 2026 that call answers True and
+# moves nothing, which left a part rolled back after every push.
+ROLLBACK_TO_END = 1
+ROLLBACK_TO_PREVIOUS = 2
+ROLLBACK_BEFORE_FEATURE = 3
+ROLLBACK_AFTER_FEATURE = 4
+
+# -- capping a surface loft into a solid ------------------------------------
+#
+# Run on SolidWorks 2026 on 2026-09-22, against a copy of the real part, so
+# what follows is what happened rather than what the help promises.
+#
+# A solid loft SolidWorks refuses can be built as the surface loft it always
+# accepts, a cap over each end, and a knit of the three. The caps were the
+# whole difficulty. Neither InsertFillSurface2 nor InsertPlanarRefSurface will
+# take a composite curve as a boundary, or the curves it joins: both refuse in
+# no time at all, even on an end loop that is perfectly flat. What they take
+# is the loft body's own end edges, selected as entities. Both ends of a wing
+# are flat, so the cap is a planar surface — IModelDoc2::InsertPlanarRefSurface,
+# no arguments, a boolean back, 0.2 s. A fill over the same edges works too and
+# is slower, so it is not used.
+
+# swBodyType_e, as the help's own examples name it and as a part answered on
+# 2026-09-22: solid bodies at 0, sheet bodies at 1.
+SOLID_BODY = 0
+SHEET_BODY = 1
+
+# A cap has to span the end it is put across, and the only way to know that it
+# did is its area. Half the profile's own area is the line, which is nowhere
+# near anything real: a cap that spans the section comes out within a percent
+# of the polygon through the profile's points, and the one that sent this here
+# was 0.078 mm² against 4,046.8 — a face across a sliver's little loop rather
+# than across the wing.
+CAP_AREA_SHARE = 0.5
+
+# An end loop's edges lie in the plane of the profile the loft ran through
+# there; the edges that run root to tip do not. This is how far off that plane
+# an end point may sit and still count as on it, in millimetres. The edges
+# meet the profile exactly, so the margin is only for arithmetic.
+END_PLANE_TOL = 0.05
+
+# The knit's inputs are selected by body name, as SURFACEBODY. IBody2 has no
+# Select4, and Select2 raises through pywin32, so a body cannot select itself;
+# it is picked out by the name it carries instead.
+KNIT_SELECT_MARK = 1
+SURFACE_BODY_TYPE = "SURFACEBODY"
+# The knit tolerance and gap range, in metres: 1e-4 m is 0.1 mm, the upper
+# limit the help gives and what its example passes. Proven at that value.
+KNIT_TOLERANCE = 1e-4
+KNIT_GAP_RANGE = 1e-4
 
 # SolidWorks holds curve points in metres however the file is written, so
 # everything crossing this boundary is scaled. The file says "175.000000mm"
@@ -128,6 +188,15 @@ class NotRunning(SolidWorksError):
 
 class WrongVersion(SolidWorksError):
     """Every reachable session is older than this app supports."""
+
+
+class NotASolid(SolidWorksError):
+    """A knit that ran, made its feature, and left a sheet body behind.
+
+    Not a knit SolidWorks refused: the surfaces were sewn, they simply did not
+    close anything. Worth a name of its own because what to do about it is
+    different — an end that did not close may well close with fewer guides.
+    """
 
 
 def is_available() -> bool:
@@ -236,9 +305,19 @@ def call(obj: Any, name: str, *args: Any) -> Any:
     ``RevisionNumber`` and ``GetNextFeature`` all come back as their results.
     Testing ``callable`` and invoking would be wrong: a member returning a
     document is itself callable, and calling it raises "Member not found".
+
+    Not every argument-less member is invoked that way, though. One that
+    returns nothing, or an array — ``ReleaseSelectionAccess``, ``GetEdges``,
+    ``GetTessTriangles`` on SolidWorks 2026 — comes back as a bound method
+    that has not run. A value never looks like that, so a method object is
+    the one thing it is safe to call.
     """
     member = getattr(obj, name)
-    return member(*args) if args else member
+    if args:
+        return member(*args)
+    if type(member).__name__ == "method":
+        return member()
+    return member
 
 
 def _dispatch(raw: Any) -> Any:
@@ -404,6 +483,63 @@ def transform_point(data: Sequence[float], point: Vec3) -> Vec3:
     )
 
 
+def plane_through(points: Sequence[Vec3]) -> Tuple[Vec3, Vec3]:
+    """A point on the plane a loop lies in, and its unit normal.
+
+    Newell's normal, which is the area-weighted one: it uses every point
+    rather than three of them, so a nose where the points crowd together
+    cannot tilt it.
+    """
+    count = len(points)
+    if count < 3:
+        raise SolidWorksError("A plane needs at least three points.")
+    middle = tuple(sum(p[c] for p in points) / count for c in range(3))
+    nx = ny = nz = 0.0
+    for a, b in zip(points, list(points[1:]) + [points[0]]):
+        nx += (a[1] - b[1]) * (a[2] + b[2])
+        ny += (a[2] - b[2]) * (a[0] + b[0])
+        nz += (a[0] - b[0]) * (a[1] + b[1])
+    size = (nx * nx + ny * ny + nz * nz) ** 0.5
+    if size <= 1e-12:
+        raise SolidWorksError("These points do not lie in a plane of their own.")
+    return middle, (nx / size, ny / size, nz / size)  # type: ignore[return-value]
+
+
+def _off_plane(point: Vec3, plane: Tuple[Vec3, Vec3]) -> float:
+    (mx, my, mz), (nx, ny, nz) = plane
+    return abs((point[0] - mx) * nx + (point[1] - my) * ny + (point[2] - mz) * nz)
+
+
+def area_in_plane(points: Sequence[Vec3], plane: Tuple[Vec3, Vec3]) -> float:
+    """How much area a loop of points encloses in its own plane.
+
+    Two axes across the plane, the points laid on them, and the shoelace sum:
+    the loop closes back to its first point whether or not it repeats it.
+    """
+    middle, normal = plane
+    # Any direction not along the normal will do for the first axis.
+    aside = (0.0, 0.0, 1.0) if abs(normal[2]) < 0.9 else (1.0, 0.0, 0.0)
+    ux = normal[1] * aside[2] - normal[2] * aside[1]
+    uy = normal[2] * aside[0] - normal[0] * aside[2]
+    uz = normal[0] * aside[1] - normal[1] * aside[0]
+    size = (ux * ux + uy * uy + uz * uz) ** 0.5
+    if size <= 1e-12:
+        return 0.0
+    u = (ux / size, uy / size, uz / size)
+    v = (normal[1] * u[2] - normal[2] * u[1],
+         normal[2] * u[0] - normal[0] * u[2],
+         normal[0] * u[1] - normal[1] * u[0])
+    flat = [
+        (sum((p[c] - middle[c]) * u[c] for c in range(3)),
+         sum((p[c] - middle[c]) * v[c] for c in range(3)))
+        for p in points
+    ]
+    twice = 0.0
+    for a, b in zip(flat, flat[1:] + flat[:1]):
+        twice += a[0] * b[1] - b[0] * a[1]
+    return abs(twice) / 2.0
+
+
 def _try(obj: Any, name: str, *args: Any) -> Any:
     """A member the object may simply not have.
 
@@ -512,6 +648,19 @@ def _sketch_coords(obj: Any, to_model: Optional[Sequence[float]]) -> Optional[Ve
     return _in_mm(transform_point(to_model, (float(x), float(y), float(z))))
 
 
+@dataclass
+class Suppressed:
+    """What one feature's suppression was, and the feature itself.
+
+    The feature rather than its name: a name is not always enough to find it
+    again, and this is what a restore has to work through.
+    """
+
+    name: str
+    feature: Any = field(repr=False)
+    suppressed: bool = False
+
+
 class Session:
     """One connected SolidWorks. Only ever touched from the worker thread."""
 
@@ -592,24 +741,35 @@ class Session:
 
     def _walk(self, first: Any, depth: int = 0) -> List[FeatureInfo]:
         out: List[FeatureInfo] = []
-        feature = first
-        guard = 0
-        while feature is not None and guard < 5000:
-            guard += 1
+        for feature in self._walk_objects(first, depth):
             try:
                 type_name = str(call(feature, "GetTypeName2"))
             except Exception:  # noqa: BLE001 - a feature that will not describe itself
                 type_name = "?"
             out.append(FeatureInfo(name=str(call(feature, "Name")), type_name=type_name))
+        return out
 
+    def _walk_objects(self, first: Any, depth: int = 0) -> List[Any]:
+        """Every feature from ``first`` on, subfeatures included, in tree order.
+
+        The order is the point. ``FeatureManager::GetFeatures`` returns more —
+        an annotation folder the chain does not reach — but its own help says
+        the order means nothing, and a parent has to be put back before what
+        was built on it.
+        """
+        out: List[Any] = []
+        feature = first
+        guard = 0
+        while feature is not None and guard < 5000:
+            guard += 1
+            out.append(feature)
             if depth < 4:  # curves can sit inside a folder
                 try:
                     child = call(feature, "GetFirstSubFeature")
                 except Exception:  # noqa: BLE001
                     child = None
                 if child is not None:
-                    out.extend(self._walk(child, depth + 1))
-
+                    out.extend(self._walk_objects(child, depth + 1))
             feature = call(feature, "GetNextFeature")
         return out
 
@@ -617,6 +777,15 @@ class Session:
     # -- the write path ----------------------------------------------------
 
     def _curve_feature(self, name: str) -> Any:
+        """The feature of that name, by walking the tree and comparing names.
+
+        Not everything can be found this way. A feature SolidWorks has had to
+        number — ``Sketch9<3>``, an instance of a pattern — carries a suffix
+        that is not part of the name it answers with, and an annotation folder
+        is not on the chain at all. Nothing the app makes is either, but
+        anything walking the whole tree wants the objects instead: see
+        :meth:`_walk_objects`.
+        """
         doc = self._active()
         feature = call(doc, "FirstFeature")
         guard = 0
@@ -779,11 +948,14 @@ class Session:
         except Exception:  # noqa: BLE001
             return None
 
-    def _select_all(self, picks: Sequence[Tuple[str, int]], what: str) -> None:
-        """Select curves by name, each at its mark, rebuilding and retrying once.
+    def _select_all(
+        self, picks: Sequence[Tuple[str, int]], what: str, kind: str = "REFERENCECURVES"
+    ) -> None:
+        """Select features by name, each at its mark, rebuilding and retrying once.
 
         Straight after a push SolidWorks sometimes cannot find a curve it has
-        just made; a rebuild settles it.
+        just made; a rebuild settles it. ``kind`` is what the names are being
+        looked up as: curves by default, or BODYFEATURE for a surface.
         """
         doc = self._active()
         extension = call(doc, "Extension")
@@ -792,7 +964,7 @@ class Session:
             missing = ""
             for position, (curve, mark) in enumerate(picks):
                 if not call(
-                    extension, "SelectByID2", curve, "REFERENCECURVES",
+                    extension, "SelectByID2", curve, kind,
                     0.0, 0.0, 0.0, position > 0, mark, _null_dispatch(), 0,
                 ):
                     missing = curve
@@ -801,7 +973,10 @@ class Session:
                 return
             call(doc, "ClearSelection2", True)
             if attempt == 0:
-                call(doc, "ForceRebuild3", False)
+                # What changed, not everything: on a big part forcing every
+                # feature is 25 seconds against under one, and a curve that has
+                # just been made only needs its own regeneration to be findable.
+                self.rebuild()
         raise SolidWorksError(f"{missing} could not be selected {what}.")
 
     def insert_composite_curve(self, sources: Sequence[str], name: str) -> str:
@@ -835,8 +1010,20 @@ class Session:
         return self.rename_feature(created[0], name)
 
     def composite_sources(self, name: str) -> List[str]:
-        """The curves a composite joins, by name, in the order it holds them."""
+        """The curves a composite joins, by name, in the order it holds them.
+
+        Reading a feature's selections rolls the model back to just before it:
+        that is what ``AccessSelections`` does, and ``ReleaseSelectionAccess``
+        is what puts the bar back. The release takes no arguments and returns
+        nothing, so reaching it as an attribute — the way :func:`call` reaches
+        every other argument-less member — never ran it, and every push since
+        the joins were checked left the part rolled back to just before its
+        first composite. It is called outright here, and since that has been
+        wrong once, a tree that was forward before the read is checked
+        afterwards and rolled forward if it is not.
+        """
         doc = self._active()
+        was_forward = not self._rolled_back()
         data = call(self._curve_feature(name), "GetDefinition")
         if data is None or not call(data, "AccessSelections", doc, _null_dispatch()):
             raise SolidWorksError(f"The curves {name} joins could not be read.")
@@ -845,7 +1032,9 @@ class Session:
             entities = call(data, "GetEntitiesToJoin", kinds) or ()
             return [str(call(e, "Name")) for e in entities]
         finally:
-            call(data, "ReleaseSelectionAccess")
+            data.ReleaseSelectionAccess()
+            if was_forward and self._rolled_back():
+                self.roll_forward()
 
     def set_rebuild_suppressed(self, suppressed: bool) -> None:
         """Hold the rebuild off while several curves are reloaded.
@@ -857,9 +1046,61 @@ class Session:
         """
         self._app.CommandInProgress = bool(suppressed)
 
-    def rebuild(self) -> bool:
-        """Rebuild the active document. Called once, after the last curve."""
-        return bool(call(self._active(), "ForceRebuild3", False))
+    def roll_back_to(self, name: str) -> None:
+        """Put the rollback bar just after the feature ``name``.
+
+        Committing new points to a curve costs what the tree below it costs.
+        On the real part each :meth:`reload_curve` took 25 seconds with the
+        tree rolled forward — 39 curves, 16.5 minutes — and half a second with
+        the bar sitting just after the curves, because everything built on
+        them is rolled back and has nothing to say yet. Moving the bar itself
+        is a fifth of a second.
+        """
+        manager = call(self._active(), "FeatureManager")
+        if not call(manager, "EditRollback", ROLLBACK_AFTER_FEATURE, name):
+            raise SolidWorksError(f"The tree could not be rolled back to {name}.")
+
+    def roll_forward(self) -> None:
+        """Put the bar at the end of the tree, and make sure it went there.
+
+        A tree left rolled back looks like a part with half its features
+        missing, so this belongs in a ``finally``. "Previous position" would
+        be kinder to someone who had parked the bar somewhere of their own,
+        but on SolidWorks 2026 that call answers True and moves nothing, and a
+        push that believed it handed back lofts with no faces and the splits
+        and inserts under them gone. So the bar goes to the end, where it
+        stood for anyone who had not moved it — and since the answer has been
+        shown not to mean what it says, the last feature in the tree is asked
+        whether it is still rolled back.
+        """
+        doc = self._active()
+        call(call(doc, "FeatureManager"), "EditRollback", ROLLBACK_TO_END, "")
+        if self._rolled_back():
+            raise SolidWorksError("The tree could not be rolled forward again.")
+
+    def _rolled_back(self) -> bool:
+        """Is any of the tree rolled back? The last feature is the one to ask."""
+        last = call(self._active(), "FeatureByPositionReverse", 0)
+        return bool(last is not None and call(last, "IsRolledBack"))
+
+    def rebuild(self, force: bool = False) -> bool:
+        """Rebuild the active document. Called once, after the last curve.
+
+        Only what needs it. ``EditRebuild3`` regenerates the features whose
+        input moved and whatever is built on them; ``ForceRebuild3``
+        regenerates every feature in the part whether or not anything under it
+        changed. On a part of 397 features — six lofts through thirty guides
+        each, with splits and inserts on top — forcing everything is 25
+        seconds and this is 0.8, for geometry that came out identical. The
+        features a reloaded curve feeds are exactly the ones that have to be
+        redone, so that is what is asked for. ``force`` is the old behaviour,
+        kept for the day something is found that the tree does not know has
+        moved; nothing asks for it today.
+        """
+        doc = self._active()
+        if force:
+            return bool(call(doc, "ForceRebuild3", False))
+        return bool(call(doc, "EditRebuild3"))
 
     # -- documents ------------------------------------------------------------
 
@@ -955,6 +1196,181 @@ class Session:
             )
         return self.rename_feature(created[0], name)
 
+    def _feature_body(self, name: str) -> Any:
+        """The body a feature made, reached through one of its faces.
+
+        A feature does not offer its body; a face of it does.
+        """
+        faces = list(call(self._curve_feature(name), "GetFaces") or [])
+        if not faces:
+            raise SolidWorksError(f"{name} has no faces, so there is no body to work from.")
+        body = call(faces[0], "GetBody")
+        if body is None:
+            raise SolidWorksError(f"The body {name} made could not be read.")
+        return body
+
+    def body_name(self, feature: str) -> str:
+        """What the body a feature made calls itself, which is how a knit picks it."""
+        return str(call(self._feature_body(feature), "Name"))
+
+    def profile_pieces(self, name: str) -> List[List[Vec3]]:
+        """A profile curve's points, a list per piece: the curves a composite joins.
+
+        How many pieces there are is worth as much as the points. A loft runs
+        one edge along each of them, so an end of the loft body that has more
+        edges than the profile has pieces has something on it that the profile
+        does not — a sliver face's own little loop, on the wing this was found
+        on.
+        """
+        kind = str(call(self._curve_feature(name), "GetTypeName2"))
+        if kind == COMPOSITE_TYPE_NAME:
+            return [self.curve_points(source) for source in self.composite_sources(name)]
+        return [self.curve_points(name)]
+
+    def profile_points(self, name: str) -> List[Vec3]:
+        """Every point of a profile curve, its pieces in order if it is a composite."""
+        return [point for piece in self.profile_pieces(name) for point in piece]
+
+    def cap_end(self, loft: str, profile: str, name: str) -> str:
+        """Close one end of a surface loft with a planar surface, named ``name``.
+
+        Which edges are that end is settled geometrically: the loft ran through
+        ``profile`` there, and the edges of that end lie in the plane its points
+        lie in, while every edge that runs to the other end has one point on
+        each. Reading the profile rather than the part's own axes is what keeps
+        this true of a wing standing anywhere, at any dihedral.
+
+        Proven on SolidWorks 2026 on 2026-09-22. The edges select themselves —
+        ``Select4`` on each, appending after the first — because they have no
+        name for ``SelectByID2`` to use; the help's "select the boundary with
+        SelectByID2 at mark 1" cannot be followed for an edge.
+        """
+        doc = self._active()
+        pieces = self.profile_pieces(profile)
+        points = [point for piece in pieces for point in piece]
+        plane = plane_through(points)
+        wanted = area_in_plane(points, plane)
+        edges = []
+        for edge in list(call(self._feature_body(loft), "GetEdges") or []):
+            # The curve has to be generated before its parameters can be read:
+            # SolidWorks does not keep the underlying curve on the edge.
+            call(edge, "GetCurve")
+            params = call(edge, "GetCurveParams2")
+            ends = (
+                tuple(float(params[i]) * MM_PER_METRE for i in range(3)),
+                tuple(float(params[i]) * MM_PER_METRE for i in range(3, 6)),
+            )
+            if all(_off_plane(end, plane) <= END_PLANE_TOL for end in ends):
+                edges.append(edge)
+        if not edges:
+            raise SolidWorksError(
+                f"No edge of {loft} lies in the plane of {profile}, so that end "
+                "cannot be capped."
+            )
+        if len(edges) != len(pieces):
+            # One edge along each piece of the profile is what an end of this
+            # loft is. Any more and the loft has grown something there.
+            raise SolidWorksError(
+                f"The end of {loft} at {profile} has {len(edges)} edges where the "
+                f"profile has {len(pieces)} pieces, so the loft has something on "
+                "that end the section does not."
+            )
+
+        call(doc, "ClearSelection2", True)
+        data = call(call(doc, "SelectionManager"), "CreateSelectData")
+        for position, edge in enumerate(edges):
+            if not call(edge, "Select4", position > 0, data):
+                call(doc, "ClearSelection2", True)
+                raise SolidWorksError(f"An edge of {loft} at {profile} would not select.")
+
+        before = set(self.feature_names())
+        made = call(doc, "InsertPlanarRefSurface")
+        call(doc, "ClearSelection2", True)
+
+        created = [n for n in self.feature_names() if n not in before]
+        if not made or not created:
+            raise SolidWorksError(
+                f"SolidWorks would not put a planar surface across the {len(edges)} "
+                f"edges of {loft} at {profile}."
+            )
+        if len(created) != 1:
+            raise SolidWorksError(
+                f"Capping {loft} at {profile} added {len(created)} features, "
+                "so which one it is cannot be told."
+            )
+
+        # It made a face; the question is whether it made it across the end.
+        # SolidWorks will happily put one over a sliver's own little loop and
+        # answer True, and a knit of that sews a sheet and answers True too.
+        made_area = self.face_area(created[0])
+        if made_area < CAP_AREA_SHARE * wanted:
+            self.delete_feature(created[0])
+            raise SolidWorksError(
+                f"The cap SolidWorks put across the end of {loft} at {profile} is "
+                f"{made_area:.3f} mm² against the section's {wanted:.1f} mm², so it "
+                "spans something else."
+            )
+        return self.rename_feature(created[0], name)
+
+    def face_area(self, feature: str) -> float:
+        """How much face a feature made, in square millimetres."""
+        faces = list(call(self._curve_feature(feature), "GetFaces") or [])
+        return sum(float(call(face, "GetArea")) for face in faces) * MM_PER_METRE ** 2
+
+    def solid_bodies(self) -> int:
+        """How many solid bodies the part holds. Sheets are not counted."""
+        return len(list(call(self._active(), "GetBodies2", SOLID_BODY, False) or ()))
+
+    def knit_to_solid(self, surfaces: Sequence[str], name: str, solid: bool = True) -> str:
+        """Knit the bodies ``surfaces`` made into one, a solid if they close one.
+
+        ``surfaces`` are feature names, as everything else here is; what is
+        selected is the body each of them made, by the name it carries. Proven
+        on SolidWorks 2026 on 2026-09-22, with the arguments below: gap filters
+        on, merging off, tolerance 0.1 mm. The three sheets meet along the very
+        curves they were built from, so there is nothing for a filter to bridge.
+        """
+        if len(surfaces) < 2:
+            raise SolidWorksError("A knit needs at least two surfaces to join.")
+        doc = self._active()
+        was_solid = self.solid_bodies() if solid else 0
+        bodies = [self.body_name(surface) for surface in surfaces]
+        self._select_all(
+            [(body, KNIT_SELECT_MARK) for body in bodies], "to knit", SURFACE_BODY_TYPE,
+        )
+
+        before = set(self.feature_names())
+        made = call(
+            call(doc, "FeatureManager"), "InsertSewRefSurface",
+            True,            # UseGapFilters
+            solid,           # TryToFormSolid
+            False,           # MergeEntities: keep the faces as they are
+            KNIT_TOLERANCE,
+            KNIT_GAP_RANGE,
+        )
+        call(doc, "ClearSelection2", True)
+
+        created = [n for n in self.feature_names() if n not in before]
+        if made is None or made is False or not created:
+            what = "a solid" if solid else "one surface"
+            raise SolidWorksError(
+                f"SolidWorks would not knit {' and '.join(surfaces)} into {what}."
+            )
+        if len(created) != 1:
+            raise SolidWorksError(
+                f"Knitting added {len(created)} features, so which one it is cannot be told."
+            )
+        if solid and self.solid_bodies() != was_solid + 1:
+            # It sewed them, and answered as if it had done what was asked. The
+            # part has one sheet where it had three, and no more solid than it
+            # started with.
+            self.delete_feature(created[0])
+            raise NotASolid(
+                f"Knitting {' and '.join(surfaces)} sewed them into a sheet rather "
+                "than a solid: the surfaces do not close a volume between them."
+            )
+        return self.rename_feature(created[0], name)
+
     def delete_feature(self, name: str) -> None:
         """Delete one feature, leaving what it was built from."""
         doc = self._active()
@@ -965,6 +1381,52 @@ class Session:
         call(doc, "ClearSelection2", True)
         if not deleted:
             raise SolidWorksError(f"SolidWorks would not delete {name}.")
+
+    def suppression_state(self) -> List["Suppressed"]:
+        """Every feature in the tree, in tree order, and whether it is suppressed.
+
+        Suppressing a body feature suppresses everything built on it — on one
+        real part, 74 features: the splits and inserts under it, their folders,
+        the planes and sketches under those — and unsuppressing the body does
+        not bring any of them back. So what is put back afterwards has to be
+        every feature that moved, and it has to be held as features rather than
+        as names: some of what a cascade reaches is named ``Sketch9<3>``, which
+        nothing can look up again.
+
+        The walk costs about ten seconds on a part of 400 features.
+        """
+        return [
+            Suppressed(name=str(call(feature, "Name")), feature=feature,
+                       suppressed=bool(call(feature, "IsSuppressed")))
+            for feature in self._walk_objects(call(self._active(), "FirstFeature"))
+        ]
+
+    def restore_suppression(self, state: Sequence["Suppressed"]) -> List[str]:
+        """Put back every feature whose suppression has changed since ``state``.
+
+        In the order the tree holds them, so that a parent is unsuppressed
+        before whatever was built on it. Returns the names of any that would
+        not go back, because a part left with features suppressed is worth
+        saying out loud.
+        """
+        left: List[str] = []
+        for item in state:
+            try:
+                now = bool(call(item.feature, "IsSuppressed"))
+            except Exception:  # noqa: BLE001 - one feature that will not answer
+                left.append(item.name)
+                continue
+            if now == item.suppressed:
+                continue
+            action = SUPPRESS if item.suppressed else UNSUPPRESS
+            try:
+                put_back = call(item.feature, "SetSuppression2", action,
+                                THIS_CONFIGURATION, None)
+            except Exception:  # noqa: BLE001 - and one that will not move
+                put_back = False
+            if not put_back:
+                left.append(item.name)
+        return left
 
     def set_suppressed(self, name: str, suppressed: bool) -> None:
         action = SUPPRESS if suppressed else UNSUPPRESS
@@ -1084,10 +1546,6 @@ class Worker:
         outbox: queue.Queue = queue.Queue(maxsize=1)
         self._jobs.put((work, outbox))
         return Call(outbox)
-
-    def forget_session(self) -> None:
-        """Drop the cached connection so the next call attaches afresh."""
-        self.submit(lambda _session: None)
 
     def shutdown(self, timeout: float = 5.0) -> None:
         self._jobs.put(None)

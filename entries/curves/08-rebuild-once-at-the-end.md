@@ -4,8 +4,8 @@ title: Suppress rebuilds, change everything, rebuild once
 status: verified
 verified_on: SolidWorks 2026
 language: [vbscript, python]
-api: [ISldWorks.CommandInProgress, IModelDoc2.ForceRebuild3]
-keywords: [ForceRebuild3, CommandInProgress, suppress rebuild, batch update, transient error, finally]
+api: [ISldWorks.CommandInProgress, IModelDoc2.ForceRebuild3, IModelDoc2.EditRebuild3]
+keywords: [ForceRebuild3, CommandInProgress, suppress rebuild, batch update, transient error, finally, EditRebuild3, ForceRebuild3 slow, rebuild only what changed, EditRebuild3 returns False, feature in error, 25 seconds rebuild]
 answers: "Why does my part show errors halfway through my batch update, and how do I make it fast?"
 ---
 
@@ -64,6 +64,70 @@ components; `True` rebuilds only the top level. For a part it makes little
 difference. Verified returning `True` on a real part after all twelve curves
 had been refreshed.
 
+## On a big part, rebuild what changed, not everything
+
+`IModelDoc2.ForceRebuild3` regenerates **every** feature whether or not
+anything under it moved. `IModelDoc2.EditRebuild3` regenerates the features
+whose input changed and whatever is built on those. On a part of 397 features —
+six lofts through about 33 guide curves each, with splits, inserts and mirrors
+on top — after reloading 39 curves:
+
+| Call | Time | Result |
+|---|---|---|
+| `ForceRebuild3(False)` | 25 s | loft area 433,972.616122 mm² |
+| `EditRebuild3` | **0.8 s** | loft area 433,972.616122 mm² |
+
+Identical geometry, to twelve digits, for a thirtieth of the time. The features
+a reloaded curve feeds are exactly the ones that have to be redone, so that is
+what to ask for. Keep `ForceRebuild3` for the day something turns up that the
+tree does not know has moved.
+
+**`EditRebuild3` returns `False` whenever any feature in the part is in
+error** — including features that were already in error before you touched
+anything. The part measured here carried 13 such features from the start and
+`EditRebuild3` answered `False` every single time, while doing exactly what it
+was asked. So its return value is not "did not run", and code that treats it
+that way will refuse to go on for no reason. Judge a rebuild by the geometry,
+not by its answer ([reading/10](../reading/10-mass-properties-as-an-oracle.md)).
+
+One more thing a rebuild is needed for: after a `reload_curve`, a **composite**
+curve built on that curve could not be selected by `SelectByID2` until an
+`EditRebuild3` had run. That is the rebuild-and-retry in
+[curves/06](06-composite-curve.md), and `EditRebuild3` is enough for it.
+
+```python
+def rebuild(self, force: bool = False) -> bool:
+    """Rebuild the active document. Called once, after the last curve.
+
+    Only what needs it. ``EditRebuild3`` regenerates the features whose
+    input moved and whatever is built on them; ``ForceRebuild3``
+    regenerates every feature in the part whether or not anything under it
+    changed. On a part of 397 features — six lofts through thirty guides
+    each, with splits and inserts on top — forcing everything is 25
+    seconds and this is 0.8, for geometry that came out identical.
+    """
+    doc = self._active()
+    if force:
+        return bool(call(doc, "ForceRebuild3", False))
+    return bool(call(doc, "EditRebuild3"))
+```
+
+From the Airfoil Converter's `swcom.py`, `Session.rebuild`
+([`code/python/swcom.py`](../../code/python/swcom.py)). Verified on SolidWorks
+2026 SP0.0 (revision 34.0.0), 2026-09-22, experiments `e5b` and `e8`, and
+commit `f63df5d` ("Roll the tree back to the curves before reloading them, and
+rebuild only what changed").
+
+## `CommandInProgress` does not make a reload cheap
+
+It suppresses the **rebuild**. It does not stop `ModifyDefinition` being
+charged for the tree below the curve: with it set `True`, a single curve reload
+on the part above still cost 25 seconds. What makes that cheap is rolling the
+tree back below the curves first —
+[curves/12](12-roll-the-tree-back-before-reloading.md) — after which the same
+reload is half a second. Set the flag anyway, for the reasons above; just do
+not expect it to pay for this.
+
 ## In VBScript
 
 ```vb
@@ -113,7 +177,8 @@ also made under it and rebuilt once. See
 ## See also
 
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md)
-- [GOTCHAS §9](../../GOTCHAS.md)
+- [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — what `CommandInProgress` does not pay for
+- [GOTCHAS §9, §58](../../GOTCHAS.md)
 - [features/01 — Boss extrude](../features/01-boss-extrude.md)
 - [equations/01 — Global variables from code](../equations/01-global-variables-from-code.md) — changing many globals, then one rebuild
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — one rebuild after all the lofts

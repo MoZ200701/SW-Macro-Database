@@ -39,6 +39,22 @@ measured, and a stutter was traced to the poll. The evidence is in
 in that code but whose result nobody recorded stays unverified; its tests run
 against a fake SolidWorks only.
 
+Rows marked "Airfoil Converter 2026-09-22" come from a day of experiments on
+SolidWorks 2026 SP0.0 (revision 34.0.0), Windows, Python 3.13 with pywin32,
+driving a save-as copy of a **real 397-feature part** (six lofts through about
+33 guide curves each, plus splits, inserts and mirrors). Fifty-two numbered
+experiments, each with its log; the findings are written up in
+[curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md),
+[surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md),
+[reading/12](entries/reading/12-snapshot-suppression-before-you-suppress.md),
+[reading/13](entries/reading/13-measure-a-wall-between-two-bodies.md) and the
+updates to [curves/06](entries/curves/06-composite-curve.md),
+[curves/08](entries/curves/08-rebuild-once-at-the-end.md) and
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md). They
+were carried into the Airfoil Converter's v1.6 and v1.7 releases (commits
+f63df5d, 0db0d66, 8566952, a2c1914, 1bdec01, 7caf687, 8555d5f). A member that
+was tried and refused is recorded as refused rather than left out.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -105,6 +121,11 @@ against a fake SolidWorks only.
 | `GetFeatureCount` | How many features; half of a cheap change key | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `GetUpdateStamp` | A number that moves when the model changes and stood still while it was only orbited; with `GetFeatureCount`, under a millisecond | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | Surface loft through the curves at mark 1 along those at mark 2; returns nothing useful, so judge by the tree. A fallback where a solid was refused; that such a surface was made was observed, the arguments' meanings were not examined | Partly verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `EditRebuild3` | Rebuild what changed. **0.8 s against `ForceRebuild3(False)`'s 25 s** on a 397-feature part, geometry identical to twelve digits. **Returns `False` whenever any feature in the part is in error**, including ones that were already in error, so its answer is not "did not run" (GOTCHAS §58) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `FeatureByPositionReverse(0)` | The last feature in the tree. Ask it `IsRolledBack` rather than believe `EditRollback` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertPlanarRefSurface` | A planar surface across the **selected edges**. **No arguments**; reads the selection, returns a bool, 0.2 s. Refuses a reference or composite curve as a boundary, in 0.0 s. Feature type `PlanarSurface`. Can cap a sliver's loop instead of the end and still answer `True` (GOTCHAS §60) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | The surface loft again: made the loft at every offset where the solid was refused, 10–15 s, and is the first step of a capped solid ([surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md)). The arguments' meanings were still not examined | Partly verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetBodies2(type, visibleOnly)` | Also answers on the document, not only `IPartDoc`: `GetBodies2(0, False)` solid bodies, `GetBodies2(1, False)` sheets. Counting these either side of a knit is what tells a solid from a sheet | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertAxis2(True)` | Reference axis from two selected planes; returns `True`, not the axis. Also from one sketch line selected at mark 0 by `LineN@Sketch`; the axis followed the line's linked angle | Verified, SW 2026 (34.0.0); from a line, dev runs 2026-09-15 |
 
 ## IModelDocExtension
@@ -116,6 +137,7 @@ against a fake SolidWorks only.
 | `SelectByID2("LineN@Sketch", "EXTSKETCHSEGMENT", 0, 0, 0, append, mark, null, 0)` | A line of a closed sketch by name; the name from `ISketchSegment.GetName`. At mark 16 as a revolve's axis, at mark 0 for a plane or an axis | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `SelectByID2("", "EXTSKETCHPOINT", x, y, z, append, mark, null, 0)` | A closed sketch's point by its model location, metres | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `SelectByID2("Point1@<origin>@<component>@<assembly>", "EXTSKETCHPOINT", 0, 0, 0, append, 1, null, 0)` | A component's origin, for a mate; selected type 25 | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `SelectByID2(bodyName, "SURFACEBODY", 0, 0, 0, append, 1, null, 0)` | A body by its `IBody2.Name`, at mark 1, which is how a knit's inputs are picked. **The only way that worked**: `IBody2` has no `Select4` and its `Select2` raises through pywin32 | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `AddDimension2(x, y, z)` | Add a dimension at a placement point, in metres. The `IModelDoc2` member of the same name is the one that has run | Unverified |
 | `GetPersistReference3(obj)` | A byte handle to a feature that survives renaming | Verified, SW 2026 |
 | `DeleteSelection2(options)` | Delete what is selected. On a folder it removes **only the folder**, leaving its contents in place | Verified, SW 2026 |
@@ -146,6 +168,7 @@ against a fake SolidWorks only.
 
 | Member | Purpose | Status |
 |---|---|---|
+| `GetBodies2(0, False)` / `GetBodies2(1, False)` | Solid bodies, and sheet bodies. `swBodyType_e` **0 solid, 1 sheet**. The count either side of a call is what says whether it made a body | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetPartBox(useSystemUnits)` | Axis-aligned bounding box, `x1,y1,z1,x2,y2,z2`. **`true` is metres, `false` converts to the document's units** | Verified, SW 2026 SP1.1 |
 
 ## IEquationMgr (from `IModelDoc2.GetEquationMgr`)
@@ -196,6 +219,11 @@ against a fake SolidWorks only.
 | `InsertProtrusionBlend2` (18 arguments) | Solid loft through the curves at mark 1, in order, along the guides at mark 2: `False, keepTangency, False, 1.0, 0, 0, 1.0, 1.0, False, False, False, 0.0, 0.0, 0, merge, False, True, guideInfluence`. With tangency on and influence `0` (To next guide) it **reproduced a hand-made loft exactly**. Some solids were refused where the same surface loft was made | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `GetFeatures(False)` | Every feature, sub-features included, in one call; about half the time of a `FirstFeature`/`GetNextFeature` walk. Order and folder end tags not checked | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertMirrorFeature2(True, False, True, False, 0)` | Mirror the body at mark 256 about the plane at mark 2, merged into one `MirrorSolid` body. **With the body at mark 1 it returned `None`** (GOTCHAS §47) | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `EditRollback(action, featureName)` | Move the rollback bar. `swMoveRollbackBarTo_e` **1 End, 2 PreviousPosition, 3 BeforeFeature, 4 AfterFeature**, read off this machine's `swconst.tlb`. `4` with a name 0.1–0.3 s, `1` with `""` 0.8–25 s. **`2` answers `True` and moves nothing** (GOTCHAS §57); `3` not tried | Verified for 1 and 4, verified not to work for 2, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetRollbackBarPosition` | Where the bar is. **Not reachable through pywin32 late binding**: attribute access raised `AttributeError: <unknown>.GetRollbackBarPosition` | Verified not to work from Python, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertSewRefSurface(True, tryToFormSolid, False, 1e-4, 1e-4)` | Knit the selected surface bodies; tolerances in **metres** (1e-4 m = 0.1 mm). 0.2–8.4 s. Feature type `SewRefSurface`. **With `tryToFormSolid` `True` it can sew a sheet and still make a feature** — count the solid bodies (GOTCHAS §61). Deleting it leaves the sheets it knitted in the tree | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertFillSurface2(3, 0, boundaries, contacts, null, null)` | A filled surface over edges. Capped the same ends as the planar surface. **Needs typed arrays**: `VARIANT(VT_ARRAY\|VT_DISPATCH, edges)` and `VARIANT(VT_ARRAY\|VT_I4, [0]*n)`. Five other argument forms — a `SelectData`, Python tuples, a typed null, "read the selection", and the obsolete `InsertFillSurface` — returned `None` in 3.9–4.5 s each | Verified in that one form, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertProtrusionBlend2` (18 arguments) | Also: **a refused solid returns `Nothing` with no feature, no error and no dialog**, after 7–9.5 s. On one wing it refused at 1.30–1.40 mm of inward offset and built at 1.25 and 1.45–1.60, from the same code; one guide curve was responsible ([surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `FeatureCut3` | Listed by the probe, never called | Unverified |
 | `FeatureCircularPattern4` | Listed by the probe, never called | Unverified |
 
@@ -219,6 +247,11 @@ against a fake SolidWorks only.
 | `Select2(append, mark)` | Select this feature. Works where `SelectByID2` with `"BODYFEATURE"` returned `False`. Judge by the selection count | Verified, SW 2026 |
 | `ListExternalFileReferences2` | External references of one feature | Unverified |
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration, to export one loft at a time. In the code whose STEP files were measured, but whether it accepted the bare `None` and isolated the body was not recorded | Unverified, Airfoil Converter 2026-09-16 |
+| `IsRolledBack` | Whether this feature is below the rollback bar. A genuine `bool` through late binding, and the thing to trust where `EditRollback`'s return cannot be | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `IsSuppressed` | Whether it is suppressed. A property get, answers a `bool` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration. The bare `None` **is** accepted here. **It cascades**: on one part it suppressed 74 features built on the one asked for, and unsuppressing that one restored none of them (GOTCHAS §62) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetFaces` | The faces a feature made. A property get. The route to a feature's **body**, which a feature does not offer: take a face and ask it | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetErrorCode2(ByRef bool)` | A feature's error code, `0` for clean, with a by-ref warning flag passed as `VARIANT(VT_BYREF \| VT_BOOL, False)`. Read `1` on each of a part's 13 pre-existing failures | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFirstDisplayDimension` / `GetNextDisplayDimension(prev)` | Walk a feature's dimensions; includes its sketch's | Verified, SW 2026 (34.0.0) |
 | `GetFirstSubFeature` / `GetNextSubFeature` | Children, e.g. the mates under `MateGroup`, or the sketch a feature was made from. **Step children with `GetNextSubFeature`**: `GetNextFeature` from a child walked on through the main tree and repeated names | Verified, SW 2026 (34.0.0) |
 
@@ -235,9 +268,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 
 | Member | Purpose | Status |
 |---|---|---|
-| `AccessSelections(doc, null)` | Open the definition's selections for reading | Unverified: on a path the Airfoil Converter takes, result not recorded |
-| `GetEntitiesToJoin(ByRef types)` | The curves the composite joins, as objects with `Name`; `types` passed as `VARIANT(VT_BYREF \| VT_VARIANT, None)` | Unverified: as above |
-| `ReleaseSelectionAccess` | Close them again, in a `finally` | Unverified: as above |
+| `AccessSelections(doc, null)` | Open the definition's selections for reading. Returned `True` in 0.1 s — and **rolled the model back to just before the feature**, which the help documents and which is easy to read past (GOTCHAS §59) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetEntitiesToJoin(ByRef types)` | The curves the composite joins, as objects with `Name`, in join order; `types` passed as `VARIANT(VT_BYREF \| VT_VARIANT, None)`. Three curves back off a three-piece composite, whole read 3.2–4.5 s | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `ReleaseSelectionAccess` | Close them again, in a `finally`; rolls the tree forward again in 0.9 s. **A `Sub`, so late binding hands it over as an uncalled method object** — call it with parentheses (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 
 ## ISweepFeatureData (from `IFeature.GetDefinition` on a `Sweep` or `SweepCut`)
 
@@ -316,6 +349,15 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `ModelToSketchTransform` → `Inverse` → `ArrayData` | ISketch | Sketch space to model space | Verified |
 | `Transform2` → `ArrayData` | IComponent2 | Items 9–11 are the component's translation, in metres | Verified, SW 2026 (34.0.0) |
 | `GetRefAxisParams` | IRefAxis (from `GetSpecificFeature2` on a `RefAxis`) | Two points on the axis, six doubles; their difference is its direction | Verified, SW 2026 (34.0.0), run 20260915-015506 |
+| `GetBody` | IFace2 | The body a face belongs to. A feature does not offer its body; a face of it does | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetArea` | IFace2 | The face's area, in **square metres**. What tells a cap that spans an end from one that spans a sliver | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetEdges` | IBody2 | The body's edges. **Comes back as an uncalled method object** through pywin32 (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetCurveParams2` | IEdge | Items 0–2 the start point, 3–5 the end point, **in metres**, 6–7 the parameter range. Both ends in the plane of an end profile is what marks an end-loop edge. `GetCurve` is called first, because SolidWorks does not keep the underlying curve on the edge until asked | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `Identity` | ICurve | The curve type; **3005 for a spline** | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `Evaluate2(t, 0)` | ICurve | The point at parameter `t`, in metres, in its first three items. Used to sample two fitted splines either side of a crease | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `Select4(append, selectData)` | IEntity (an IEdge here) | Add an edge to the selection; `selectData` from `ISelectionMgr.CreateSelectData`, no mark needed. **The only route for an edge**, which has no name for `SelectByID2` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetTessTriangles(True)` | IFace2 | The face's tessellation, a flat array of doubles, three per vertex, **in metres** with `True`. **Comes back as an uncalled method object** (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetClosestPointOn(x, y, z)` | IFace2 | The nearest point of that face to a point, **metres in and out**, first three items. Per face, so a distance to a body is the minimum over its faces. Checked by measuring a point back to its own face: 0.000000 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 
 ## IMassProperty (from `IModelDocExtension.CreateMassProperty`)
 
@@ -323,6 +365,7 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 |---|---|---|
 | `Volume` | The part's volume in **cubic metres**; matched π r² w to 16 significant figures | Verified, SW 2026 (34.0.0) |
 | `CenterOfMass` | Centre of mass, three doubles in **metres**, after `ForceRebuild3`; put a revolved ring's on its axis, and told which way a twisted sweep turned | Verified, SW 2026 (34.0.0), dev runs and helical runs 2026-09-15 |
+| `AddBodies(bodies)` | Would restrict the measurement to some bodies. **Reached by attribute access it answered a `bool` — it had already run, with no bodies — and then could not be called with them: `'bool' object is not callable`** (GOTCHAS §55). `IBody2.GetMassProperties` is what was used instead | Verified not to work from Python this way, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 
 ## IMathUtility (from `ISldWorks.GetMathUtility`)
 
@@ -336,6 +379,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 |---|---|---|
 | `IPartDoc.GetBodies2(0, True)` | The part's solid bodies; `len` of it counted one body after a cut | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `Select2(append, selectData)` | Select the body, at the mark set on `ISelectionMgr.CreateSelectData` | Verified at mark 1, SW 2026 (34.0.0), run 20260915-015506; at mark 256, appended, for a mirror, helical runs 2026-09-15 |
+| `Name` | The body's own name, which is how `SelectByID2` picks it as a `"SURFACEBODY"` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetMassProperties(1.0)` | Twelve doubles; **item 3 is the volume, in cubic metres**. The route to one body's volume, where `IMassProperty.AddBodies` could not be called. Item 4 read once as an area in square metres; the rest were not identified | Verified for item 3, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `Select2(append, 0)` and `Select2(append, null)` | **Both raised on a sheet body**: `TypeError: The Python instance can not be converted to a COM object`. A real `SelectData` (which is what made the row above work on a solid body) was **not** retried here; the route taken instead was `SelectByID2` on the body's `Name` as a `"SURFACEBODY"`. `IBody2` has no `Select4` at all | Verified not to work with those two arguments, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 
 ## IDimension / IDisplayDimension
 
@@ -398,7 +444,8 @@ Selection type strings for `SelectByID2`: `REFERENCECURVES` for a reference
 curve; `PLANE` for a reference plane by its tree name; `AXIS` for a reference
 axis; `EXTSKETCHSEGMENT` for a closed sketch's line as `LineN@Sketch`;
 `EXTSKETCHPOINT` for a sketch point by location, or a component's origin as
-`Point1@Origin@<component>@<assembly>`.
+`Point1@Origin@<component>@<assembly>`; `SURFACEBODY` for a body by its own `IBody2.Name`,
+which is how a knit's inputs are picked (Airfoil Converter 2026-09-22).
 
 Selection marks that decided a feature, SW 2026: loft profiles 1 and loft
 guides 2 (Airfoil Converter 2026-09-16); and on 34.0.0: revolve axis line
@@ -407,7 +454,10 @@ mates 1; circular pattern axis 1 and seed 4; sweep profile 1 and path 4;
 mirror body 256 and plane 2 (body at mark 1 mirrored nothing).
 
 Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
-`FtrFolder`, `RefPlane`. Also seen on SW 2026 (34.0.0): `RefAxis`,
+`FtrFolder`, `RefPlane`. From the 2026-09-22 work: `SewRefSurface` (a knit),
+`PlanarSurface` (a planar cap), `FillRefSurface` (a filled surface), and, on
+the real part walked there, `Split`, `CombineBodies`, `NetBlend` and `ICE`.
+Also seen on SW 2026 (34.0.0): `RefAxis`,
 `ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut),
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
@@ -417,6 +467,9 @@ Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
 `swGuideCurveInfluence_e`: `0` to next guide (run, and the hand-made loft's
 value), `1` to next sharp, `2` to next edge, `3` global (read only).
 `swFeatureSuppressionAction_e`: `0` suppress, `1` unsuppress.
+`swMoveRollbackBarTo_e`, read off this machine's `swconst.tlb` on 2026-09-22:
+`1` End, `2` PreviousPosition (answers `True` and moves nothing on SW 2026),
+`3` BeforeFeature, `4` AfterFeature. `swBodyType_e`: `0` solid, `1` sheet.
 `swInConfigurationOpts_e`: `1` this configuration. `swSaveAsOptions_e`: `1`
 silent, `2` copy. All read from `swconst.tlb` on SW 2026 by the Airfoil
 Converter; only the influence `0` and the save-as options are behind a

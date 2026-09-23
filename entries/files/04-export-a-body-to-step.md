@@ -2,10 +2,10 @@
 id: files-04-export-a-body-to-step
 title: Write one body of a part to its own STEP file
 status: partly-verified
-verified_on: SolidWorks 2026 for the STEP export; the suppression that isolates one body was run but its effect on the file was not recorded
+verified_on: SolidWorks 2026 for the STEP export and for the suppression and its cascade; that each file of an earlier batch held only its own loft was never checked file by file
 language: [python]
-api: [IModelDocExtension.SaveAs, IFeature.SetSuppression2, IModelDoc2.ForceRebuild3]
-keywords: [STEP, export STEP, SaveAs, swSaveAsOptions_Copy, save as copy, neutral format export, one body, suppress, SetSuppression2, swFeatureSuppressionAction_e, swInConfigurationOpts_e, measure loft, out parameter]
+api: [IModelDocExtension.SaveAs, IFeature.SetSuppression2, IFeature.IsSuppressed, IModelDoc2.ForceRebuild3]
+keywords: [STEP, export STEP, SaveAs, swSaveAsOptions_Copy, save as copy, neutral format export, one body, suppress, SetSuppression2, swFeatureSuppressionAction_e, swInConfigurationOpts_e, measure loft, out parameter, suppression cascade, 74 features, suppression_state, restore_suppression, SewRefSurface, MANIFOLD_SOLID_BREP]
 answers: "How do I write a part, or just one of its lofts, to a STEP file from code without the open document changing name?"
 ---
 
@@ -125,13 +125,68 @@ The tool does this on a **copy** of the part (`--copy-to`), saved as
 `<name> lofted.SLDPRT` because SolidWorks opens one document per file name and
 the original is probably open.
 
+## Suppression cascades, so snapshot the whole tree first
+
+The loop above is **not enough on a real part**, and was corrected on
+2026-09-22. Suppressing one body feature suppressed **74 other features** —
+the splits and inserts built on that body, their folders, and the planes and
+sketches under those — and unsuppressing that one feature brought back none of
+them. The part came back with 6 solid bodies where it had 16, looking perfectly
+normal. One of the 74 is named `Sketch9<3>`, which no name walk can find again.
+
+What replaced it: write down every feature's suppression **as feature objects**
+in tree order before, and restore from that afterwards. The mechanism, the code
+and the numbers are in
+[reading/12](../reading/12-snapshot-suppression-before-you-suppress.md); here
+is the loop as the tool now runs it, from
+[`code/python/swloft.py`](../../code/python/swloft.py), `loft_and_export`:
+
+```python
+absorbed = {name for result in results if result.capped for name in _capping_pieces(result)}
+bodies = [b for b in sw.features_of_type(*BODY_FEATURE_TYPES) if b not in absorbed]
+for result in results:
+    if not result.ok:
+        continue
+    others = [name for name in bodies if name != result.feature]
+    state = sw.suppression_state()
+    try:
+        for name in others:
+            sw.set_suppressed(name, True)
+        sw.rebuild()
+        path = os.path.join(step_folder, result.plan.name + ".STEP")
+        sw.export_step(path)
+        result.step = path
+    except SolidWorksError as exc:
+        result.error = str(exc)
+    finally:
+        left = sw.restore_suppression(state)
+        sw.rebuild()
+        if left and result.ok:
+            result.error = (
+                "the part was left with " + ", ".join(left) + " suppressed"
+            )
+```
+
+`BODY_FEATURE_TYPES` is now `("Blend", "BlendRefSurface", "SewRefSurface")`:
+a loft capped into a solid ([surfacing/04](../surfacing/04-cap-a-refused-loft-into-a-solid.md))
+carries its body on the **knit**, not on the loft. The surface it was knitted
+from is still in the tree beside it, still calling itself a `BlendRefSurface`,
+and suppressing *that* would take the solid with it — which is what `absorbed`
+excludes.
+
+It costs a tree walk per cycle, about ten seconds on a 397-feature part, twice
+per body. A six-loft export went from about five minutes to about nine.
+
+
 ## What it does not do
 
-- **Whether suppression isolated the body was not recorded.** The STEP files
-  were written and measured; that each file held only its own loft, and that
-  `SetSuppression2` accepted the bare `None`, is what the code expects and what
-  nobody wrote down. Check the first file's body count before trusting a
-  batch.
+- **That suppression isolated the body was still not measured directly.**
+  `SetSuppression2` does accept the bare `None` and does suppress — it
+  suppressed 74 features at once, above — and the STEP file written from one
+  capped loft held exactly one closed shell (`MANIFOLD_SOLID_BREP 1`,
+  `CLOSED_SHELL 1`, `OPEN_SHELL 0`, `ADVANCED_FACE 5`). Whether the earlier
+  batch's files each held only their own loft was never checked file by file.
+  Check a file's body count before trusting a batch.
 - Only the default STEP export options were used; the AP version and the
   export settings under *Tools > Options > Export* were not examined or set
   from code.
@@ -151,10 +206,23 @@ SolidWorks' lofts were read back and measured: the lofted surfaces against the
 intended wing ([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)),
 and the profile spline against the tool's model of it, to under 0.001 mm.
 
+The suppression half was corrected on **SolidWorks 2026 SP0.0 (revision
+34.0.0), 2026-09-22**, on a save-as copy of a real 397-feature part
+(experiments `e49`, `e50`, `e52`; Airfoil Converter commit `8555d5f`). The
+unsuppress-what-you-suppressed loop left **74 features suppressed** and the
+part at 6 solid bodies where it had 16; with the snapshot in
+[reading/12](../reading/12-snapshot-suppression-before-you-suppress.md) the
+same export came back with **0** suppressed, at the cost of taking 537.6 s
+where it had taken 296.3 s. The STEP file it wrote was 1.5 MB and held
+`MANIFOLD_SOLID_BREP 1`, `CLOSED_SHELL 1`, `OPEN_SHELL 0`, `ADVANCED_FACE 5`.
+
 ## See also
 
 - [files/01 — Batch-convert STEP](01-batch-convert-step.md) — STEP in, and the same `SaveAs` with error codes
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — a save-as without copy renames the document
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the lofts exported
 - [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — what the files were measured for
+- [reading/12 — Snapshot suppression before you suppress](../reading/12-snapshot-suppression-before-you-suppress.md) — why unsuppressing what you suppressed is not enough
+- [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — the knit that carries a capped loft's body
 - [curves/08 — Rebuild once, at the end](../curves/08-rebuild-once-at-the-end.md) — restore in a `finally`
+- [GOTCHAS §62](../../GOTCHAS.md)

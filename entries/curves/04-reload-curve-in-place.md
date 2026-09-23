@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [vbscript, python]
 api: [IFeature.GetDefinition, IFeature.ModifyDefinition, LoadPointsFromFile, IModelDoc2.ForceRebuild3]
-keywords: [LoadPointsFromFile, ModifyDefinition, GetDefinition, refresh curve, in place, reload, live update]
+keywords: [LoadPointsFromFile, ModifyDefinition, GetDefinition, refresh curve, in place, reload, live update, slow reload, 25 seconds per curve, rollback bar]
 answers: "How do I change a curve's geometry without re-picking it in the boundary surface?"
 ---
 
@@ -137,6 +137,16 @@ A curve created by streaming points, with no file association at all, still
 accepts `LoadPointsFromFile` and `ModifyDefinition`. Both insert routes produce
 the same feature type, so either is refreshable afterwards. Tested explicitly.
 
+## On a big part, roll the tree back first
+
+`ModifyDefinition` is charged for whatever is built below the curve. On a
+397-feature part one reload cost **25 seconds**, with or without
+`CommandInProgress`; with the rollback bar sitting just after the curves it
+cost **0.5 seconds**. Thirty-nine curves is sixteen and a half minutes against
+half a minute. See
+[curves/12](12-roll-the-tree-back-before-reloading.md), which also covers
+putting the bar back safely.
+
 ## Do not rebuild inside this
 
 `RefreshCurve` deliberately does not rebuild. Refreshing twelve curves with the
@@ -163,6 +173,7 @@ interface PushState {
 ## See also
 
 - [curves/08 — Rebuild once, at the end](08-rebuild-once-at-the-end.md)
+- [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — what this costs on a big part, and how to stop paying it
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md)
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — a loft that follows reloaded curves
 - [`code/vbscript/ImportCurves.vbs`](../../code/vbscript/ImportCurves.vbs)
