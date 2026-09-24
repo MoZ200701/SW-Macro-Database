@@ -204,9 +204,18 @@ where it was. See [curves/11](entries/curves/11-feature-tree-folders.md).
 ## 19. A folder is two features in the tree
 
 Walking `FirstFeature`/`GetNextFeature`, a folder appears as itself and again
-as `<folder>___EndTag___` after its contents, both typed `FtrFolder`. Nesting
-is the depth between the two. Count the end tags or your contents will run on
-into whatever follows the folder.
+as a closing tag after its contents, both typed `FtrFolder`. Nesting is the
+depth between the two. Count the end tags or your contents will run on into
+whatever follows the folder.
+
+**Do not find the end tag by its name.** It is named after the folder's first,
+automatic name — `Folder3___EndTag___`, whatever the folder is called now — and
+after a renamed folder's part is reopened, SolidWorks reuses `Folder3` and names
+the new tag `Folder3___EndTag___0`. A walk matching the `___EndTag___` suffix
+(this file said to, until 2026-09-24) reads that tag as a folder opening, and
+everything after it as inside. Both features answer `IFeatureFolder.GetFeatures`
+with the same contents: the one that comes after its first item is the tag.
+SolidWorks 2026 SP0.0.
 
 Walk the top-level chain only. A walk that also descends into
 `GetFirstSubFeature` drops absorbed features into the middle of a folder's
@@ -871,3 +880,13 @@ profiles and guides cannot be changed through its definition — keep the
 profile count and names constant and reload the curves instead, which a loft
 follows. SolidWorks 2026 SP0.0. See
 [features/12](entries/features/12-guided-loft.md).
+
+## 69. The journal records a program's calls, but not all of them, and not always as made
+
+`%APPDATA%\SolidWorks\SOLIDWORKS 2026\swxJRNL.swj` records API calls an
+external program makes over COM, next to what the user clicks, and is often
+the only record of what a program did. But `IFeature.Select2` and renames
+through `IFeature.Name` do not appear at all, a STEP export through
+`IModelDocExtension.SaveAs` with the copy option appears as `Part.Save3`, and
+only the current and previous sessions are kept. SolidWorks 2026 SP0.0. See
+[reading/14](entries/reading/14-the-journal-records-api-calls.md).

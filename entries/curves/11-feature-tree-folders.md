@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IFeatureManager.InsertFeatureTreeFolder2, IFeatureManager.MoveToFolder, IModelDocExtension.DeleteSelection2, IFeature.Select2, IFeature.GetSpecificFeature2, IFeatureFolder.GetFeatureCount, IFeatureFolder.GetFeatures]
-keywords: [InsertFeatureTreeFolder2, MoveToFolder, swFeatureTreeFolderType_e, FtrFolder, ___EndTag___, feature tree folder, group features, ungroup, DeleteSelection2, Select2, BODYFEATURE]
+keywords: [InsertFeatureTreeFolder2, MoveToFolder, swFeatureTreeFolderType_e, FtrFolder, ___EndTag___, ___EndTag___0, end tag, sentinel, reopen, feature tree folder, group features, ungroup, DeleteSelection2, Select2, BODYFEATURE, loose curves]
 answers: "How do I put features into a folder in the feature tree from code?"
 ---
 
@@ -52,7 +52,7 @@ The three constants, and the two helpers, so the code above stands on its own:
 
 ```python
 FOLDER_TYPE_NAME = "FtrFolder"     # GetTypeName2 of a folder and of its end tag
-FOLDER_END_TAG = "___EndTag___"    # the suffix on the closing sentinel
+FOLDER_END_TAG = "___EndTag___"    # usually in the closing sentinel's name; not always
 FOLDER_CONTAINING = 2              # swFeatureTreeFolderType_e; see the table below
 ```
 
@@ -155,8 +155,53 @@ made in SolidWorks.
 ## Reading the tree back
 
 A folder is **two** features in the walk: the folder itself, and a closing
-sentinel named `<folder>___EndTag___`, after everything it holds. Both report
-`GetTypeName2` as `FtrFolder`. Nesting is the depth between them:
+sentinel after everything it holds. Both report `GetTypeName2` as `FtrFolder`.
+Nesting is the depth between them.
+
+**Do not tell the sentinel by its name.** Until 2026-09-24 this entry said the
+sentinel is named `<folder>___EndTag___` and shipped a walk that matched that
+suffix. Both halves were wrong, and the walk scrambled a real part:
+
+- The sentinel is named after the name SolidWorks **first** gave the folder,
+  `FolderN___EndTag___`, not after what the folder is called now. A folder
+  renamed `rib` closes with `Folder1___EndTag___`.
+- Once a folder has been renamed, a part closed and opened again hands the
+  name `FolderN` out afresh. The new folder's sentinel cannot be
+  `FolderN___EndTag___`, which the old folder's sentinel still has, so it is
+  `FolderN___EndTag___0`. That no longer *ends* in `___EndTag___`.
+
+A walk matching the suffix reads that sentinel as a folder **opening**, and
+everything after it in the tree — lofts included — as inside it. Code that
+then rebuilds folders from that reading deletes and renames the wrong ones;
+see the evidence below.
+
+What does tell them apart: `IFeature.GetSpecificFeature2` on either feature
+returns an `IFeatureFolder`, and **both answer `GetFeatures` with the same
+contents**, in tree order. The folder comes before its first item and the
+sentinel after it, so a folder feature whose first item the walk has already
+passed is the sentinel:
+
+```python
+def _closes_folder(feature: Any, name: str, seen: Set[str]) -> bool:
+    """Is this folder feature the tag that closes a folder, not one opening?
+
+    Not by its name alone. A tag is named after the folder as SolidWorks first
+    made it, ``Folder3___EndTag___``, and once that folder has been renamed a
+    part opened again hands ``Folder3`` out afresh; the new folder's tag
+    cannot have the name, so it gets ``Folder3___EndTag___0``. Read as a
+    folder opening, that tag swallowed everything after it, and arranging the
+    tree deleted and renamed the wrong folders (the user's wing part,
+    2026-09-24). Both features answer with the same contents, so a folder
+    whose first item has already gone past is the closing one.
+    """
+    held = _try(_try(feature, "GetSpecificFeature2"), "GetFeatures")
+    if held:
+        first = _try(held[0], "Name")
+        if first is not None:
+            return str(first) in seen
+    # An empty folder has only its name to go by.
+    return FOLDER_END_TAG in name
+```
 
 ```python
 def folders(self) -> Dict[str, List[str]]:
@@ -169,6 +214,7 @@ def folders(self) -> Dict[str, List[str]]:
     """
     out: Dict[str, List[str]] = {}
     stack: List[str] = []
+    seen: Set[str] = set()
     feature = call(self._active(), "FirstFeature")
     guard = 0
     while feature is not None and guard < 5000:
@@ -178,16 +224,18 @@ def folders(self) -> Dict[str, List[str]]:
             type_name = str(call(feature, "GetTypeName2"))
         except Exception:  # noqa: BLE001 - a feature that will not describe itself
             type_name = "?"
-        feature = call(feature, "GetNextFeature")
+        here, feature = feature, call(feature, "GetNextFeature")
 
         if type_name != FOLDER_TYPE_NAME:
+            seen.add(name)
             if stack:
                 out[stack[-1]].append(name)
             continue
-        if name.endswith(FOLDER_END_TAG):
+        if _closes_folder(here, name, seen):
             if stack:
                 stack.pop()
             continue
+        seen.add(name)
         if stack:
             out[stack[-1]].append(name)
         out.setdefault(name, [])
@@ -195,16 +243,30 @@ def folders(self) -> Dict[str, List[str]]:
     return out
 ```
 
+`_try(obj, name)` is `call` returning `None` where the member is missing or
+raises. An empty folder has no first item, so only its name is left to go by;
+this code never makes one.
+
 Walk the top-level `GetNextFeature` chain only. A walk that also descends into
 `GetFirstSubFeature` puts absorbed features in the middle of a folder's
-contents and the end tags stop lining up.
+contents and the sentinels stop lining up.
 
-`IFeature.GetSpecificFeature2` on a folder returns an `IFeatureFolder`, whose
-`GetFeatureCount` and `GetFeatures` also list the contents. It is usable, with
-one wrinkle: for a folder containing another folder it counted the nested
-folder's `___EndTag___` as a member, reporting 2 for
-`['n0012_150mm', 'Folder1___EndTag___']`. The walk above was used instead for
-that reason.
+`IFeatureFolder.GetFeatures` and `GetFeatureCount` list a nested folder's
+sentinel as one of the parent's members: `Airfoil Curves` answered
+`['sd7037_275mm', 'Folder3___EndTag___', 'sd7037_136.5mm', 'Folder4___EndTag___']`.
+That is why the contents are still read from the walk, and `GetFeatures` is
+asked only for its first item.
+
+### A folder that has been given a sentinel's name
+
+The scrambled arrangement renamed new folders to sentinel names:
+`IFeature.Name = "Folder4___EndTag___"` on a folder, with that name taken by a
+sentinel, left it called `Folder4___EndTag___0`, and the next one
+`Folder4___EndTag___1` (inferred from the part it left; the name asked for was
+not logged — see [curves/07](07-rename-a-feature.md) for renames that collide).
+Nobody chooses such a name, so unlike a rename made in SolidWorks it is not
+worth keeping: the arrangement code now renames a kept folder whose name
+contains `___EndTag___` back to its group's name, if that name is free.
 
 ## What it does not do
 
@@ -212,10 +274,15 @@ that reason.
 - **No empty folder to fill later.** Value 1 made an empty folder only when
   something was selected, and nothing can be moved into it afterwards, so it is
   of no use.
-- **Ordering is not addressed here.** Folders were observed not to reorder the
-  features they gather, and a composite curve stayed after the curves it is
-  built from, but no case was constructed to test a folder that would force a
-  feature before its parent. If you need that guarantee, test it.
+- **Ordering is only partly addressed.** Folders around features already
+  next to each other do not reorder them, and a composite curve stayed after
+  the curves it is built from. Features that are *not* next to each other are
+  gathered by moving them: three curves inserted at the end of a part, after a
+  composite built on an earlier group, and then wrapped in a parent folder with
+  that group's folder, came out above the composite, in the parent (E90 below).
+  The composite did not depend on them. No case was constructed to test a
+  folder that would force a feature before its parent. If you need that
+  guarantee, test it.
 - **`SelectByID2` was not usable for these features.** With the type string
   `"BODYFEATURE"`, `IModelDocExtension.SelectByID2` returned `False` for a
   `CurveInFile` feature, selecting nothing. `IFeature.Select2` on the feature
@@ -254,6 +321,34 @@ Airfoil Curves
 Running the same arrangement a third time with nothing changed made no API
 calls at all and reported all three folders kept.
 
+**The sentinel names (2026-09-24, SolidWorks 2026 SP0.0).** A user's wing part
+arranged by the suffix-matching walk had curves of two exports outside any
+folder, folders named `Folder4___EndTag___0` and `Folder4___EndTag___1`, and
+no parent folder. `GetSpecificFeature2` → `GetFeatures` on its 14 `FtrFolder`
+features gave identical contents for each folder and its sentinel, which is how
+the sentinels were paired: `Folder4___EndTag___1` (ID 615) opened a folder of 109
+curves whose sentinel was `Folder6___EndTag___0` (ID 616), and the two features
+after that sentinel, a loft and a combine, were not in any folder.
+
+Reproduced in a scratch part (E89–E91): five groups of three `CurveInFile`
+features, each arranged into its own folder under a parent, a composite of one
+curve between them standing in for a loft — every folder right. Saved, closed
+with `CloseDoc`, opened with `OpenDoc6`, and three more groups arranged:
+
+```
+[Wing Curves] [Wing] Wing_0 Wing_1 Wing_2 [Folder1___EndTag___] ... [Wing_ci] Wing_ci_0 Wing_ci_1 Wing_ci_2 [Folder9___EndTag___] [Wing_x1] Wing_x1_0 Wing_x1_1 Wing_x1_2 [Folder1___EndTag___0] [Folder2___EndTag___] Wing_loft Wing_ao_loft
+```
+
+The first new folder after the reopen was handed `Folder1` again, and closed
+with `Folder1___EndTag___0`. Two more groups arranged by the old walk then left
+`Wing_x1` holding the next group's curves, `Wing_x1`'s own curves in a folder
+named `Folder5___EndTag___0`, and a phantom folder `Folder7___EndTag___0`
+"holding" both lofts. The fixed walk read that same part correctly, left every
+folder in place, and two more groups added after another close-and-reopen went
+into folders under the parent (their sentinels `Folder1___EndTag___0` and
+`Folder3___EndTag___0`). A kept folder named `Folder5___EndTag___0` was renamed
+to its group's free name through `IFeature.Name` and read back as asked.
+
 ## See also
 
 - [curves/02 — Insert a curve from a file](02-insert-curve-from-file.md) — what
@@ -270,4 +365,5 @@ calls at all and reported all three folders kept.
   place, and [`code/python/swlink.py`](../../code/python/swlink.py) for the
   rebuild-not-patch arrangement as `arrange`
 - [GOTCHAS §18, §19](../../GOTCHAS.md)
+- [reading/14 — The journal records API calls](../reading/14-the-journal-records-api-calls.md) — how the folder bug below was narrowed down, and why the journal cannot show what a folder was made around
 - [features/01 — Boss extrude](../features/01-boss-extrude.md) — `Select2` judged by the selection count, with a `SelectByID2` fallback

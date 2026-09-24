@@ -125,6 +125,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Suppress one body feature without losing everything built on it | [reading/12 — Snapshot suppression before you suppress](entries/reading/12-snapshot-suppression-before-you-suppress.md) |
 | Measure the wall between two surfaces without exporting anything | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Get one body's volume, where `IMassProperty` will not take bodies | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
+| Find out afterwards what a program did to a part, when it kept no log | [reading/14 — The journal records API calls](entries/reading/14-the-journal-records-api-calls.md) |
 | Read a pick without crashing SolidWorks | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 
 ## Build a surface or loft, and get the orientation right

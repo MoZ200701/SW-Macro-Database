@@ -113,6 +113,7 @@ parsing a message. The Python module here defines four.
 ## See also
 
 - [curves/04 — Reload a curve in place](../curves/04-reload-curve-in-place.md)
+- [reading/14 — The journal records API calls](14-the-journal-records-api-calls.md) — what SolidWorks recorded when the program did not
 - [connect/01 — Attach from VBScript](../connect/01-attach-from-vbscript.md)
 - [reading/10 — Mass properties as an oracle](10-mass-properties-as-an-oracle.md) — checking what a call did, not only that it returned
 - [connect/11 — Probe an API member on a live session](../connect/11-probe-an-api-member-on-a-live-session.md) — recording a failure with its HRESULT

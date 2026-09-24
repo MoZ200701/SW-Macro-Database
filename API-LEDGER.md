@@ -234,7 +234,7 @@ was tried and refused is recorded as refused rather than left out.
 | Member | Purpose | Status |
 |---|---|---|
 | `GetFeatureCount` | How many features the folder holds. **Counts a nested folder's end tag** | Verified, SW 2026 |
-| `GetFeatures` | The features it holds, end tag included | Verified, SW 2026 |
+| `GetFeatures` | The features it holds, a nested folder's end tag included. **A folder and its own end tag answer with the same list**, which is how the tag is told apart: it comes after the list's first item in the walk ([curves/11](entries/curves/11-feature-tree-folders.md)) | Verified, SW 2026 SP0.0, 14 folder features of a real part, 2026-09-24 |
 
 ## IFeature
 
@@ -496,7 +496,10 @@ makes a folder that does not contain it, `3` hands back the existing
 [curves/11](entries/curves/11-feature-tree-folders.md).
 
 A folder in the feature walk is two features: the folder, and a closing
-sentinel named `<folder>___EndTag___` after everything it holds.
+sentinel after everything it holds. The sentinel is usually named
+`FolderN___EndTag___` after the folder's first automatic name, but after a part
+is reopened it can be `FolderN___EndTag___0`; do not match it by name
+([curves/11](entries/curves/11-feature-tree-folders.md)).
 
 Selection type numbers seen from `GetSelectedObjectType3`: 1 edge, 2 face,
 3 vertex, 4 plane, 5 axis, 6 reference point, 9 sketch, 24 sketch segment,

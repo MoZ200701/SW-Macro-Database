@@ -219,6 +219,7 @@ where it had taken 296.3 s. The STEP file it wrote was 1.5 MB and held
 ## See also
 
 - [files/01 — Batch-convert STEP](01-batch-convert-step.md) — STEP in, and the same `SaveAs` with error codes
+- [reading/14 — The journal records API calls](../reading/14-the-journal-records-api-calls.md) — this export shows up there as `Part.Save3`
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — a save-as without copy renames the document
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the lofts exported
 - [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — what the files were measured for

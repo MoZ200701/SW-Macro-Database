@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 72,
+  "count": 73,
   "by_status": {
     "partly-verified": 9,
     "unverified": 3,
-    "verified": 60
+    "verified": 61
   },
   "entries": [
     {
@@ -817,12 +817,17 @@
         "swFeatureTreeFolderType_e",
         "FtrFolder",
         "___EndTag___",
+        "___EndTag___0",
+        "end tag",
+        "sentinel",
+        "reopen",
         "feature tree folder",
         "group features",
         "ungroup",
         "DeleteSelection2",
         "Select2",
-        "BODYFEATURE"
+        "BODYFEATURE",
+        "loose curves"
       ],
       "answers": "How do I put features into a folder in the feature tree from code?"
     },
@@ -2037,6 +2042,38 @@
         "closest point zero"
       ],
       "answers": "How do I check from code that the skin between two lofted surfaces really is the thickness I asked for?"
+    },
+    {
+      "id": "reading-14-the-journal-records-api-calls",
+      "title": "Read what a program did to a part from the SolidWorks journal",
+      "path": "entries/reading/14-the-journal-records-api-calls.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 SP0.0 (revision 34.0.0)",
+      "language": [
+        "n/a"
+      ],
+      "api": [],
+      "keywords": [
+        "swxJRNL.swj",
+        "swxJRNL.BAK",
+        "journal",
+        "macro journal",
+        "what did the macro do",
+        "post-mortem",
+        "audit",
+        "InsertCurveFileBegin",
+        "InsertCurveFilePoint",
+        "SelectByID2",
+        "InsertFeatureTreeFolder2",
+        "InsertProtrusionBlend",
+        "Save3",
+        "SaveAs",
+        "rename not recorded",
+        "Select2 not recorded",
+        "diagnose after the fact"
+      ],
+      "answers": "How can I find out afterwards which API calls a program made on a part, and in what order, when it kept no log?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",
