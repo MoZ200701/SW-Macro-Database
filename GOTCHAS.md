@@ -808,3 +808,66 @@ which a name walk cannot find. Snapshot every feature's `IsSuppressed` with the
 feature **objects**, in tree order, before; restore from that, parents first,
 after. SolidWorks 2026 SP0.0. See
 [reading/12](entries/reading/12-snapshot-suppression-before-you-suppress.md).
+
+## 63. A six-decimal curve file can make a flat loft end "3D", and the solid loft is refused
+
+Written to six decimals of a millimetre, a planar section stands up to 5e-7 mm
+off its plane, and SolidWorks' test for a flat loft end is stricter than that.
+On one wing 9 of 22 flat sections were refused as the end of a solid loft —
+at random-looking places, neighbours of the same shape passing — and
+`InsertProtrusionBlend2` said so only by returning `Nothing`. The Loft page
+says it outright: *"A 3D section that does not bound a face or surface cannot
+be used as an end section."* Written to ten decimals, every one lofted as a
+solid. A surface loft never asks, so it builds either way and hides the cause.
+SolidWorks 2026 SP0.0. See
+[curves/01](entries/curves/01-sldcrv-file-format.md).
+
+## 64. Guides that land on each section's nearest point zigzag, and two of them refuse the loft
+
+Through many sections close together, a guide pinned to each section's point
+*nearest* its chord fraction wanders chordwise by up to half the point
+spacing between neighbours a tenth of a millimetre apart. Through 22 such
+sections any two surface guides made SolidWorks refuse the loft — even as a
+surface — while one alone built. Give each section a point at exactly the
+guide's place, or have the guide follow the same numbered point of every
+section. SolidWorks 2026 SP0.0. See
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md).
+
+## 65. A round nose cut into two curves comes out a wedge
+
+Each half of a Curve Through XYZ Points is a natural spline with zero
+curvature at its ends, so a smooth nose split into upper and lower curves
+flattens where they meet: a loft through such sections was 0.36 mm off at the
+nose and 0.5 % light. Draw a smooth nose as one curve; cut only where there is
+a real corner. SolidWorks 2026 SP0.0. See
+[surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md).
+
+## 66. Diffing the tree around every insert costs two full listings
+
+Finding what `InsertCurveFile` (or any insert that returns a boolean) made by
+listing the tree before and after cost 3.7 s a listing on a 560-feature part,
+plus 2.9 s to walk to it again by name: ten seconds of bookkeeping around one
+second of work, per curve. `IModelDoc2.GetFeatureCount` either side and
+`IModelDocExtension.GetLastFeatureAdded` answer the same question in a
+hundredth of a second, with the tree rolled back or not, and
+`IPartDoc.FeatureByName` finds a feature in one call. SolidWorks 2026 SP0.0.
+See [curves/02](entries/curves/02-insert-curve-from-file.md),
+[connect/08](entries/connect/08-find-a-feature-by-name.md).
+
+## 67. Deleting a surface loft deletes the caps built on its edges
+
+Planar surfaces made across a surface loft's end edges go when the loft goes.
+Code that deleted the loft and then asked for each cap by name failed on the
+first (`No feature called ...`) after it had already deleted the knit, leaving
+no loft at all. Delete in the reverse of building — knit, caps, surface —
+checking each is still there. SolidWorks 2026 SP0.0. See
+[surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md).
+
+## 68. A surface loft has no feature data
+
+`IFeature.GetDefinition` on a surface loft (`BlendRefSurface`) returns
+`Nothing`; on a solid loft (`Blend`) it returns an object. A surface loft's
+profiles and guides cannot be changed through its definition — keep the
+profile count and names constant and reload the curves instead, which a loft
+follows. SolidWorks 2026 SP0.0. See
+[features/12](entries/features/12-guided-loft.md).

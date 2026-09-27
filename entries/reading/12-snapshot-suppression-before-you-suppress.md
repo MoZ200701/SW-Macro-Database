@@ -4,7 +4,7 @@ title: Snapshot every feature's suppression before you suppress one, because sup
 status: verified
 verified_on: SolidWorks 2026 SP0.0 (revision 34.0.0)
 language: [python]
-api: [IFeature.SetSuppression2, IFeature.IsSuppressed, IModelDoc2.FirstFeature, IFeature.GetNextFeature, IFeature.GetFirstSubFeature]
+api: [IFeature.SetSuppression2, IFeature.IsSuppressed, IModelDoc2.FirstFeature, IFeature.GetNextFeature, IFeature.GetFirstSubFeature, IFeature.GetNextSubFeature]
 keywords: [SetSuppression2, IsSuppressed, suppression cascade, suppressed children, unsuppress does not restore, swFeatureSuppressionAction_e, swInConfigurationOpts_e, 74 features, Sketch9<3>, feature name not found, restore by object, parents first, export one body]
 answers: "Why did suppressing one feature suppress 74 others, and how do I put the part back exactly as it was?"
 ---
@@ -140,6 +140,29 @@ A walk of 397 features is tens of seconds of COM round trips — about 10 s here
 — and this does two of them per body exported. On the part measured, adding the
 snapshot took a six-loft export from about **5 minutes to about 9**.
 
+**Correction, 2026-09-23: most of that was a bug in the walk.** The
+`_walk_objects` this code calls stepped sub-features with `GetNextFeature`,
+which from a sub-feature carries on down the *main* tree — the trap
+[connect/08](../connect/08-find-a-feature-by-name.md) already describes — so
+it listed the rest of the part again from inside every folder and sketch, up
+to its depth cap. On a copy of the same part grown to 632 top-level features
+it returned **102,384** entries. Stepping sub-features with
+`GetNextSubFeature`:
+
+```python
+            # A sub-feature's GetNextFeature carries on down the main tree, so
+            # a walk that used it went round the rest of the part again from
+            # inside every folder and sketch: 102,384 entries for a part of 632
+            # features (measured 2026-09-23). Its siblings are GetNextSubFeature.
+            feature = call(feature, "GetNextSubFeature" if depth else "GetNextFeature")
+```
+
+On a fresh copy of the 397-feature part the fixed walk returned **408**
+entries in **4.5 s**. No feature of that part has more than 20 sub-features,
+so the 102,384 were all repeats. A restore that works through repeats does the
+right thing, only many times over, which is why the snapshot above still put
+the part back — slowly. SolidWorks 2026 SP0.0, `e59`, `e60`, `e61`.
+
 That is a price a diagnostic export can pay and an interactive loop probably
 cannot. If you need it faster, the thing to try is walking once and reusing the
 snapshot across every body of one run; that was not tried.
@@ -190,4 +213,5 @@ its end and a knit makes a solid, and put a suppression back") on main.
 - [curves/08 — Rebuild once, at the end](../curves/08-rebuild-once-at-the-end.md) — the same `finally` discipline for the rebuild flag
 - [reading/11 — Cheap change detection](11-cheap-change-detection.md) — what a tree walk costs, and how to avoid one
 - [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — the bodies being exported one at a time
+- [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — why sub-features are stepped with `GetNextSubFeature`
 - [GOTCHAS §62](../../GOTCHAS.md)

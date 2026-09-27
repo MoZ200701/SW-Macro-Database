@@ -121,8 +121,10 @@ in [`code/python/gear_generator/`](code/python/gear_generator/probe/harness.py),
 with the reports of its full runs 20260915-002812 and 20260915-023929, and
 excerpts of its 2026-09-15 development runs, beside the results;
 its gear maths and interface are application logic and are not copied.
-The Airfoil-Converter's COM module, its push and loft orchestration and its
-pick logic are in [`code/python/`](code/python/swcom.py) as of its v1.7 release,
-2026-09-22; its airfoil, wing and offset geometry is application logic and is
-not copied.
+The Airfoil-Converter's COM module and its push and loft orchestration are in
+[`code/python/`](code/python/swcom.py) as of commit `ef16606` on its
+`offset-sections` branch, 2026-09-28, every part of which was run against
+SolidWorks 2026 before it was copied; its pick logic is as of its v1.7
+release, 2026-09-22. Its airfoil, wing and offset geometry is application
+logic and is not copied.
 Where an entry reproduces code, that code is the real thing, not a paraphrase.

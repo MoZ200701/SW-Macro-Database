@@ -41,6 +41,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 |---|---|
 | Write a point file SolidWorks will read | [curves/01 — The .sldcrv format](entries/curves/01-sldcrv-file-format.md) |
 | Import a curve file as a feature | [curves/02 — Insert a curve from a file](entries/curves/02-insert-curve-from-file.md) |
+| Tell which feature an insert just made, without walking the tree | [curves/02 — Insert a curve from a file](entries/curves/02-insert-curve-from-file.md) |
 | Create a curve without a file at all | [curves/03 — Stream curve points](entries/curves/03-stream-curve-points.md) |
 | Update an existing curve without breaking what uses it | [curves/04 — Reload a curve in place](entries/curves/04-reload-curve-in-place.md) |
 | Read a curve's points back out | [curves/05 — Read curve points back](entries/curves/05-read-curve-points-back.md) |
@@ -135,7 +136,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | See how a loft's accuracy scaled with the number of guides, in one measured case | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 | Get a solid out of a loft SolidWorks refuses as a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
 | Put a flat face across the end of a surface, and knit sheets into a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
-| Find out why a solid loft is refused while its surface builds | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
+| Find out why a solid loft is refused while its surface builds — check the curve files' decimals first | [curves/01 — The .sldcrv format](entries/curves/01-sldcrv-file-format.md), then [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
+| Loft through many sections with guides that SolidWorks accepts, and how accurate that was | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 
 ## Index by language
 

@@ -16,17 +16,23 @@ answers: "What exactly do I write into a .sldcrv file so SolidWorks reads it cor
 - Three columns per line: X, Y, Z
 - **Tab** delimited
 - Period as the decimal separator, whatever the machine locale is
-- Six decimal places is the convention used here
+- **Ten** decimal places of a millimetre — six were used here until 2026-09-27, and are not enough for a curve that ends a solid loft; see *Write ten decimals* below
 - Every value carries a `mm` suffix
 - **CRLF** line endings, including on the last line
 - No header, no comments, no blank lines
 - Extension `.sldcrv` or `.txt`; the dialog accepts both
 
 ```
-0.000000mm	-25.000000mm	0.000000mm
--4.877258mm	-24.519632mm	0.000000mm
--9.567086mm	-23.096988mm	0.000000mm
+0.0000000000mm	27.4132465453mm	-173.7169001036mm
+0.0000000000mm	27.5042566379mm	-173.6675138191mm
+0.0000000000mm	27.6080669816mm	-173.6305266420mm
 ```
+
+(The first three lines of a wing section's upper curve as the Airfoil Converter
+wrote it on 2026-09-27, tabs and CRLF as listed above.)
+
+(The samples in `code/samples/` are six-decimal files from before the change;
+SolidWorks reads both.)
 
 Samples in [`code/samples/`](../../code/samples/): a closed 32-point section
 with and without the suffix, and a guide curve.
@@ -72,13 +78,13 @@ two open halves split at the poles and pick both as profiles.
 
 ## Negative zero
 
-Normalise it. `-0.000000mm` and `0.000000mm` are different strings, and a
-section that differs from its mirror by a minus sign on a zero is not
+Normalise it. `-0.0000000000mm` and `0.0000000000mm` are different strings,
+and a section that differs from its mirror by a minus sign on a zero is not
 bit-identical to it. Strip the sign **after** formatting, not before, because
-testing `value == 0` leaves `-1e-9` to print as `-0.000000`:
+testing `value == 0` leaves `-1e-12` to print as `-0.0000000000`:
 
 ```python
-def format_value(value, decimals=6, unit="mm"):
+def format_value(value, decimals=10, unit="mm"):
     text = f"{value:.{decimals}f}"
     if text.startswith("-") and float(text) == 0.0:
         text = text[1:]
@@ -118,7 +124,7 @@ there is no kink at the centreline to explain away later.
 
 ```python
 EXTENSIONS = (".sldcrv", ".txt")
-DECIMALS = 6
+DECIMALS = 10   # six until 2026-09-27; see "Write ten decimals" above
 DELIMITER = "\t"
 UNIT_SUFFIX = "mm"
 LINE_ENDING = "\r\n"
@@ -192,6 +198,51 @@ looked like (a `False` from `InsertCurveFile`, or the dialog's message) and the
 exact spacing at which it starts were not recorded; 0.01 mm is the step that
 worked, not a measured threshold. See [GOTCHAS §53](../../GOTCHAS.md).
 
+## Write ten decimals, not six
+
+**Six decimals of a millimetre are not enough for a curve that ends a solid
+loft.** Rounded to six, a section that lies in a plane stands up to half a
+millionth of a millimetre (5e-7 mm) off it. SolidWorks 2026 asks whether a
+loft's end section is flat, and asks more strictly than that: on one wing, of
+22 planar sections written to six decimals, **9 were refused as the end of a
+solid loft** — the solid loft between any two neighbours failed whenever one
+of them was among the nine — and the same points written to **ten decimals
+lofted as a solid between every pair**, and through all 22 at once. Nothing
+else changed: same points, same composites, same guides.
+
+Through the API the refusal is silent (`InsertProtrusionBlend2` returns
+`Nothing`); in the Loft property page it is a rebuild error:
+
+> The end sections for a loft must be either planar or 3D faces or surfaces.
+> A 3D section that does not bound a face or surface cannot be used as an end
+> section.
+
+Which sections trip it looks random — on that wing s03, s06 and s12 at
+mid-span and every section past s16 at the tip, with neighbours of the same
+shape passing — because it is the rounding, not the shape: every one of the
+22 was flat to 5–9e-7 mm as SolidWorks drew it (`ICurve.GetTessPts` at a
+1e-10 m tolerance), none crossed itself, and the pieces met end to end exactly.
+A surface loft never asks the question, so it builds through the same curves
+regardless ([features/12](../features/12-guided-loft.md)). This is what made
+every "silently refused solid loft" in [surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)
+and [surfacing/04](../surfacing/04-cap-a-refused-loft-into-a-solid.md)
+unexplained for a day: the profiles had been checked flat — to 1e-6 mm, which
+was taken as flat enough, and is exactly the scale that is not.
+
+Ten decimals of a millimetre is 1e-10 mm, still well above double precision at
+wing-sized coordinates (a 1000 mm coordinate carries about 1e-13 mm), so the
+last digit is not noise. Files get about 40 % longer. SolidWorks reads them
+exactly as before, suffix and all.
+
+What is not known: the tolerance SolidWorks uses, and whether seven or eight
+decimals would do. Ten was tried because it worked; nothing smaller was.
+
+Verified on SolidWorks 2026 SP0.0 (revision 34.0.0), 2026-09-27: the same 22
+sections of a 1.35 mm inward offset wing inserted at six decimals and again at
+ten, neighbouring pairs and the whole wing lofted as a solid with no guides,
+three edge guides and 33 guides; and the original two-profile case (root and
+tip plus three edge guides) refused at six decimals and built at ten.
+
 ## The curve SolidWorks draws through the points
 
 **A Curve Through XYZ Points is a natural cubic spline through the file's
@@ -223,4 +274,6 @@ yourself.
 - [curves/09 — Curves as loft profiles](09-curves-as-loft-profiles.md)
 - [surfacing/02 — Axis conventions](../surfacing/02-axis-conventions.md)
 - [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — guides that meet the drawn spline
-- [GOTCHAS §53](../../GOTCHAS.md)
+- [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the solid loft that asks whether an end is flat
+- [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — what was built when the rounding was not yet known
+- [GOTCHAS §53, §63](../../GOTCHAS.md)

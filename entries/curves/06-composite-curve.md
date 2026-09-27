@@ -4,8 +4,8 @@ title: Join several curves into one selectable curve
 status: verified
 verified_on: SolidWorks 2026
 language: [python]
-api: [IModelDoc2.InsertCompositeCurve, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, AccessSelections, GetEntitiesToJoin, ReleaseSelectionAccess]
-keywords: [InsertCompositeCurve, composite curve, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild, AccessSelections, ReleaseSelectionAccess, rolls the tree back, IsRolledBack, method object never ran]
+api: [IModelDoc2.InsertCompositeCurve, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, AccessSelections, GetEntitiesToJoin, ReleaseSelectionAccess, IFeature.GetParents]
+keywords: [InsertCompositeCurve, composite curve, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild, AccessSelections, ReleaseSelectionAccess, rolls the tree back, IsRolledBack, method object never ran, GetParents, which curves a composite joins, slow composite read]
 answers: "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
 ---
 
@@ -60,6 +60,8 @@ def insert_composite_curve(self, sources, name):
     return self.rename_feature(created[0], name)
 ```
 
+*Since 2026-09-23 the Airfoil Converter finds what this made by the feature count and `GetLastFeatureAdded` instead of listing the tree before and after — the same check, a hundredth of a second instead of seconds on a big part; the copy in [`code/python/swcom.py`](../../code/python/swcom.py) is that version. See [curves/02](../curves/02-insert-curve-from-file.md).*
+
 **The selection mark must be 1.** At mark 0, `InsertCompositeCurve` returns
 `False` and says nothing about why. This is not documented anywhere obvious and
 is pure trial and error to find.
@@ -88,8 +90,10 @@ and the resulting bug appears somewhere else entirely.
 ## Diff to find what you made
 
 `InsertCompositeCurve` returns a boolean, same as `InsertCurveFile`. Same
-solution: diff the feature names either side, and refuse to guess if the diff
-is not exactly one. See [curves/02](02-insert-curve-from-file.md).
+solution: find exactly one new feature, and refuse to guess if there is not
+exactly one — by the feature count and `GetLastFeatureAdded`, which is a
+hundredth of a second, rather than by diffing two listings of the tree, which
+is seconds on a big part. See [curves/02](02-insert-curve-from-file.md).
 
 The type name of the result is `CompositeCurve`.
 
@@ -228,6 +232,36 @@ late-bound member that comes back uncalled"). A composite **above** the
 rollback bar could still be read while the tree was rolled back, and the read
 left the bar where it found it.
 
+### Checking which curves a composite joins, without the rollback
+
+`composite_sources` above rolls the whole part back and forward to read one
+composite, and on a copy of a 560-feature part that was **10–13 s a read**. A
+push that checked each of 19 section composites against the curves it should
+join spent **190 s** doing it — more than any other step but the reloads.
+
+If what you need is *which* curves a composite joins — not in what order —
+`IFeature.GetParents` on the composite's feature answers in a millisecond and
+touches nothing:
+
+```python
+def composite_parents(self, name: str) -> List[str]:
+    """The curves a composite joins, by name, in no particular order."""
+    parents = call(self._curve_feature(name), "GetParents") or ()
+    return [str(call(parent, "Name")) for parent in parents]
+```
+
+On SolidWorks 2026 SP0.0, 2026-09-23 (`e59`), on a composite of three curves:
+`GetParents` took **0.001 s** and named the three curves
+(`v57_s05_lower`, `v57_s05_upper`, `v57_s05_te`); `composite_sources` took
+**12.9 s** and named the same three, and the tree was left rolled forward
+after both. The two orders happened to agree on that one composite; the help
+promises no order for `GetParents`, so the Airfoil Converter compares the two
+lists as **sets**, and keeps `composite_sources` for the one place it needs
+the pieces in order (reading a profile's pieces for an end cap,
+[surfacing/04](../surfacing/04-cap-a-refused-loft-into-a-solid.md)). Pushes of
+48 to 99 curves with 15 to 22 existing composites then checked every join in
+under a second in total.
+
 ## See also
 
 - [curves/02 — Insert a curve from a file](02-insert-curve-from-file.md)
@@ -237,4 +271,4 @@ left the bar where it found it.
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md) — the composite follows
 - [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — putting a rolled-back tree right, and checking it went
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md) — why the release had to be called with parentheses
-- [GOTCHAS §12, §49, §55, §59](../../GOTCHAS.md)
+- [GOTCHAS §12, §49, §55, §59, §66](../../GOTCHAS.md)

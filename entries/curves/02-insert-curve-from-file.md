@@ -4,7 +4,7 @@ title: Insert a curve from a file as a new feature
 status: verified
 verified_on: SolidWorks 2026
 language: [vbscript, python]
-api: [IModelDoc2.InsertCurveFile, IFeature.Name]
+api: [IModelDoc2.InsertCurveFile, IFeature.Name, IModelDoc2.GetFeatureCount, IModelDocExtension.GetLastFeatureAdded]
 keywords: [InsertCurveFile, CurveInFile, import curve, error 438, IFeatureManager, insert feature]
 answers: "How do I import a .sldcrv file as a feature from code, and get hold of what it made?"
 ---
@@ -47,7 +47,69 @@ def insert_curve(self, path, name):
 ```
 
 The cheaper alternative, taking the last feature in the tree, is right almost
-always and silently wrong when it is not. The diff costs one extra tree walk.
+always and silently wrong when it is not — with the tree rolled back, a new
+feature lands at the bar, not at the end
+([curves/12](12-roll-the-tree-back-before-reloading.md)).
+
+### The diff is two full listings of the tree, every insert
+
+**Correction, 2026-09-23:** "one extra tree walk" undersold it. The diff above
+lists the whole tree twice per insert, and on a part of 560 features one
+listing (`GetFeatures` plus a name and a type per feature) took **3.7 s**; the
+rename after it walked the tree again by name, **2.9 s**. So each insert cost
+about 10 s of bookkeeping around 1 s of SolidWorks work, and a 48-curve push
+took nine minutes.
+
+The same "exactly one new feature, and which" check costs a hundredth of a
+second with a count and the document's own record of what it last added:
+
+```python
+def _feature_count(self) -> int:
+    return int(call(self._active(), "GetFeatureCount"))
+
+def _made_since(self, before: int) -> List[str]:
+    """What the call since ``before`` was counted made, as names. Of more than
+    one new feature only the last is known by name; the rest are only counted."""
+    added = self._feature_count() - before
+    if added <= 0:
+        return []
+    last = call(call(self._active(), "Extension"), "GetLastFeatureAdded")
+    name = str(call(last, "Name")) if last is not None else ""
+    if not name:
+        raise SolidWorksError("SolidWorks added a feature but would not say which.")
+    return [""] * (added - 1) + [name]
+
+def insert_curve(self, path: str, name: str) -> str:
+    doc = self._active()
+    before = self._feature_count()
+    if not call(doc, "InsertCurveFile", os.path.abspath(path)):
+        raise SolidWorksError(f"SolidWorks refused to import {path}.")
+    created = self._made_since(before)
+    if len(created) != 1:
+        raise SolidWorksError(
+            f"Importing {os.path.basename(path)} added {len(created)} features, "
+            "so which one it is cannot be told."
+        )
+    return self.rename_feature(created[0], name)
+```
+
+`GetFeatureCount` is on **IModelDoc2** and `GetLastFeatureAdded` on
+**IModelDocExtension**. Observed on SolidWorks 2026 SP0.0 (revision 34.0.0),
+2026-09-23, on a copy of a 559-feature part: after `InsertCurveFile` with the
+tree forward, the count went 552 → 553 and `GetLastFeatureAdded` named the new
+curve (`Curve122`) in 0.010 s; with the bar rolled back to just after another
+curve, the count went 552 → 553 again and it named the new one (`Curve123`),
+which a full listing confirmed sat directly after the bar. A diff of the full
+listing agreed both times. The same pair replaced the diff after
+`InsertCompositeCurve`, both lofts, `InsertPlanarRefSurface` and
+`InsertSewRefSurface` in the Airfoil Converter, and every one of those was then
+run live: pushes of 48–99 curves and 15–22 joins, solid and capped lofts, with
+no failure. A new 48-curve wing pushed in 83 s where it had taken nine minutes.
+
+`GetFeatureCount` is a different count from the listing's (552 against 559
+on that part — the listing includes sub-features); only its *change* is used.
+What neither call can do is name every feature when one call makes several;
+that is refused rather than guessed, as before.
 
 ## Absolute paths
 
@@ -125,4 +187,5 @@ you only ever delete files a previous manifest says you wrote.
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md)
 - [curves/07 — Rename a feature](07-rename-a-feature.md)
 - [curves/11 — Feature-tree folders](11-feature-tree-folders.md) — gathering what you inserted into a folder
-- [GOTCHAS §3, §11, §14](../../GOTCHAS.md)
+- [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — the one-call lookup the rename uses
+- [GOTCHAS §3, §11, §14, §66](../../GOTCHAS.md)

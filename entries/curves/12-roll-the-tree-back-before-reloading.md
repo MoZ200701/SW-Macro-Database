@@ -4,7 +4,7 @@ title: Roll the tree back before reloading curves, because a reload is charged f
 status: verified
 verified_on: SolidWorks 2026 SP0.0 (revision 34.0.0)
 language: [python]
-api: [IFeatureManager.EditRollback, IModelDoc2.FeatureByPositionReverse, IFeature.IsRolledBack, IFeature.ModifyDefinition, IModelDoc2.EditRebuild3]
+api: [IFeatureManager.EditRollback, IModelDoc2.FeatureByPositionReverse, IFeature.IsRolledBack, IFeature.ModifyDefinition, IModelDoc2.EditRebuild3, IFeatureManager.EnableFeatureTree, IModelView.EnableGraphicsUpdate]
 keywords: [EditRollback, swMoveRollbackBarTo_e, rollback bar, roll back, roll forward, previous position, slow reload, LoadPointsFromFile slow, ModifyDefinition slow, 25 seconds per curve, IsRolledBack, FeatureByPositionReverse, GetRollbackBarPosition, rolled back part, loft with no faces, insert at the bar]
 answers: "Why does reloading each curve take 25 seconds on a big part, and how do I make it half a second?"
 ---
@@ -108,17 +108,41 @@ believe the return value on its own.
 is not reachable through pywin32 late binding at all: attribute access raised
 `AttributeError: <unknown>.GetRollbackBarPosition`.
 
-## New features land at the bar (not observed here)
+## New features land at the bar
 
 A feature made while the tree is rolled back is created **at the bar**, not at
 the end of the tree. That is what you want here — a new curve lands beside the
 curves it belongs with, above the lofts that will use it — and it is why the
 Airfoil Converter inserts as well as reloads inside the rolled-back block.
 
-**Nothing in this campaign actually inserted a curve while rolled back**: every
-run had all 39 curves already in the part, and reported `inserted: 0`. So this
-is how the tool is written and what the bar means, not something watched
-happening. If you rely on it, check where the feature landed.
+*Until 2026-09-23 this was how the tool was written, not something watched.*
+It has since been observed on SolidWorks 2026 SP0.0 (`e56`): with the bar
+rolled back to just after a curve, `InsertCurveFile` made a new curve that a
+full listing of the tree placed **directly after that curve**, and
+`IModelDocExtension.GetLastFeatureAdded` named it
+([curves/02](02-insert-curve-from-file.md)). Inserting at the bar also cost
+less: 1.06 s against 4.4 s with the tree rolled forward, on a 559-feature part.
+
+## What the reload itself costs, part by part
+
+The half a second above was measured on one part. Later measurements, all
+SolidWorks 2026 SP0.0 (2026-09-23, `e59`–`e61`), timing
+`IFeature.ModifyDefinition` alone — finding the feature, `GetDefinition` and
+`LoadPointsFromFile` together took 0.01 s:
+
+| Part | Tree forward | Bar rolled back after the curves |
+|---|---|---|
+| fresh copy of the 397-feature part, one of its own curves | 22.8 s | **0.19 s** |
+| the same copy, a 66-curve wing added at the end | — | 1.98 s each (48 reloads, 95 s) |
+| a copy with eight experimental wings added (632 top-level features) | 12.8 s | **8.4–8.9 s**, wherever the bar was — even directly after the curve itself |
+
+So rolling back is worth doing everywhere, but it is not the whole story: in
+the heavily edited copy a reload cost eight seconds with nothing below it,
+for reasons not found. Switching the tree and graphics off did not help —
+`IFeatureManager.EnableFeatureTree = False`,
+`IFeatureManager.EnableFeatureTreeWindow = False` and
+`IModelView.EnableGraphicsUpdate = False` made the same reload 12.2 s and
+14.8 s, against 9.7 s with them on — so they were put back and not used.
 
 ## The shape that works
 

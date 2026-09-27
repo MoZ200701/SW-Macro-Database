@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026 SP0.0 (revision 34.0.0)
 language: [python]
 api: [IModelDoc2.InsertLoftRefSurface2, IModelDoc2.InsertPlanarRefSurface, IFeatureManager.InsertSewRefSurface, IFeatureManager.InsertFillSurface2, IEntity.Select4, ISelectionMgr.CreateSelectData, IModelDocExtension.SelectByID2, IFeature.GetFaces, IFace2.GetBody, IFace2.GetArea, IBody2.GetEdges, IEdge.GetCurveParams2, IPartDoc.GetBodies2, IBody2.GetMassProperties]
-keywords: [InsertProtrusionBlend2 returns Nothing, loft refused, silent refusal, InsertPlanarRefSurface, planar surface cap, InsertSewRefSurface, knit, sew, SewRefSurface, PlanarSurface, TryToFormSolid, SURFACEBODY, Select4, CreateSelectData, GetEdges, GetCurveParams2, end loop, sliver face, cap area check, solid body count, InsertFillSurface2, VT_ARRAY, composite curve as boundary]
+keywords: [InsertProtrusionBlend2 returns Nothing, six decimals, end section not planar, replace capped loft, delete order, No feature called, loft refused, silent refusal, InsertPlanarRefSurface, planar surface cap, InsertSewRefSurface, knit, sew, SewRefSurface, PlanarSurface, TryToFormSolid, SURFACEBODY, Select4, CreateSelectData, GetEdges, GetCurveParams2, end loop, sliver face, cap area check, solid body count, InsertFillSurface2, VT_ARRAY, composite curve as boundary]
 answers: "SolidWorks refuses my solid loft but makes the surface — how do I get a solid out of it from code?"
 ---
 
@@ -26,8 +26,21 @@ from the other side, and it needs no sketch and no plane.
 Why a solid is refused where the surface is not is in
 [surfacing/03](03-how-a-loft-fills-between-profiles.md) — on the case measured
 here, a single guide curve near the nose split a sliver face off the loft whose
-end loop nothing can close. That entry is also why this recipe drops guides a
-rung at a time when a cap is refused.
+end loop nothing can close. That entry is also why this recipe dropped guides a
+rung at a time when a cap was refused.
+
+> **Update, 2026-09-27: check the curve files' decimals first.** Most of the
+> refusals this recipe was built for were not the sliver at all: the curve
+> files were written to six decimals of a millimetre, and SolidWorks judged
+> their end sections not flat and refused every solid loft ending on them.
+> Written to ten decimals, the same lofts built as solids directly — through
+> two profiles and three guides, and through 22 sections and 33 guides — and
+> a Boss-Loft built that way survived seven later changes of its curves
+> without error ([curves/01](../curves/01-sldcrv-file-format.md)). The recipe
+> below still works and is still the fallback worth having, but the Airfoil
+> Converter no longer drops guides to make it close: a guide ladder hid the
+> cause instead of mending it. It tries the capped surface once, with every
+> guide, and leaves the surface if that does not close.
 
 ## The three steps
 
@@ -125,6 +138,8 @@ def cap_end(self, loft: str, profile: str, name: str) -> str:
         )
     return self.rename_feature(created[0], name)
 ```
+
+*Since 2026-09-23 the Airfoil Converter finds what this made by the feature count and `GetLastFeatureAdded` instead of listing the tree before and after — the same check, a hundredth of a second instead of seconds on a big part; the copy in [`code/python/swcom.py`](../../code/python/swcom.py) is that version. See [curves/02](../curves/02-insert-curve-from-file.md).*
 
 Interfaces and units:
 
@@ -242,6 +257,12 @@ or the curves that composite joins. Both refused in **0.0 s** — no error, just
 `False` or `None` — even over an end loop that was flat to a nanometre. Only
 the loft body's own end edges were accepted.
 
+*Open question (2026-09-27):* those curves were six-decimal files, "flat to a
+nanometre" is that rounding, and SolidWorks is now known to reject such a loop
+as not planar for a loft's end ([curves/01](../curves/01-sldcrv-file-format.md)).
+Whether a planar surface would take a composite of ten-decimal curves was not
+tried. Settling it is one call per decimals setting.
+
 **A cap that spans the wrong thing still answers True.** On the failing case,
 the planar surface across a 4-edge end loop came out as a face of
 **0.078 mm²** where the section encloses **4,046.8 mm²**: a face across a
@@ -273,6 +294,16 @@ bodies, still in the tree. Whatever built them has to delete them itself; the
 Airfoil Converter names all four (`<name>_surface`, `<name>_root_cap`,
 `<name>_tip_cap`, `<name>`) so it can.
 
+**Replacing a capped loft: delete the caps before the surface.** The caps are
+built on the surface's end edges, so deleting the surface takes both caps with
+it. Code that deleted the knit, then the surface, then asked for each cap by
+name got `No feature called '..._root_cap'` and stopped — and the knit was
+already gone, so the part was left with no loft at all. Delete in the reverse
+of building: knit, tip cap, root cap, surface, each only if it is still there.
+Observed on SolidWorks 2026 SP0.0, 2026-09-23 (`e55`, `e57`): with that
+order, a capped loft whose section count had changed was replaced in 43 s and
+came back a solid of the right volume.
+
 **The knit is what carries the body.** For anything that walks "the lofts in
 this part" — suppressing them one at a time to export, say
 ([files/04](../files/04-export-a-body-to-step.md)) — the capped loft's body
@@ -282,10 +313,11 @@ with it.
 
 ## What it does not do
 
-- **It is slow through the app**, 85–206 s for one capped loft on this part,
-  because the surface is lofted more than once: when a cap is refused the
-  guides come off a rung at a time and the surface is built again. The
-  construction on its own — one surface, two caps, one knit — is 30–45 s.
+- **It was slow through the app**, 85–206 s for one capped loft on this part,
+  because the surface was lofted more than once: when a cap was refused the
+  guides came off a rung at a time and the surface was built again. The
+  construction on its own — one surface, two caps, one knit — is 30–45 s, and
+  36–73 s through the app once the ladder was taken out (2026-09-23).
 - Only flat ends were capped. A loft whose end profile is not planar needs the
   fill surface rather than the planar one; that was made to work on this
   geometry but never on a non-planar end.
@@ -356,4 +388,5 @@ and put a suppression back").
 - [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — reading the body this makes
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — writing it out, and what its feature type means there
 - [surfacing/01 — The boundary surface recipe](01-boundary-surface-recipe.md)
-- [GOTCHAS §55, §60, §61](../../GOTCHAS.md)
+- [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md) — the decimals that caused most refusals
+- [GOTCHAS §55, §60, §61, §63, §67](../../GOTCHAS.md)

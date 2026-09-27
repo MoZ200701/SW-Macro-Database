@@ -4,8 +4,8 @@ title: Insert a loft through curves along guide curves, as a hand-made loft woul
 status: partly-verified
 verified_on: SolidWorks 2026 for the solid loft and its settings; the surface fallback's arguments were not examined
 language: [python]
-api: [IFeatureManager.InsertProtrusionBlend2, IModelDoc2.InsertLoftRefSurface2, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, IModelDoc2.ForceRebuild3, ISketchManager.ActiveSketch]
-keywords: [InsertProtrusionBlend2, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order, returns Nothing, silent refusal, solid refused, capped loft]
+api: [IFeatureManager.InsertProtrusionBlend2, IFeature.GetDefinition, IModelDoc2.InsertLoftRefSurface2, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, IModelDoc2.ForceRebuild3, ISketchManager.ActiveSketch]
+keywords: [InsertProtrusionBlend2, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order, returns Nothing, silent refusal, solid refused, capped loft, end sections must be planar, 3D section that does not bound a face, many profiles, BlendRefSurface GetDefinition Nothing, edit a loft's profiles, loft follows reloaded curves]
 answers: "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
 ---
 
@@ -128,6 +128,8 @@ def insert_loft(
     return self.rename_feature(created[0], name)
 ```
 
+*Since 2026-09-23 the Airfoil Converter finds what this made by the feature count and `GetLastFeatureAdded` instead of listing the tree before and after — the same check, a hundredth of a second instead of seconds on a big part; the copy in [`code/python/swcom.py`](../../code/python/swcom.py) is that version. See [curves/02](../curves/02-insert-curve-from-file.md).*
+
 `call`, `_null_dispatch()` and `rename_feature` are the late-bound helper, the
 typed null and the rename-and-read-back from
 [connect/02](../connect/02-attach-from-python.md) and
@@ -233,8 +235,11 @@ Then one `ForceRebuild3(False)` after all the lofts, not one per loft
   [curves/06](../curves/06-composite-curve.md).
 - **Guides very near a sharp corner of a profile break the loft.** See
   [surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md).
-- **The call returns the feature or not, but the name is SolidWorks'.** Diff the
-  tree and rename, as for curves.
+- **The call returns the feature or not, but the name is SolidWorks'.** Find
+  what it made and rename, as for curves — by the feature count and
+  `IModelDocExtension.GetLastFeatureAdded` rather than two listings of the
+  tree, which cost seconds each on a big part
+  ([curves/02](../curves/02-insert-curve-from-file.md)).
 
 **A refused solid says nothing at all.** When `InsertProtrusionBlend2` will
 not make the solid it returns `Nothing`, adds no feature, raises no error and
@@ -242,8 +247,15 @@ puts up no dialog — so the only way to know is the feature-name diff this code
 already does. It takes its time about it, too: 7 to 9.5 seconds to refuse,
 against 10 to 12 to build. On one wing it refused at inward offsets of 1.30,
 1.35 and 1.40 mm and built at 1.25, 1.45, 1.50 and 1.60, from the same code
-with the same settings; the cause turned out to be one guide curve splitting a
-sliver face off the loft ([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)).
+with the same settings. The cause was first put down to one guide curve
+splitting a sliver face off the loft ([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md));
+**on 2026-09-27 the main cause turned out to be the curve files' six
+decimals**, which leave a flat section just far enough off its plane for
+SolidWorks to call it a 3D section ([curves/01](../curves/01-sldcrv-file-format.md)).
+Built by hand in the Loft property page, the same loft does say why, as a
+rebuild error: *"The end sections for a loft must be either planar or 3D faces
+or surfaces. A 3D section that does not bound a face or surface cannot be used
+as an end section."* Written to ten decimals, those lofts built as solids.
 
 **The surface fallback is not a solid.** Falling back to
 `InsertLoftRefSurface2` gets you a surface, which is enough to measure and not
@@ -263,11 +275,29 @@ surface loft call itself is unchanged and is still the first step of that.
 - Only `guide_influence=0` and `keep_tangency=True` were run. Start and end
   constraints, closed lofts, thin lofts, `merge=True` and centreline lofts were
   not tried.
-- More than two profiles: the call takes any number, but every loft measured
-  was two profiles plus guides.
+- More than two profiles: since 2026-09-27 lofts of 16 and 22 profiles with
+  up to 35 guides were built this way, as solids, and measured
+  ([surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md)). The
+  profiles go in at mark 1 in loft order, exactly as for two.
 - Changing an existing loft's profiles or guides from code is not covered.
   Replacing a composite profile makes a new composite that the loft does not
-  use; see [curves/06](../curves/06-composite-curve.md).
+  use; see [curves/06](../curves/06-composite-curve.md). Two things are known:
+  - **A surface loft has no feature data.** `IFeature.GetDefinition` on a
+    `BlendRefSurface` returned `Nothing`, on every one tried; on a solid
+    `Blend` it returned an object. So a surface loft's profile list cannot be
+    edited through its definition at all. Whether a solid loft's can was not
+    tried. Observed on SolidWorks 2026 SP0.0, 2026-09-27 (`e67`), over six
+    solid lofts and three surface lofts in one part.
+  - **Reloading the curves is followed; changing which curves is not.** A
+    Boss-Loft through 21 joined profiles and 3 guides came through seven
+    rounds of reloading every one of its 66 curves in place
+    ([curves/04](../curves/04-reload-curve-in-place.md)) — sections moving
+    along the span each time — with no error and the same volume when the
+    curves came back to where they started (`e82`). The same loft whose
+    curves were reloaded into a *different* set, one profile added or one
+    left behind, went into error (no body) every time (`e55`, `e57`).
+    Keeping the profile count and names constant is what lets a loft follow
+    an edit.
 - Profiles here are reference curves. Sketch profiles are
   [features/07](07-loft-cut.md)'s case, for a cut.
 - The tool's tests exercise the ordering, the fallback and the keep-existing
@@ -294,6 +324,11 @@ profile at its nose, ...").
 - Some solid lofts were refused while the same loft as a surface succeeded.
 - Selecting a just-made curve for a join or a loft sometimes failed until a
   rebuild.
+- 2026-09-27/28, SolidWorks 2026 SP0.0 (revision 34.0.0): solid lofts through
+  16 and 22 profiles with 3 to 35 guides, all built by `insert_loft`; the
+  Loft page's rebuild error text above, read off a screenshot of the page
+  with three six-decimal profiles picked by hand; `GetDefinition` returning
+  `Nothing` on `BlendRefSurface`; a Boss-Loft surviving seven reload rounds.
 
 ## See also
 
@@ -306,4 +341,5 @@ profile at its nose, ...").
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md)
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md) — why selecting mid-sketch is refused
 - [curves/08 — Rebuild once, at the end](../curves/08-rebuild-once-at-the-end.md)
-- [GOTCHAS §49, §50, §51, §52](../../GOTCHAS.md)
+- [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md) — why a flat end can be refused as not flat
+- [GOTCHAS §49, §50, §51, §52, §63, §68](../../GOTCHAS.md)

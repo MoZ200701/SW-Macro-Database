@@ -118,7 +118,7 @@ was tried and refused is recorded as refused rather than left out.
 | `GetEquationMgr` | The Equation Manager, below | Verified, SW 2026 (34.0.0) |
 | `SketchAddConstraints(constant)` | Add a relation to the selected sketch entities, e.g. `"sgTANGENT"` | Verified, SW 2026 (34.0.0) |
 | `AddDimension2(x, y, z)` | Dimension the selection, text at a point in metres; returns an `IDisplayDimension`. On the Top plane an angle placed at a **model-space** point read the angle (GOTCHAS §43) | Verified, SW 2026 (34.0.0) |
-| `GetFeatureCount` | How many features; half of a cheap change key | Verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `GetFeatureCount` | How many features; half of a cheap change key. Its **change** across an insert says how many features the insert made (552 → 553 for one curve, rolled back or not); a different count from a full listing's, which includes sub-features (552 against 559) | Verified, SW 2026, Airfoil Converter 2026-09-16 and 2026-09-23 |
 | `GetUpdateStamp` | A number that moves when the model changes and stood still while it was only orbited; with `GetFeatureCount`, under a millisecond | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | Surface loft through the curves at mark 1 along those at mark 2; returns nothing useful, so judge by the tree. A fallback where a solid was refused; that such a surface was made was observed, the arguments' meanings were not examined | Partly verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `EditRebuild3` | Rebuild what changed. **0.8 s against `ForceRebuild3(False)`'s 25 s** on a 397-feature part, geometry identical to twelve digits. **Returns `False` whenever any feature in the part is in error**, including ones that were already in error, so its answer is not "did not run" (GOTCHAS §58) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
@@ -149,6 +149,7 @@ was tried and refused is recorded as refused rather than left out.
 | `SetUserPreferenceInteger(263, 0, 5)` | Set the document's unit system to MMGS; returned `True` and took | Verified, SW 2026 (34.0.0) |
 | `SaveAs3(path, 0, 1, null, null, out, out)` | Save as, silently. Returned plain `True`, not a tuple. **Overwrites an existing file** | Verified, SW 2026 (34.0.0) |
 | `CreateMassProperty` | An `IMassProperty` for the document | Verified, SW 2026 (34.0.0) |
+| `GetLastFeatureAdded` | The feature the last insert made. Named the new curve in 0.010 s after `InsertCurveFile`, with the tree forward and with the bar rolled back (where the new feature is not the last in the tree). With `GetFeatureCount` either side, replaces diffing two listings of the tree ([curves/02](entries/curves/02-insert-curve-from-file.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
 
 ## IConfigurationManager (from `IModelDoc2.ConfigurationManager`)
 
@@ -170,6 +171,7 @@ was tried and refused is recorded as refused rather than left out.
 |---|---|---|
 | `GetBodies2(0, False)` / `GetBodies2(1, False)` | Solid bodies, and sheet bodies. `swBodyType_e` **0 solid, 1 sheet**. The count either side of a call is what says whether it made a body | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetPartBox(useSystemUnits)` | Axis-aligned bounding box, `x1,y1,z1,x2,y2,z2`. **`true` is metres, `false` converts to the document's units** | Verified, SW 2026 SP1.1 |
+| `FeatureByName(name)` | A feature by name in one call: 0.01 s against 2.9 s for a walk of 559 features, and it found a curve inside a feature-tree folder. Reached on the `IModelDoc2` through late binding ([connect/08](entries/connect/08-find-a-feature-by-name.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
 
 ## IEquationMgr (from `IModelDoc2.GetEquationMgr`)
 
@@ -204,7 +206,7 @@ was tried and refused is recorded as refused rather than left out.
 |---|---|---|
 | `InsertFeatureTreeFolder2(type)` | Folder around the current selection. Pass `2`; see the constants below | Verified, SW 2026 |
 | `MoveToFolder(folder, feature, moveAfter)` | Would add a feature to an existing folder. **Returned `False` and did nothing, every way it was tried** | Verified not to work, SW 2026 |
-| `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed | Verified, SW 2026 |
+| `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed. Set `False` (with `EnableFeatureTreeWindow = False`), a curve reload's `ModifyDefinition` took 12.2 s against 9.7 s with it on: no help there ([curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md)) | Verified, SW 2026; set, SW 2026 SP0.0 2026-09-23 |
 | `FeatureExtrusion3` (23 arguments) | Blind boss from the selected sketch, depth in metres; returns the feature | Verified, SW 2026 (34.0.0) |
 | `FeatureCut4` (27 arguments) | Cut from the selected sketch. **Through all in the default direction returned `None`**; both directions (end condition 9) cut | Verified, SW 2026 (34.0.0) |
 | `FeatureCircularPattern5` (14 arguments) | Pattern the feature at mark 4 about the axis at mark 1; two `"NULL"` strings. On twisted cuts the fifth argument (geometry pattern) `True` made the same solid and rebuilt in about half the time (helical runs 2026-09-15) | Verified, SW 2026 (34.0.0) |
@@ -241,9 +243,10 @@ was tried and refused is recorded as refused rather than left out.
 | `Name` | Read and write. **Read it back after writing** | Verified |
 | `GetNextFeature` | Next sibling in the tree | Verified |
 | `GetTypeName2` | Type string, e.g. `"CurveInFile"`, `"CompositeCurve"` | Verified |
-| `GetDefinition` | Feature data you can modify | Verified |
+| `GetDefinition` | Feature data you can modify. **Returns `Nothing` on a surface loft (`BlendRefSurface`)**, an object on a solid loft (`Blend`) — so a surface loft's profiles cannot be edited through it (GOTCHAS §68) | Verified; `Nothing` on `BlendRefSurface`, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
 | `ModifyDefinition(data, doc, component)` | Commit modified feature data | Verified, SW 2026 |
 | `GetSpecificFeature2` | The concrete feature behind a reference plane; on an `FtrFolder`, the `IFeatureFolder`; on a sketch feature, the `ISketch` | Verified |
+| `GetParents` | The features this one is built on. On a composite curve, the curves it joins, in **0.001 s** and without the rollback `AccessSelections` makes (12.9 s); order not promised, so compare as a set ([curves/06](entries/curves/06-composite-curve.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
 | `Select2(append, mark)` | Select this feature. Works where `SelectByID2` with `"BODYFEATURE"` returned `False`. Judge by the selection count | Verified, SW 2026 |
 | `ListExternalFileReferences2` | External references of one feature | Unverified |
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration, to export one loft at a time. In the code whose STEP files were measured, but whether it accepted the bare `None` and isolated the body was not recorded | Unverified, Airfoil Converter 2026-09-16 |
@@ -358,6 +361,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `Select4(append, selectData)` | IEntity (an IEdge here) | Add an edge to the selection; `selectData` from `ISelectionMgr.CreateSelectData`, no mark needed. **The only route for an edge**, which has no name for `SelectByID2` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetTessTriangles(True)` | IFace2 | The face's tessellation, a flat array of doubles, three per vertex, **in metres** with `True`. **Comes back as an uncalled method object** (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetClosestPointOn(x, y, z)` | IFace2 | The nearest point of that face to a point, **metres in and out**, first three items. Per face, so a distance to a body is the minimum over its faces. Checked by measuring a point back to its own face: 0.000000 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetFirstSegment` / `GetNextSegment` | IReferenceCurve (from `GetSpecificFeature2` on a `CurveInFile` or `CompositeCurve`) | The curve's edges in order: one for an imported curve, one per piece for a composite. `GetCurveParams2` on each gave its ends; a composite's pieces met end to end to 0.0 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
+| `GetTessPts(chordTol, lengthTol, start, end)` | ICurve | Points along the curve SolidWorks drew, **metres**, three per point; tolerances in metres (1e-7 and 1e-8 used), `start`/`end` from `GetCurveParams2`. How a drawn section was checked flat (5–9e-7 mm off its plane at six decimals) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
+| `EnableGraphicsUpdate` | IModelView (from `IModelDoc2.ActiveView`) | Set `False` around a curve reload: it did not make `ModifyDefinition` faster (14.8 s against 9.7 s); put back `True` | Set, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
 
 ## IMassProperty (from `IModelDocExtension.CreateMassProperty`)
 

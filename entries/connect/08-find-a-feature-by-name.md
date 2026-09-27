@@ -4,8 +4,8 @@ title: Find a feature by name in the tree
 status: verified
 verified_on: SolidWorks 2026
 language: [vbscript, python]
-api: [IModelDoc2.FirstFeature, IFeature.GetNextFeature, IFeature.Name, IFeature.GetFirstSubFeature, IFeature.GetNextSubFeature]
-keywords: [feature tree, walk features, FirstFeature, GetNextFeature, find feature, GetFirstSubFeature, GetNextSubFeature, sub-feature, absorbed sketch, repeated names]
+api: [IPartDoc.FeatureByName, IModelDoc2.FirstFeature, IFeature.GetNextFeature, IFeature.Name, IFeature.GetFirstSubFeature, IFeature.GetNextSubFeature]
+keywords: [feature tree, walk features, FirstFeature, GetNextFeature, find feature, GetFirstSubFeature, GetNextSubFeature, sub-feature, absorbed sketch, repeated names, FeatureByName, fast lookup, feature in a folder]
 answers: "How do I get an IFeature by its name so I can modify or reference it?"
 ---
 
@@ -37,9 +37,19 @@ End Function
 
 ## Python
 
+On a part, ask for it by name first; walk only if that is not available:
+
 ```python
-def _curve_feature(self, name):
+def _curve_feature(self, name: str) -> Any:
     doc = self._active()
+    # A part answers by name in one call: a hundredth of a second, against
+    # three for the walk below on a part of 560 features.
+    try:
+        found = call(doc, "FeatureByName", name)
+    except Exception:  # noqa: BLE001 - the walk below always works
+        found = None
+    if found is not None and str(call(found, "Name")) == name:
+        return found
     feature = call(doc, "FirstFeature")
     guard = 0
     while feature is not None and guard < 5000:
@@ -49,6 +59,20 @@ def _curve_feature(self, name):
         feature = call(feature, "GetNextFeature")
     raise SolidWorksError(f"No feature called {name!r} is in {call(doc, 'GetTitle')}.")
 ```
+
+`FeatureByName` is on **IPartDoc** (the part's document; through late binding
+it answers on the `IModelDoc2` you already hold). On SolidWorks 2026 SP0.0,
+2026-09-23 (`e59`), on a copy of a 559-feature part: the walk above found a
+curve in **2.92 s**; `FeatureByName` found the same curve in **0.01 s**, and
+found a curve that sits **inside a feature-tree folder** in under 0.01 s too,
+which a top-level walk does not reach. The name is checked on the way out
+because the walk's own caveats about names (below) apply to what you asked
+for, not to how it was found. The Airfoil Converter looks every feature up
+this way since commit `d155c6d`; a push of 99 curves made 76 such lookups in
+1.0 s in total.
+
+The assembly equivalent, `IAssemblyDoc.FeatureByName`, is only partly
+verified — see [API-LEDGER](../../API-LEDGER.md).
 
 ## Things worth knowing
 
@@ -184,7 +208,9 @@ survives renaming, use a persistent reference:
 - [reading/07 — Report the feature type on failure](../reading/07-report-feature-type-on-failure.md)
 - [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — selecting a found feature with `IFeature.Select2`
 - [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) — a feature's dimensions include those of the sketch under it
-- [GOTCHAS §37](../../GOTCHAS.md)
+- [curves/02 — Insert a curve from a file](../curves/02-insert-curve-from-file.md) — naming what an insert made, without a walk
+- [reading/12 — Snapshot suppression](../reading/12-snapshot-suppression-before-you-suppress.md) — a full walk that repeated the tail of the tree until it was fixed
+- [GOTCHAS §37, §66](../../GOTCHAS.md)
 - [assemblies/02 — Mates from code](../assemblies/02-mates-from-code.md) — walking sub-features to find a mate
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — a feature walk that reads each feature's dimensions
 - [reading/11 — Cheap change detection](../reading/11-cheap-change-detection.md) — `IFeatureManager.GetFeatures` lists every feature in one call, and why a walk every second is too slow

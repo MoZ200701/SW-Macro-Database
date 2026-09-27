@@ -383,6 +383,7 @@
         "python"
       ],
       "api": [
+        "IPartDoc.FeatureByName",
         "IModelDoc2.FirstFeature",
         "IFeature.GetNextFeature",
         "IFeature.Name",
@@ -399,7 +400,10 @@
         "GetNextSubFeature",
         "sub-feature",
         "absorbed sketch",
-        "repeated names"
+        "repeated names",
+        "FeatureByName",
+        "fast lookup",
+        "feature in a folder"
       ],
       "answers": "How do I get an IFeature by its name so I can modify or reference it?"
     },
@@ -546,7 +550,9 @@
       ],
       "api": [
         "IModelDoc2.InsertCurveFile",
-        "IFeature.Name"
+        "IFeature.Name",
+        "IModelDoc2.GetFeatureCount",
+        "IModelDocExtension.GetLastFeatureAdded"
       ],
       "keywords": [
         "InsertCurveFile",
@@ -656,7 +662,8 @@
         "IModelDoc2.ClearSelection2",
         "AccessSelections",
         "GetEntitiesToJoin",
-        "ReleaseSelectionAccess"
+        "ReleaseSelectionAccess",
+        "IFeature.GetParents"
       ],
       "keywords": [
         "InsertCompositeCurve",
@@ -677,7 +684,10 @@
         "ReleaseSelectionAccess",
         "rolls the tree back",
         "IsRolledBack",
-        "method object never ran"
+        "method object never ran",
+        "GetParents",
+        "which curves a composite joins",
+        "slow composite read"
       ],
       "answers": "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
     },
@@ -831,7 +841,9 @@
         "IModelDoc2.FeatureByPositionReverse",
         "IFeature.IsRolledBack",
         "IFeature.ModifyDefinition",
-        "IModelDoc2.EditRebuild3"
+        "IModelDoc2.EditRebuild3",
+        "IFeatureManager.EnableFeatureTree",
+        "IModelView.EnableGraphicsUpdate"
       ],
       "keywords": [
         "EditRollback",
@@ -1438,6 +1450,7 @@
       ],
       "api": [
         "IFeatureManager.InsertProtrusionBlend2",
+        "IFeature.GetDefinition",
         "IModelDoc2.InsertLoftRefSurface2",
         "IModelDocExtension.SelectByID2",
         "IModelDoc2.ClearSelection2",
@@ -1466,7 +1479,13 @@
         "returns Nothing",
         "silent refusal",
         "solid refused",
-        "capped loft"
+        "capped loft",
+        "end sections must be planar",
+        "3D section that does not bound a face",
+        "many profiles",
+        "BlendRefSurface GetDefinition Nothing",
+        "edit a loft's profiles",
+        "loft follows reloaded curves"
       ],
       "answers": "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
     },
@@ -1965,7 +1984,8 @@
         "IFeature.IsSuppressed",
         "IModelDoc2.FirstFeature",
         "IFeature.GetNextFeature",
-        "IFeature.GetFirstSubFeature"
+        "IFeature.GetFirstSubFeature",
+        "IFeature.GetNextSubFeature"
       ],
       "keywords": [
         "SetSuppression2",
@@ -2352,7 +2372,20 @@
         "drop a guide",
         "2% guide",
         "tip loop",
-        "end loop edge count"
+        "end loop edge count",
+        "many profiles",
+        "loft through sections",
+        "sections and guides",
+        "guide zigzag",
+        "nearest point",
+        "guide meets every section",
+        "point number guide",
+        "inserted guide point",
+        "nose cut into two curves",
+        "zero curvature at spline end",
+        "wedge nose",
+        "six decimals",
+        "not planar"
       ],
       "answers": "If I loft two profiles along guide curves, how far does SolidWorks' surface stray from the shape I meant, and how does that change as I add guides?"
     },
@@ -2384,6 +2417,11 @@
       ],
       "keywords": [
         "InsertProtrusionBlend2 returns Nothing",
+        "six decimals",
+        "end section not planar",
+        "replace capped loft",
+        "delete order",
+        "No feature called",
         "loft refused",
         "silent refusal",
         "InsertPlanarRefSurface",

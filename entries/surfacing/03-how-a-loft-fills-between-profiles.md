@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [n/a]
 api: []
-keywords: [loft accuracy, loft deviation, guide curves, number of guides, accuracy versus guides, guide spacing, sag between guides, linear blend, chordwise stretch, section scaling, taper, sharp corner, guide near corner, loft fails, dome, STEP measurement, 0.05 mm, sliver face, extra face, one guide too many, solid loft refused, drop a guide, 2% guide, tip loop, end loop edge count]
+keywords: [loft accuracy, loft deviation, guide curves, number of guides, accuracy versus guides, guide spacing, sag between guides, linear blend, chordwise stretch, section scaling, taper, sharp corner, guide near corner, loft fails, dome, STEP measurement, 0.05 mm, sliver face, extra face, one guide too many, solid loft refused, drop a guide, 2% guide, tip loop, end loop edge count, many profiles, loft through sections, sections and guides, guide zigzag, nearest point, guide meets every section, point number guide, inserted guide point, nose cut into two curves, zero curvature at spline end, wedge nose, six decimals, not planar]
 answers: "If I loft two profiles along guide curves, how far does SolidWorks' surface stray from the shape I meant, and how does that change as I add guides?"
 ---
 
@@ -116,7 +116,19 @@ point spacing at the nose (six different edits, including resampling the nose
 as a proper arc — identical outcomes), the nose corner angle, the
 trailing-edge corners, planarity (both end profiles flat to 1e-6 mm), the
 guides as such (it refused with **none**), keep-tangency, non-rational,
-tessellation factor and merge. The tip loop on its own could not bound a solid
+tessellation factor and merge.
+
+> **Correction, 2026-09-27: planarity was not ruled out — it was the main
+> cause.** "Flat to 1e-6 mm" is the rounding of a six-decimal curve file, and
+> SolidWorks' test for a flat loft end is stricter than that. The same
+> sections written to ten decimals lofted as solids: the root-and-tip loft at
+> 1.35 mm with the three edge guides, refused at six decimals, built; with 31
+> guides (the two 2 % guides left out) it built too. That is also why it
+> "refused with none", and why the tip loop could not loft even "as a prism
+> of itself". See [curves/01](../curves/01-sldcrv-file-format.md). The sliver
+> below is real, but it is a second, smaller cause: at ten decimals the loft
+> with **all 33** guides was still refused, and its surface still had four
+> faces. The tip loop on its own could not bound a solid
 even as a **prism of itself** — lofted to a translated copy, no guides — and the
 splines SolidWorks fitted at its nose crease were indistinguishable from a
 passing offset's at 1 µm, sampled with `ICurve.Evaluate2`.
@@ -163,6 +175,69 @@ is the return value:
 
 Why this guide, at this offset band, was not established. It would take the
 same loft at finer offset steps with the nose curvature measured alongside.
+What was established later is that it only bites a **two-profile** loft: the
+same 2 % guides, made to meet each of 22 sections at a point of their own,
+lofted as a solid (next section).
+
+## Many profiles, and guides that meet every one
+
+The measurements above are two-profile lofts. On 2026-09-27 the same wing and
+its 1.35 mm offset were lofted through **many sections** — 16 for the wing, 22
+for the offset, placed where the shape is planned to change — with guides, and
+compared with the two-profile lofts from STEP (read with OpenCascade, exact
+distance from ~43,700 points on the inner skin to the outer skin; each version
+lofting both wings in a clean part):
+
+| Both wings lofted through… | wall within ±0.05 mm | 1 %–99 % of the wall | thinnest | inner / outer loft vs intended, p99 |
+|---|---|---|---|---|
+| root and tip + 33 / 35 guides (six-decimal files, the inner as a surface) | 91.0 % | 1.241–1.435 mm | 1.092 | 0.066 / 0.066 mm |
+| outer: root and tip + 35 guides; inner: 22 sections + 3 edge guides | 96.5 % | 1.296–1.409 | 1.275 | 0.026 / 0.066 |
+| both: sections + 3 edge guides only | 97.1 % | 1.296–1.404 | 1.256 | 0.026 / 0.068 |
+| **both: sections + all guides** | **99.9 %** | **1.345–1.355** | 1.313 | **0.005 / 0.004** |
+
+So sections alone help the offset but not the outer wing, whose between-guide
+sag is untouched by the three edge guides; sections **and** surface guides
+together hold both lofts to 0.005 mm over 99 % of their skin. All of the
+section lofts were Boss-Loft solids through `InsertProtrusionBlend2`, with the
+curves written to ten decimals. The 1.60 mm maximum in every row is a blunt
+trailing edge that is meant to be thicker there.
+
+Three things had to be right for SolidWorks to take it:
+
+**Every guide has to meet every section at a point that section actually has,
+and at the same place on each.** Guides first built by landing on each
+section's point *nearest* their chord fraction were a millimetre or more off
+that fraction where the section's points are sparse; between two sections a
+tenth of a millimetre apart that is a chordwise zigzag, visible as kinks where
+the guides cross the sections. With 22 such sections, **any two** surface
+guides made SolidWorks refuse the loft — even as a **surface** — while one
+alone (`upper_50`) built. Two constructions fixed it:
+
+- where every section is drawn with the same numbered points (a blend of
+  resampled ribs), a guide that follows **one point number** through every
+  section — exact on each, and as smooth along the span as the shape;
+- where the sections have no numbering in common (offset outlines), a point
+  **inserted into each section** at the guide's exact chord fraction, on the
+  straight between two of its points (well under a micrometre off the curve
+  where the points are dense), and the guide run through those.
+
+With either, all 33 guides — the 2 % pair included — lofted as a solid through
+22 sections.
+
+**A round nose must not be cut into two curves.** Cutting each of the wing's
+own sections at the nose into upper and lower curves, joined, made the outer
+loft **0.36 mm** off at the nose (p99) and pinched its volume by 0.5 %: each
+half of a Curve Through XYZ Points is a natural spline, which ends with **zero
+curvature** ([curves/01](../curves/01-sldcrv-file-format.md)), so a round nose
+drawn as two halves comes out a wedge. Drawn as one curve round the nose, as a
+rib is, it was within 0.004 mm. An offset section whose nose is a real
+**crease** is the opposite case and is cut there on purpose
+([curves/06](../curves/06-composite-curve.md)); its points are also packed
+tight at the nose, and it measured within 0.005 mm cut.
+
+**Profiles have to be cut into the same number of pieces**, as before: a
+blunt-edged section as one curve plus its edge line, joined; every section
+alike.
 
 
 ## Guide order
@@ -175,8 +250,9 @@ comparing runs. See [features/12](../features/12-guided-loft.md).
 
 - **One case.** A single wing and its offset skin; the numbers above are data
   points for that shape, not a guide count to rely on elsewhere.
-- **Only two-profile lofts were measured.** With more profiles, the span-wise
-  blend is presumably no longer a straight line between two; not tested.
+- **Many-profile lofts were measured on one wing only** (16 and 22 sections,
+  above). How SolidWorks blends between more than two profiles was not
+  modelled separately; only the result was measured.
 - Only guide influence "To next guide", Maintain tangency on, no end
   constraints. Other settings may shape it differently.
 - The Boundary Surface feature was not measured this way; this is Loft only.
@@ -235,6 +311,21 @@ guide), carried into the Airfoil Converter by commits `1bdec01`, `7caf687` and
   1.35 but accepted at 1.40 (2,508,068.0 mm³) and 1.45 (2,486,953.2) once
   `_lower_02` was dropped.
 
+The corrections and the many-profile results: SolidWorks 2026 SP0.0 (revision
+34.0.0), 2026-09-27 and 28, new parts and copies of the same real part,
+experiments `e73` (neighbouring section pairs at six decimals: 9 of 22
+refused as ends), `e78`, `e79` (the same at ten decimals: every pair solid,
+the 22-section loft solid with none and with three edge guides, refused with
+all 33 nearest-point guides), `e80` (any two nearest-point surface guides
+refused, even as a surface; `upper_50` alone solid), `e81` (root and tip at
+1.35 mm: six decimals refused with 3, 31 and 33 guides; ten decimals solid
+with 3 and 31, refused with 33, surface 4 faces), `e85` (the four versions
+in the table, each by its own code: the Airfoil Converter's v1.5 at
+`97e369d`, v1.7 at `8555d5f`, and the sections-and-guides variants), `e86`
+(outer sections cut at the nose: wall min 0.0015 mm, outer p99 0.364 mm)
+and `e87` (the last row, built and lofted by the Airfoil Converter's own code,
+commit `ef16606`).
+
 ## See also
 
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the call and its settings
@@ -244,4 +335,4 @@ guide), carried into the Airfoil Converter by commits `1bdec01`, `7caf687` and
 - [surfacing/01 — The boundary surface recipe](01-boundary-surface-recipe.md)
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — how the lofts were got out to be measured
 - [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — the same wall measured without leaving SolidWorks
-- [GOTCHAS §50, §52](../../GOTCHAS.md)
+- [GOTCHAS §50, §52, §63, §64, §65](../../GOTCHAS.md)
