@@ -1,13 +1,69 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 73,
+  "count": 75,
   "by_status": {
     "partly-verified": 9,
     "unverified": 3,
-    "verified": 61
+    "verified": 63
   },
   "entries": [
+    {
+      "id": "appearance-01-read-and-remove-a-part-appearance",
+      "title": "Read a part's appearance, and remove one applied at the part level",
+      "path": "entries/appearance/01-read-and-remove-a-part-appearance.md",
+      "category": "appearance",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (revision 32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDoc2.MaterialPropertyValues",
+        "IModelDocExtension.GetRenderMaterials2",
+        "IModelDocExtension.GetRenderMaterialsCount2",
+        "IRenderMaterial.FileName",
+        "IRenderMaterial.Specular",
+        "IRenderMaterial.Reflectivity",
+        "IRenderMaterial.Transparency",
+        "IRenderMaterial.GetEntitiesCount",
+        "IRenderMaterial.GetMaterialIds",
+        "IRenderMaterial.MaterialID",
+        "IModelDocExtension.DeleteDisplayStateSpecificRenderMaterial",
+        "IBody2.MaterialPropertyValues2",
+        "IModelView.DisplayMode"
+      ],
+      "keywords": [
+        "appearance",
+        "transparent",
+        "transparency",
+        "see-through",
+        "glossy",
+        "shiny",
+        "reflective",
+        "reflectivity",
+        "specular",
+        "color.p2m",
+        "p2m",
+        "render material",
+        "RenderMaterial",
+        "MaterialPropertyValues",
+        "remove appearance",
+        "delete appearance",
+        "DisplayManager",
+        "display state",
+        "swDisplayStateOpts_e",
+        "swThisDisplayState",
+        "swViewDisplayMode_e",
+        "ShadedWithEdges",
+        "GetMaterialIds",
+        "DeleteDisplayStateSpecificRenderMaterial",
+        "two arrays",
+        "returns False",
+        "bool object is not callable"
+      ],
+      "answers": "Why does my whole part look transparent or glossy, and how do I find and remove the appearance doing it from code?"
+    },
     {
       "id": "assemblies-01-new-assembly-and-insert-components",
       "title": "Make an assembly and insert saved parts as components",
@@ -233,6 +289,9 @@
         "ReleaseSelectionAccess",
         "AddBodies",
         "bool object is not callable",
+        "DeleteDisplayStateSpecificRenderMaterial",
+        "GetIDsOfNames",
+        "member exists",
         "PyInstaller",
         "hidden-import",
         "onefile exe",
@@ -506,6 +565,41 @@
         "cleanup"
       ],
       "answers": "How do I find out whether a SolidWorks API call really works before my tool depends on it?"
+    },
+    {
+      "id": "connect-12-read-the-api-help-offline",
+      "title": "Read the SolidWorks API help offline, from the installed .chm files",
+      "path": "entries/connect/12-read-the-api-help-offline.md",
+      "category": "connect",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 install, Windows 11, driven from WSL2",
+      "language": [
+        "shell",
+        "powershell"
+      ],
+      "api": [],
+      "keywords": [
+        "API help",
+        "documentation",
+        "chm",
+        "sldworksapi.chm",
+        "swconst.chm",
+        "apihelp.chm",
+        "hh.exe",
+        "decompile",
+        "help.solidworks.com",
+        "empty page",
+        "JavaScript",
+        "enum values",
+        "swconst",
+        "signature",
+        "Remarks",
+        "offline docs",
+        "spaces in path",
+        "Start-Process",
+        "silent failure"
+      ],
+      "answers": "The online API help comes back empty to my fetch tool. How do I read a member's signature, remarks or an enum's values from the docs installed with SolidWorks?"
     },
     {
       "id": "curves-01-sldcrv-format",

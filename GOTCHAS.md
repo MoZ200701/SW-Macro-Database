@@ -30,6 +30,19 @@ name `SolidWorks_PID_<pid>`, which is the same across versions. See
 **The general lesson:** a COM failure that looks like an environment or
 elevation problem can just be a ProgID resolving to the wrong install.
 
+**It happens in the other direction too.** On a machine with 2024, 2025 and
+2026 installed and only 2024 running, the unversioned ProgID resolved to the
+**2026** class id (`{666aaee2-…}`, the same as `SldWorks.Application.34`).
+From PowerShell, `[Marshal]::GetActiveObject("SldWorks.Application")` failed
+with **`0x800401E3 MK_E_UNAVAILABLE`**, "Operation unavailable", while
+`GetActiveObject("SldWorks.Application.32")` attached. Whichever version
+registered last wins the unversioned name; do not assume it is the newest or
+the oldest. The ROT moniker attached on the first try.
+
+One attempt with `.32` failed earlier in the same session, before it later
+worked, and its error message came back empty, so why it failed is not known.
+SolidWorks 2024 SP5 (32.5.0), 2026-10-01.
+
 ## 2. The API is in metres, always
 
 The file format takes a `mm` suffix and honours it. The API does not take
@@ -723,6 +736,12 @@ called with its bodies at all (`'bool' object is not callable`). Where a member
 both takes arguments and might be exposed as a property, check the effect.
 SolidWorks 2026 SP0.0. See [connect/02](entries/connect/02-attach-from-python.md).
 
+The same happened to `IModelDocExtension.DeleteDisplayStateSpecificRenderMaterial`
+on SolidWorks 2024 SP5 (32.5.0): one argument-less run that deleted nothing,
+then `'bool' object is not callable`. Invoking its dispid with
+`pythoncom.DISPATCH_METHOD`, as in §39, made it take its arguments and work.
+See [appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
+
 ## 56. Reloading a curve is charged for the whole tree below it
 
 `IFeature.ModifyDefinition` after `LoadPointsFromFile` cost **25 seconds per
@@ -890,3 +909,35 @@ through `IFeature.Name` do not appear at all, a STEP export through
 `IModelDocExtension.SaveAs` with the copy option appears as `Part.Save3`, and
 only the current and previous sessions are kept. SolidWorks 2026 SP0.0. See
 [reading/14](entries/reading/14-the-journal-records-api-calls.md).
+
+## 70. `DeleteDisplayStateSpecificRenderMaterial` wants two arrays, and says only `False`
+
+`IModelDocExtension.DeleteDisplayStateSpecificRenderMaterial` takes the first
+IDs of the appearances to delete as one array and their second IDs as another,
+the two IDs coming from `IRenderMaterial.GetMaterialIds(out, out)`. Passed one
+array holding both, `[11, 0]`, it returned `False` and deleted nothing. Passed
+`[11]` and `[0]` it returned `True` and the appearance was gone. Reached by
+attribute access it also runs once with no arguments first (§55). SolidWorks
+2024 SP5 (32.5.0). See
+[appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
+
+## 71. Zeroing an appearance's transparency does not make the part look like the others
+
+A part whose every body drew see-through had a `color.p2m` appearance applied
+to the whole part, at transparency 0.75. With the transparency set to 0 in
+SolidWorks the part still looked glossy and unlike the user's other parts.
+Those parts had **no applied appearance at all**, and the odd one's carried
+reflectivity 0.15. Removing the appearance, rather than editing it, gave the
+same values as the other parts. Compare `GetRenderMaterialsCount2` on a part
+that looks right before editing anything. SolidWorks 2024 SP5 (32.5.0). See
+[appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
+
+## 72. `hh.exe -decompile` made nothing from the `.chm`'s install path, and said nothing
+
+Unpacking `sldworksapi.chm` from
+`C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS (2)\api\` gave an empty output
+folder three ways, with no error. Copied to `%TEMP%\swapi.chm` first, it
+unpacked to 17,392 files. The spaces and brackets in the install path are
+the likely cause, being the one thing that changed; that was not isolated
+further. Count the files afterwards; an empty folder is the only sign. See
+[connect/12](entries/connect/12-read-the-api-help-offline.md).

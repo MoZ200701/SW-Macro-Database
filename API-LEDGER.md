@@ -55,6 +55,13 @@ were carried into the Airfoil Converter's v1.6 and v1.7 releases (commits
 f63df5d, 0db0d66, 8566952, a2c1914, 1bdec01, 7caf687, 8555d5f). A member that
 was tried and refused is recorded as refused rather than left out.
 
+Rows marked "SW 2024 (32.5.0), 2026-10-01" come from one session on SolidWorks 2024 SP5 (revision
+32.5.0), Windows Python 3.13 with pywin32 launched from WSL, attached through
+the ROT moniker, reading a user's open parts and removing one appearance. The
+evidence is in
+[appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
+A member found to exist with `GetIDsOfNames` but never run is unverified.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -83,6 +90,7 @@ was tried and refused is recorded as refused rather than left out.
 | `ActivateDoc3(title, False, 0, out long)` | Bring an open document to the front; returned the document, not a tuple | Verified, SW 2026 (34.0.0) |
 | `GetUserPreferenceToggle` / `SetUserPreferenceToggle(10, bool)` | `swInputDimValOnCreate`: turn off the modal value dialog around `AddDimension2`, then restore | Verified, SW 2026 (34.0.0) |
 | `GetMathUtility` | The `IMathUtility`, below | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+| `GetDocuments` | Every open document in one call, as a tuple: listed seven parts and an assembly | Verified, SW 2024 (32.5.0), 2026-10-01 |
 
 ## IModelDoc2 (a part, assembly or drawing)
 
@@ -114,6 +122,10 @@ was tried and refused is recorded as refused rather than left out.
 | `GetType` | 1 part, 2 assembly | Verified, SW 2026 (34.0.0) |
 | `GetPathName` | Full path; empty until saved; follows a `SaveAs3` | Verified, SW 2026 (34.0.0) |
 | `GetSaveFlag` | Whether the document has unsaved changes | Verified, SW 2026 (34.0.0) |
+| `MaterialPropertyValues` (read) | Nine doubles, `[R, G, B, Ambient, Diffuse, Specular, Shininess, Transparency, Emission]` (order from the API help). Read on a part with no applied appearance and on one with `color.p2m` applied; index 7 matched the appearance's transparency | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `ActiveView` | The `IModelView`, for `DisplayMode` below | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `GetMaterialPropertyName2(config, "")` | **Raised `Type mismatch` (-2147352571)** on every part, reached on the `IModelDoc2` through late binding. The second parameter is an out parameter; a by-reference variant was not tried | Verified not to work with those arguments, SW 2024 (32.5.0), 2026-10-01 |
+| `GraphicsRedraw2()` | Redraw. Ran without error after deleting an appearance; whether it was needed was not tested | Ran, SW 2024 (32.5.0), 2026-10-01 |
 | `SaveAs3(path, 0, 1)` | Save as. **Returned `0` while the file was written**; see the extension's form | Verified, SW 2026 (34.0.0) |
 | `GetEquationMgr` | The Equation Manager, below | Verified, SW 2026 (34.0.0) |
 | `SketchAddConstraints(constant)` | Add a relation to the selected sketch entities, e.g. `"sgTANGENT"` | Verified, SW 2026 (34.0.0) |
@@ -150,6 +162,10 @@ was tried and refused is recorded as refused rather than left out.
 | `SaveAs3(path, 0, 1, null, null, out, out)` | Save as, silently. Returned plain `True`, not a tuple. **Overwrites an existing file** | Verified, SW 2026 (34.0.0) |
 | `CreateMassProperty` | An `IMassProperty` for the document | Verified, SW 2026 (34.0.0) |
 | `GetLastFeatureAdded` | The feature the last insert made. Named the new curve in 0.010 s after `InsertCurveFile`, with the tree forward and with the bar rolled back (where the new feature is not the last in the tree). With `GetFeatureCount` either side, replaces diffing two listings of the tree ([curves/02](entries/curves/02-insert-curve-from-file.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
+| `GetRenderMaterials2(1, None)` | The appearances applied to the document, as `IRenderMaterial`s; `1` is `swThisDisplayState`. Gave one for a part with a part-level `color.p2m`, none for parts with no appearance | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `GetRenderMaterialsCount2(1, None)` | How many; 1 and 0 for the same parts | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `DeleteDisplayStateSpecificRenderMaterial(ids1, ids2)` | Delete appearances by ID. **Two arrays**, the first IDs and the second IDs, each `VT_ARRAY \| VT_I4`. One combined array `[11, 0]` returned `False`; `[11]`, `[0]` returned `True` and the count went to 0. **Must be invoked with `DISPATCH_METHOD`**: by attribute access it ran with no arguments and gave `'bool' object is not callable` ([GOTCHAS §55, §70](GOTCHAS.md)) | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `RemoveMaterialProperty(Config_opt, Config_names)` | Exists (`GetIDsOfNames`). The help says it is meant for features with a changed material property value. Never run | Unverified |
 
 ## IConfigurationManager (from `IModelDoc2.ConfigurationManager`)
 
@@ -388,6 +404,24 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `Name` | The body's own name, which is how `SelectByID2` picks it as a `"SURFACEBODY"` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetMassProperties(1.0)` | Twelve doubles; **item 3 is the volume, in cubic metres**. The route to one body's volume, where `IMassProperty.AddBodies` could not be called. Item 4 read once as an area in square metres; the rest were not identified | Verified for item 3, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `Select2(append, 0)` and `Select2(append, null)` | **Both raised on a sheet body**: `TypeError: The Python instance can not be converted to a COM object`. A real `SelectData` (which is what made the row above work on a solid body) was **not** retried here; the route taken instead was `SelectByID2` on the body's `Name` as a `"SURFACEBODY"`. `IBody2` has no `Select4` at all | Verified not to work with those two arguments, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `MaterialPropertyValues2` (read) | The body's own nine appearance values. **`None`** on all nine bodies of a part whose only appearance was on the part as a whole | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `Visible` (read) | `True` on solid bodies, `False` on a hidden sheet body | Verified, SW 2024 (32.5.0), 2026-10-01 |
+
+## IRenderMaterial (from `IModelDocExtension.GetRenderMaterials2`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `FileName` | The `.p2m` the appearance came from, a full path under the install's `data\graphics\materials` | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `Specular`, `Reflectivity`, `Transparency` | Read as doubles: 0.5, 0.15000000596046448, 0.75 on a `color.p2m` | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `GetEntitiesCount` | Read 1 for an appearance applied to the whole part | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `GetMaterialIds(out id1, out id2)` | The two IDs `DeleteDisplayStateSpecificRenderMaterial` wants, through two `VT_BYREF \| VT_I4` variants: gave 11 and 0 | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `MaterialID` | Read `1` on the same appearance. What it identifies is not known; it was not used | Read, SW 2024 (32.5.0), 2026-10-01 |
+
+## IModelView (from `IModelDoc2.ActiveView`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `DisplayMode` (read) | The view's display style as `swViewDisplayMode_e`. Read `5`, `swViewDisplayMode_ShadedWithEdges` | Verified, SW 2024 (32.5.0), 2026-10-01 |
 
 ## IDimension / IDisplayDimension
 
@@ -527,3 +561,8 @@ ran (the behaviour is verified, the member names are the type library's):
 `swMateType_e` 0 coincident, 5 distance, 6 angle; `swMateAlign_e` 2 closest;
 `swConstrainedStatus_e` 2 under, 3 fully, 4 over (4 not observed);
 `swRefPlaneReferenceConstraints_e` 2 perpendicular, 4 coincident.
+
+Read from `swconst.chm` installed with SW 2024 ([connect/12](entries/connect/12-read-the-api-help-offline.md))
+and used in calls that ran: `swDisplayStateOpts_e` 1 `swThisDisplayState`
+(2 all, 3 specified, not used); `swViewDisplayMode_e` 5
+`swViewDisplayMode_ShadedWithEdges`, observed (the enum runs 2 to 13).

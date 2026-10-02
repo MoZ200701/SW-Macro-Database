@@ -24,11 +24,12 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-72 entries, grouped ten ways:
+75 entries, grouped eleven ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, keeping the connection alive safely, and
-  probing an API call on a live session before depending on it.
+  probing an API call on a live session before depending on it, and reading
+  the API help offline from the installed `.chm` files.
 - **[entries/documents/](entries/documents/)** — making a new part or assembly
   in the right units, saving it somewhere, and closing it.
 - **[entries/equations/](entries/equations/)** — global variables in the
@@ -62,6 +63,9 @@ code. You never need to open the projects the entries came from.
   axis conventions that decide which way geometry lands, how far a loft between
   two profiles strays, measured against the number of guides, and how to build
   a solid out of a loft SolidWorks refuses without saying so.
+- **[entries/appearance/](entries/appearance/)** — reading a part's colour,
+  transparency and applied appearances, and removing an appearance that every
+  body inherits.
 - **[entries/files/](entries/files/)** — whole-library operations: importing
   neutral formats such as STEP in bulk, writing one file per configuration, and
   moving a tree onto a newer file version, and writing one body out to STEP.
@@ -77,7 +81,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **60 verified, 9 partly verified, 3 unverified.**
+Currently: **63 verified, 9 partly verified, 3 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.
