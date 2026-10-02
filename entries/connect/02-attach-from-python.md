@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2024, 2025 and 2026 side by side
 language: [python]
 api: [ISldWorks.RevisionNumber, ISldWorks.ActiveDoc]
-keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID, indexed property, property put, DISPATCH_PROPERTYPUT, Invoke, _oleobj_, Equation(i), zero-argument method not invoked, method object, method object is not iterable, GetEdges, GetTessTriangles, ReleaseSelectionAccess, AddBodies, bool object is not callable, PyInstaller, hidden-import, onefile exe, frozen app]
+keywords: [pywin32, pythoncom, running object table, EnumRunning, IDispatch, VARIANT, late binding, SolidWorks_PID, indexed property, property put, DISPATCH_PROPERTYPUT, Invoke, _oleobj_, Equation(i), zero-argument method not invoked, method object, method object is not iterable, GetEdges, GetTessTriangles, ReleaseSelectionAccess, AddBodies, bool object is not callable, DeleteDisplayStateSpecificRenderMaterial, GetIDsOfNames, member exists, PyInstaller, hidden-import, onefile exe, frozen app]
 answers: "How do I connect to SolidWorks from Python without launching a second copy?"
 ---
 
@@ -171,7 +171,10 @@ through `getattr` answered a `bool` — it had already run, with no bodies — a
 then could not be called with its bodies at all: `'bool' object is not
 callable`. Nothing in the returned value says which of the two things happened.
 Where a member both takes arguments and might be exposed as a property, check
-the effect rather than the return.
+the effect rather than the return. Invoking it with `DISPATCH_METHOD` got a
+member of this kind to take its arguments on SolidWorks 2024; see
+[Setting an indexed property](#setting-an-indexed-property). Whether that
+fixes `AddBodies` itself was not tried.
 
 **Members that behaved as ordinary property gets** and needed none of this, on
 the same session: `IFeature.GetFaces`, `IFace2.GetBody`, `IEdge.GetCurve`,
@@ -279,6 +282,26 @@ SolidWorks 2026 (revision 34.0.0), three development runs on 2026-09-15; see
 [assemblies/04](../assemblies/04-mates-between-non-parallel-axes.md) and
 [GOTCHAS §39](../../GOTCHAS.md).
 
+**It also gets a call out of the fourth kind below**, where attribute access
+has already run the member. On SolidWorks 2024 SP5 (revision 32.5.0),
+`ext.DeleteDisplayStateSpecificRenderMaterial(a, b)` on an
+`IModelDocExtension` raised `TypeError: 'bool' object is not callable`: the
+attribute access had run it once with no arguments and handed back its
+`bool`. A read afterwards showed that run had deleted nothing. Through
+`Invoke` it took its arguments, returned `True` and deleted the appearance:
+
+```python
+dispid = ext._oleobj_.GetIDsOfNames("DeleteDisplayStateSpecificRenderMaterial")
+ok = ext._oleobj_.Invoke(dispid, 0, pythoncom.DISPATCH_METHOD, True, VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_I4, [ids[0]]), VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_I4, [ids[1]]))
+```
+
+Asking for the name first, `ext._oleobj_.GetIDsOfNames(name)`, also tells
+whether a member exists **without running it**: it raises `com_error` for a
+name the object does not have. On the same session it found
+`RemoveMaterialProperty` and `DeleteDisplayStateSpecificRenderMaterial` and
+refused `RemoveMaterialProperty2`. See
+[appearance/01](../appearance/01-read-and-remove-a-part-appearance.md).
+
 ## A zero-argument method that returns nothing is not invoked by `call`
 
 The `call` rule above — attribute access for zero-argument members — held for
@@ -362,6 +385,7 @@ that application testable without SolidWorks.
 - [curves/06 — Composite curves](../curves/06-composite-curve.md) — the release that never ran, and what it left behind
 - [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — `GetEdges` and the rest of the family in use
 - [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — `GetTessTriangles`, and `AddBodies` that could not be called
+- [appearance/01 — Read and remove a part's appearance](../appearance/01-read-and-remove-a-part-appearance.md) — `DeleteDisplayStateSpecificRenderMaterial` through `Invoke`, after attribute access had run it
 - [GOTCHAS §5, §31, §55](../../GOTCHAS.md)
 - [`code/python/swcom.py`](../../code/python/swcom.py) — the Airfoil Converter's module, with the `call` above
 - [`code/python/gear_generator/swcom.py`](../../code/python/gear_generator/swcom.py) — a later version of the module, with `_put_indexed`

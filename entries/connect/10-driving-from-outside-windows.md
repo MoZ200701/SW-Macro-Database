@@ -178,3 +178,5 @@ is the point of keeping the automation textual.
 - [connect/02 — Attach from Python](02-attach-from-python.md) — what the Windows Python then does
 - [connect/11 — Probe an API member on a live session](11-probe-an-api-member-on-a-live-session.md) — the run launched this way
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md) — saving under `C:\`
+- [connect/12 — Read the API help offline](12-read-the-api-help-offline.md) — `hh.exe` from WSL
+- [appearance/01 — Read and remove a part's appearance](../appearance/01-read-and-remove-a-part-appearance.md) — another run launched this way, on SolidWorks 2024

@@ -19,6 +19,9 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Start SolidWorks if it isn't running | [connect/09 — Launch versus attach](entries/connect/09-launch-versus-attach.md) |
 | Drive Windows SolidWorks from WSL or a Mac | [connect/10 — Driving from outside Windows](entries/connect/10-driving-from-outside-windows.md) |
 | Find out whether an API call really works before depending on it | [connect/11 — Probe an API member on a live session](entries/connect/11-probe-an-api-member-on-a-live-session.md) |
+| Read a member's signature or an enum's values when the online help comes back empty | [connect/12 — Read the API help offline](entries/connect/12-read-the-api-help-offline.md) |
+| Attach when `GetActiveObject` says `MK_E_UNAVAILABLE` with SolidWorks open | [connect/02 — Attach from Python](entries/connect/02-attach-from-python.md), and [GOTCHAS §1](GOTCHAS.md) |
+| Call a member that pywin32 already ran with no arguments (`'bool' object is not callable`) | [connect/02 — Attach from Python](entries/connect/02-attach-from-python.md) |
 
 ## Make, save and close documents
 
@@ -128,6 +131,14 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Find out afterwards what a program did to a part, when it kept no log | [reading/14 — The journal records API calls](entries/reading/14-the-journal-records-api-calls.md) |
 | Read a pick without crashing SolidWorks | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 
+## Change how a part looks
+
+| I want to… | Entry |
+|---|---|
+| Find out why every body in a part draws transparent or glossy | [appearance/01 — Read and remove a part's appearance](entries/appearance/01-read-and-remove-a-part-appearance.md) |
+| Read a part's colour, transparency and applied appearances | [appearance/01 — Read and remove a part's appearance](entries/appearance/01-read-and-remove-a-part-appearance.md) |
+| Remove an appearance from code | [appearance/01 — Read and remove a part's appearance](entries/appearance/01-read-and-remove-a-part-appearance.md) |
+
 ## Build a surface or loft, and get the orientation right
 
 | I want to… | Entry |
@@ -143,7 +154,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 04, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, surfacing/04, files/04
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 04, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, surfacing/04, files/04
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 
