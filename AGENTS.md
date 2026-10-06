@@ -13,6 +13,9 @@ already been solved, and is the solution trustworthy?**
    [API-LEDGER.md](API-LEDGER.md).
 4. Before writing any SolidWorks automation, read [GOTCHAS.md](GOTCHAS.md). It
    is short, and most of it is failure modes that are silent.
+5. For a common task, check [`scripts/`](scripts/) first: parameterised C#
+   scripts, each with its own `status` in `script.json`, linked to the entry that
+   explains the method.
 
 ## How to read `status`
 

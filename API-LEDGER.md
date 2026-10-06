@@ -80,6 +80,7 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `GetOpenDocSpec` | Document spec before opening. On a `.step` returns `DocumentType = -1`, `Error = 1024` | Verified, SW 2026 SP1.1 |
 | `CloseDoc(title)` | Close one document, discarding changes silently. Unlike `CloseAllDocuments`, raises no save prompt | Verified, SW 2026 SP1.1 |
 | `SetUserPreferenceToggle` / `SetUserPreferenceIntegerValue` | Set import and other options from code | Verified, SW 2026 SP1.1 |
+| `GetUserPreferenceIntegerValue` | Read an integer option before changing it, so it can be restored. Used by the `convert-step` script | Unverified |
 | `GetConfigurationNames(path)` | Configuration names of a **closed** file. The `IModelDoc2` member of the same name reads an open one | Verified, SW 2026 SP1.1 |
 | `VersionHistory(path)` | Saved-version list of a **closed** file, `11000[2018/134] \| 14000[2021/85]` | Verified, SW 2026 SP1.1 |
 | `GetLatestSupportedFileVersion` | File version this instance writes. Not the `RevisionNumber` major | Verified, SW 2026 SP1.1 |

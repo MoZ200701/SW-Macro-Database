@@ -1,0 +1,34 @@
+{
+  "id": "split-configurations",
+  "title": "Write one part file per configuration of a configurable part",
+  "entry": "entries/files/02-explode-configurations.md",
+  "status": "unverified",
+  "verified_on": null,
+  "evidence": null,
+  "effects": "writes-new-files",
+  "irreversible": false,
+  "supportsDryRun": true,
+  "timeoutMinutes": 60,
+  "params": [
+    {
+      "name": "masters",
+      "type": "files",
+      "required": true,
+      "description": "The configurable parts (.SLDPRT). They are copied, never modified."
+    },
+    {
+      "name": "outputFolder",
+      "type": "folder",
+      "role": "output",
+      "required": true,
+      "description": "Each master's files go in a subfolder here named after the master."
+    },
+    {
+      "name": "nameFormat",
+      "type": "string",
+      "required": false,
+      "default": "{config} {name}",
+      "description": "File name for each output, without extension. {config} is the configuration name, {name} the master's file name."
+    }
+  ]
+}

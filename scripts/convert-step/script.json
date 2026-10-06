@@ -1,0 +1,34 @@
+{
+  "id": "convert-step",
+  "title": "Convert a folder of STEP files to SolidWorks parts and assemblies",
+  "entry": "entries/files/01-batch-convert-step.md",
+  "status": "unverified",
+  "verified_on": null,
+  "evidence": null,
+  "effects": "writes-new-files",
+  "irreversible": false,
+  "supportsDryRun": true,
+  "timeoutMinutes": 120,
+  "params": [
+    {
+      "name": "sourceFolder",
+      "type": "folder",
+      "required": true,
+      "description": "Folder holding the .step / .stp files. Subfolders are included when 'recurse' is on."
+    },
+    {
+      "name": "outputFolder",
+      "type": "folder",
+      "role": "output",
+      "required": true,
+      "description": "Where the converted files go. The source folder layout is mirrored underneath it."
+    },
+    {
+      "name": "recurse",
+      "type": "bool",
+      "required": false,
+      "default": true,
+      "description": "Also convert STEP files in subfolders of the source folder."
+    }
+  ]
+}

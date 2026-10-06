@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tagged commit must be on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME is not an ancestor of origin/main; tag a commit that is on main."
+            exit 1
+          fi
+
+      - name: Validate
+        run: python3 tools/validate.py
+
+      - name: Build package and release notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          # Previous release tag reachable from the parent commit; empty for a first release.
+          PREV="$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2>/dev/null || true)"
+          echo "version=$VERSION previous=${PREV:-none}"
+          python3 tools/build_package.py --version "$VERSION" --out dist/ --notes-from "$PREV"
+
+      - name: Publish release
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#v}"
+          gh release create "$TAG" "dist/swfm-skills-$VERSION.zip" \
+            --title "v$VERSION" --notes-file dist/release-notes.md
