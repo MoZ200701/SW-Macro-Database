@@ -1,0 +1,54 @@
+name: Verification report
+description: You ran an entry or a script against a real SolidWorks. Report what happened, so its status can be updated.
+title: "Verification: "
+labels: ["verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when an entry or prebuilt script was run against a real SolidWorks and you saw the result,
+        whether it worked or not. Failures are as useful as successes. Only what was actually run counts.
+  - type: input
+    id: subject
+    attributes:
+      label: Entry or script
+      description: The entry id (e.g. files-03-upgrade-file-version) or the script id (e.g. upgrade-file-version).
+    validations:
+      required: true
+  - type: input
+    id: sw_version
+    attributes:
+      label: SolidWorks version
+      description: Including the service pack, e.g. "SolidWorks 2026 SP1.1" or the RevisionNumber, e.g. "34.1.0".
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - It worked as the entry/script says
+        - Part of it worked
+        - It did not work
+    validations:
+      required: true
+  - type: textarea
+    id: ran
+    attributes:
+      label: What was run
+      description: The script and its parameters, or the code, and on what kind of files.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What was observed
+      description: Counts, return values, error numbers, what the model looked like afterwards. "It worked" is not enough.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Tool output (optional)
+      description: The log or the tool result, if you are happy to share it.
+      render: text

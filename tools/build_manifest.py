@@ -7,6 +7,10 @@ Run from the repo root after adding or changing an entry:
 
 Exits non-zero and prints the problems if any entry is malformed. That is the
 one automated quality gate this repo has, so it is deliberately strict.
+
+`collect()` and `render()` do the work without touching the disk, so
+tools/validate.py can run the same checks and compare the result with the
+committed manifest.json.
 """
 
 from __future__ import annotations
@@ -17,7 +21,6 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-ENTRIES = ROOT / "entries"
 
 REQUIRED = ["id", "title", "status", "language", "api", "keywords", "answers"]
 # `api` may legitimately be empty: an entry about a file format or a convention
@@ -60,14 +63,14 @@ def parse_frontmatter(text: str):
 LINK = re.compile(r"\[[^\]]*\]\(([^)#]+?)(?:#[^)]*)?\)")
 
 
-def check_links() -> list[str]:
+def check_links(root: pathlib.Path = ROOT) -> list[str]:
     """Every relative markdown link in the repo must resolve.
 
     Files whose name starts with `_` are skipped: the template's links are
     placeholders by design.
     """
     bad = []
-    for md in ROOT.rglob("*.md"):
+    for md in sorted(root.rglob("*.md")):
         if ".git" in md.parts or md.name.startswith("_"):
             continue
         for m in LINK.finditer(md.read_text(encoding="utf-8")):
@@ -75,22 +78,22 @@ def check_links() -> list[str]:
             if target.startswith(("http://", "https://", "mailto:")):
                 continue
             if not (md.parent / target).resolve().exists():
-                bad.append(f"{md.relative_to(ROOT).as_posix()}: broken link -> {target}")
+                bad.append(f"{md.relative_to(root).as_posix()}: broken link -> {target}")
     return bad
 
 
-def main() -> int:
+def collect(root: pathlib.Path = ROOT):
+    """Check every entry. Returns (problems, manifest); manifest is None if any problem."""
     problems: list[str] = []
     seen_ids: dict[str, str] = {}
     records = []
 
-    paths = sorted(p for p in ENTRIES.rglob("*.md") if not p.name.startswith("_"))
+    paths = sorted(p for p in (root / "entries").rglob("*.md") if not p.name.startswith("_"))
     if not paths:
-        print("no entries found", file=sys.stderr)
-        return 1
+        return ["no entries found"], None
 
     for path in paths:
-        rel = path.relative_to(ROOT).as_posix()
+        rel = path.relative_to(root).as_posix()
         fm = parse_frontmatter(path.read_text(encoding="utf-8"))
         if fm is None:
             problems.append(f"{rel}: no frontmatter block")
@@ -135,13 +138,9 @@ def main() -> int:
             "answers": answers,
         })
 
-    problems.extend(check_links())
-
+    problems.extend(check_links(root))
     if problems:
-        print("manifest not written; fix these first:\n", file=sys.stderr)
-        for p in problems:
-            print(f"  {p}", file=sys.stderr)
-        return 1
+        return problems, None
 
     by_status: dict[str, int] = {}
     for r in records:
@@ -159,11 +158,23 @@ def main() -> int:
         "by_status": dict(sorted(by_status.items())),
         "entries": records,
     }
+    return problems, manifest
 
-    (ROOT / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    print(f"manifest.json: {len(records)} entries, {dict(sorted(by_status.items()))}")
+
+def render(manifest: dict) -> str:
+    """The exact text written to manifest.json."""
+    return json.dumps(manifest, indent=2, ensure_ascii=False) + "\n"
+
+
+def main() -> int:
+    problems, manifest = collect(ROOT)
+    if manifest is None:
+        print("manifest not written; fix these first:\n", file=sys.stderr)
+        for p in problems:
+            print(f"  {p}", file=sys.stderr)
+        return 1
+    (ROOT / "manifest.json").write_text(render(manifest), encoding="utf-8")
+    print(f"manifest.json: {manifest['count']} entries, {manifest['by_status']}")
     return 0
 
 

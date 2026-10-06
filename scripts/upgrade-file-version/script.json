@@ -1,0 +1,21 @@
+{
+  "id": "upgrade-file-version",
+  "title": "Re-save files in the running SolidWorks version's file format",
+  "entry": "entries/files/03-upgrade-file-version.md",
+  "status": "unverified",
+  "verified_on": null,
+  "evidence": null,
+  "effects": "modifies-models",
+  "irreversible": true,
+  "supportsDryRun": true,
+  "timeoutMinutes": 120,
+  "params": [
+    {
+      "name": "targets",
+      "type": "files",
+      "role": "targets",
+      "required": true,
+      "description": "Parts, assemblies and drawings to re-save. Include every part an assembly uses: saving an assembly can re-save its components too. Older SolidWorks versions cannot open the results."
+    }
+  ]
+}
