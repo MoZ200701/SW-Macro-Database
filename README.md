@@ -21,6 +21,8 @@ code. You never need to open the projects the entries came from.
 | Checking whether one API call is proven | [API-LEDGER.md](API-LEDGER.md) |
 | About to write any automation at all | [GOTCHAS.md](GOTCHAS.md) |
 | After working code to copy | [`code/`](code/) |
+| After a ready-to-run script for a common task | [`scripts/`](scripts/) |
+| Using the collection from SolidWorks File Manager, Claude Code or Codex | the latest [release](https://github.com/MoZ200701/SW-Macro-Database/releases/latest) |
 
 ## What's in here
 
@@ -82,7 +84,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **63 verified, 9 partly verified, 3 unverified.**
+Currently: **63 verified, 10 partly verified, 3 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.
@@ -109,7 +111,29 @@ python3 tools/build_manifest.py
 Rebuilds [`manifest.json`](manifest.json) from each entry's frontmatter, and
 refuses to write if an entry is missing a field, duplicates an `id`, or claims
 `verified` without naming a version. Run it after any change and commit the
-result.
+result. Then:
+
+```
+python3 tools/validate.py
+```
+
+The same check every pull request runs: the manifest checks, a stale-manifest
+check, every script's header and forbidden calls, and one package build.
+
+## Scripts and releases
+
+[`scripts/`](scripts/) holds parameterised C# versions of common tasks
+(converting STEP, splitting configurations into files, upgrading the file
+version). Each links to the entry that explains its method and carries its own
+`status`: a script is `unverified` until that exact script has run.
+
+Tagging `main` as `vX.Y.Z` publishes a release: one zip with two skills —
+`sw-macro-database` (this collection, with a generated index) and
+`sw-macro-contribute` (how to write results back) — and the scripts. Claude Code
+and Codex both read the skills; SolidWorks File Manager installs releases
+itself and runs the scripts. Rules for both are in
+[CONTRIBUTING.md](CONTRIBUTING.md); changes from anyone but the owner arrive as
+pull requests or Verification report issues.
 
 ## Where this came from
 
