@@ -207,6 +207,7 @@ its end and a knit makes a solid, and put a suppression back") on main.
 
 ## See also
 
+- [assemblies/05 — Test motion with the drag operator](../assemblies/05-test-motion-with-the-drag-operator.md) — suppressing mates one at a time, and putting them back
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — what this protects, and where it is used
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — the walk, and why a name is not a handle
 - [curves/10 — Persistent references](../curves/10-persistent-references.md) — the other way to hold a feature that a name cannot

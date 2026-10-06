@@ -275,3 +275,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md) — sub-features
 - [assemblies/03 — Interference detection](03-interference-detection.md) — whether mated parts collide
 - [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — origins, angles between axes, and `Flip`
+- [assemblies/05 — Test motion with the drag operator](05-test-motion-with-the-drag-operator.md) — whether the mated parts can move, and which mate stops them

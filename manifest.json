@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 75,
+  "count": 76,
   "by_status": {
-    "partly-verified": 9,
+    "partly-verified": 10,
     "unverified": 3,
     "verified": 63
   },
@@ -224,6 +224,51 @@
         "shaft angle"
       ],
       "answers": "How do I set a component's rotation from code and mate it so its axis sits at an angle to another component's, such as bevel or crossed gears?"
+    },
+    {
+      "id": "assemblies-05-test-motion-with-the-drag-operator",
+      "title": "Test whether an assembly can move, with the drag operator",
+      "path": "entries/assemblies/05-test-motion-with-the-drag-operator.md",
+      "category": "assemblies",
+      "status": "partly-verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IAssemblyDoc.GetDragOperator",
+        "IDragOperator.AddComponent",
+        "IDragOperator.TransformType",
+        "IDragOperator.UseAbsoluteTransform",
+        "IDragOperator.BeginDrag",
+        "IDragOperator.Drag",
+        "IDragOperator.EndDrag",
+        "IMateEntity2.EntityParams",
+        "IFeature.SetSuppression2",
+        "IFeature.GetErrorCode2",
+        "IComponent2.Transform2"
+      ],
+      "keywords": [
+        "drag operator",
+        "GetDragOperator",
+        "IDragOperator",
+        "BeginDrag",
+        "EndDrag",
+        "move component",
+        "rotate component",
+        "motion test",
+        "mechanism will not move",
+        "steering locked",
+        "gear mate",
+        "mate diagnosis",
+        "which mate locks",
+        "suppress mate",
+        "EntityParams",
+        "error 51",
+        "Transform2 put",
+        "EditRebuild3"
+      ],
+      "answers": "How do I find out from code whether an assembly can move, and which mate is stopping it?"
     },
     {
       "id": "connect-01-attach-vbscript",

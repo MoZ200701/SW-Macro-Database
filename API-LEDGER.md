@@ -271,6 +271,8 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration. The bare `None` **is** accepted here. **It cascades**: on one part it suppressed 74 features built on the one asked for, and unsuppressing that one restored none of them (GOTCHAS §62) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFaces` | The faces a feature made. A property get. The route to a feature's **body**, which a feature does not offer: take a face and ask it | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetErrorCode2(ByRef bool)` | A feature's error code, `0` for clean, with a by-ref warning flag passed as `VARIANT(VT_BYREF \| VT_BOOL, False)`. Read `1` on each of a part's 13 pre-existing failures | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `SetSuppression2(action, 1, None)` on a **mate** | Suppress (`0`) or unsuppress (`1`) one mate under `MateGroup`; `IsSuppressed` read `True` then `False`. No cascade seen on mates ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `GetErrorCode2(ByRef bool)` on a **mate** | `0` on a solved mate; **51** with the warning flag `True` on mates left unsolved after a `Transform2` put and rebuild (GOTCHAS §73) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 | `GetFirstDisplayDimension` / `GetNextDisplayDimension(prev)` | Walk a feature's dimensions; includes its sketch's | Verified, SW 2026 (34.0.0) |
 | `GetFirstSubFeature` / `GetNextSubFeature` | Children, e.g. the mates under `MateGroup`, or the sketch a feature was made from. **Step children with `GetNextSubFeature`**: `GetNextFeature` from a child walked on through the main tree and repeated names | Verified, SW 2026 (34.0.0) |
 
@@ -454,6 +456,24 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `GetModelDoc2` | The component's part, to read its origin feature's name | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `SetTransformAndSolve2` | Listed by the probe as a fallback to the `Transform2` put, never reached | Unverified |
 | `GetCorresponding` | Listed by the probe as a fallback route to a component's origin, never reached | Unverified |
+
+## IDragOperator (from `IAssemblyDoc.GetDragOperator`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IAssemblyDoc.GetDragOperator` | A drag operator for the assembly; reached by attribute access through `call` | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `AddComponent(component, False)` | The component to drag | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `TransformType = 0`, `UseAbsoluteTransform = False` | The one recipe run: each `Drag` takes a **relative** transform. Other values never run | Verified for these values only, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `BeginDrag` / `Drag(xform)` / `EndDrag` | Drag in steps; `Drag` returned `True` each step. A free component turned the full amount, a fixed one 0°, and gear mates carried the motion (GOTCHAS §73). Dragging a driving gear did **not** turn its driven gear; open ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Partly verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `DragMode`, `DragAsUI` | Never run | Unverified |
+
+## IMateEntity2 (from `IMate2.MateEntity(i)`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `ReferenceComponent` | The component the entity is on; `None` for the assembly's own | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `ReferenceType2` | 1 edge, 2 face, 24 sketch point were seen | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `EntityParams` | In **assembly** coordinates, metres: items 0–2 a point on the axis, 3–5 the direction, 6 the radius (0 for a sketch point). Matched `CylinderParams` of the same face carried through the component's `Transform2` | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 
 ## IInterferenceDetectionMgr (from `IAssemblyDoc.InterferenceDetectionManager`)
 

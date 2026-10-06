@@ -383,6 +383,7 @@ gears" ([assemblies/03](03-interference-detection.md)).
 - [assemblies/01 — New assembly and insert components](01-new-assembly-and-insert-components.md) — `AddComponent5`, and the first sighting of the offset
 - [assemblies/02 — Mates from code](02-mates-from-code.md) — `AddMate5` and finding the mate's `D1`
 - [assemblies/03 — Interference detection](03-interference-detection.md) — checking the result
+- [assemblies/05 — Test motion with the drag operator](05-test-motion-with-the-drag-operator.md) — why a `Transform2` put is no motion test
 - [reading/05 — Sketch to model transform](../reading/05-sketch-to-model-transform.md) — `ArrayData` by columns
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md) — `Invoke` for what late binding cannot spell
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md)

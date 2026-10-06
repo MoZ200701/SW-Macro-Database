@@ -24,7 +24,7 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-75 entries, grouped eleven ways:
+76 entries, grouped eleven ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, keeping the connection alive safely, and
@@ -51,7 +51,8 @@ code. You never need to open the projects the entries came from.
   finding the dimensions they make.
 - **[entries/assemblies/](entries/assemblies/)** — inserting components and
   mating them, with a mate driven by a global, on parallel axes and on axes at
-  an angle, and checking the result for interference.
+  an angle, checking the result for interference, and testing whether it can
+  move and which mate stops it.
 - **[entries/reading/](entries/reading/)** — interrogating a model: a closed
   file's references, reference trees, what the user has selected, sketch to
   model coordinates, and reading dimensions, equations and sizes back out.
