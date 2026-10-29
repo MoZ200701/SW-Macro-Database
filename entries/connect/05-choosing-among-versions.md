@@ -5,7 +5,7 @@ status: verified
 verified_on: a machine carrying SolidWorks 2024, 2025 and 2026
 language: [python]
 api: [ISldWorks.RevisionNumber]
-keywords: [version, revision number, major 32 33 34, 2024 2025 2026, minimum version, choose session, multiple installs]
+keywords: [version, revision number, major 32 33 34, 2024 2025 2026, minimum version, choose session, multiple installs, WrongVersion, connect refuses 2024, This needs SolidWorks 2026, MINIMUM_MAJOR, find_candidates, read-only tool on an older version]
 answers: "Several SolidWorks versions are installed. Which one should my tool drive?"
 ---
 
@@ -108,6 +108,40 @@ on has been stable across many releases, so the realistic failure on a new
 version is changed behaviour, not a missing member, and locking the user out
 would cost everything and buy nothing.
 
+## The floor belongs to the application, not to `swcom`
+
+`swcom.py` came from the Airfoil Converter, which was built and tested on
+SolidWorks 2026 only, so its `MINIMUM_MAJOR = 34`. `connect()` passes every
+session through `choose()`, and on a machine running only 2024 it stops with:
+
+```text
+WrongVersion: Found SolidWorks 2024 (revision 32.5.0). This needs SolidWorks 2026 (revision 34) or newer.
+```
+
+Nothing about the attach itself is 2026-only. `find_candidates()` applies no
+floor, and a read-only tool that took a session from it read a 2024 SP5
+(32.5.0) assembly's mates, components, configurations and equations without a
+single failed call ([assemblies/06](../assemblies/06-read-every-mate.md)):
+
+```python
+    # swcom.connect() gates on SW 2026 (an Airfoil Converter minimum); the
+    # attach itself is version-independent, and this machine runs 2024 SP5.
+    candidates = swcom.find_candidates()
+    if not candidates:
+        print("No running SolidWorks found in the Running Object Table")
+        return 3
+    app = sorted(candidates, key=lambda c: (c.has_active_doc, c.revision), reverse=True)[0].app
+```
+
+So when you reuse `swcom.py`, set the floor for **your** tool: the oldest
+version you have run its calls on. Do not lower `MINIMUM_MAJOR` in the shared
+copy to get past the error; the Airfoil Converter's calls (feature folders,
+lofts, curve reloads) are verified on 2026 only. Note the order above puts a
+session with a document open ahead of a newer empty one, the reverse of
+`choose()`; for a tool that reads the open assembly that is the right call.
+
+Not tried: 2025 (major 33), and anything older than 2024.
+
 ## Report the ones you could not reach
 
 ```python
@@ -135,4 +169,5 @@ suffix, and append the unversioned ProgID last.
 ## See also
 
 - [connect/02 — Attach from Python](02-attach-from-python.md)
-- [GOTCHAS §1](../../GOTCHAS.md)
+- [assemblies/06 — Read every mate](../assemblies/06-read-every-mate.md) — a read-only tool that runs on 2024 by skipping the floor
+- [GOTCHAS §1, §74](../../GOTCHAS.md)
