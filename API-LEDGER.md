@@ -273,6 +273,7 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `GetFaces` | The faces a feature made. A property get. The route to a feature's **body**, which a feature does not offer: take a face and ask it | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetErrorCode2(ByRef bool)` | A feature's error code, `0` for clean, with a by-ref warning flag passed as `VARIANT(VT_BYREF \| VT_BOOL, False)`. Read `1` on each of a part's 13 pre-existing failures | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `SetSuppression2(action, 1, None)` on a **mate** | Suppress (`0`) or unsuppress (`1`) one mate under `MateGroup`; `IsSuppressed` read `True` then `False`. No cascade seen on mates ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `GetDefinition` on a **mate** | `IGearMateFeatureData` on `MateGearDim`, `IDistanceMateFeatureData` on distance mates; concentric and coincident data answered `MateAlignment`; `MateCoordinate` answered none of the members tried | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
 | `GetErrorCode2(ByRef bool)` on a **mate** | `0` on a solved mate; **51** with the warning flag `True` on mates left unsolved after a `Transform2` put and rebuild (GOTCHAS §73) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 | `GetFirstDisplayDimension` / `GetNextDisplayDimension(prev)` | Walk a feature's dimensions; includes its sketch's | Verified, SW 2026 (34.0.0) |
 | `GetFirstSubFeature` / `GetNextSubFeature` | Children, e.g. the mates under `MateGroup`, or the sketch a feature was made from. **Step children with `GetNextSubFeature`**: `GetNextFeature` from a child walked on through the main tree and repeated names | Verified, SW 2026 (34.0.0) |
@@ -468,12 +469,36 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `BeginDrag` / `Drag(xform)` / `EndDrag` | Drag in steps; `Drag` returned `True` each step. A free component turned the full amount, a fixed one 0°, and gear mates carried the motion (GOTCHAS §73). Dragging a driving gear did **not** turn its driven gear; open ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Partly verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 | `DragMode`, `DragAsUI` | Never run | Unverified |
 
+## IMate2 (from `IFeature.GetSpecificFeature2` on a mate)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `Type` | `swMateType_e`: 0 coincident, 1 concentric, 5 distance **and** limit distance, 10 gear, 20 coordinate were seen ([assemblies/06](entries/assemblies/06-read-every-mate.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+| `GetMateEntityCount` / `MateEntity(i)` | The entities the mate joins, as `IMateEntity2`. On a gear mate, `MateEntity(1)` owns the ratio's numerator (GOTCHAS §75) | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+| `MaximumVariation` / `MinimumVariation` | On a limit distance mate, metres either side of its `Distance`: one side read 0 and the other the travel. Read as the range by inference from a handful of mates | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+| `Alignment`, `Flipped` | Read as integers / `bool`; meanings not checked | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 (read only) |
+
+## IGearMateFeatureData (from `IFeature.GetDefinition` on a `MateGearDim`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GearRatioNumerator` / `GearRatioDenominator` | The ratio as typed, as diameters in metres. The numerator belongs to `MateEntity(1)`, and neither is the picked geometry's size (GOTCHAS §75) | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+| `Reverse` | `bool`, the mate's Reverse box. What it does to direction was not checked | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+
+## IDistanceMateFeatureData (from `IFeature.GetDefinition` on a distance mate)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `Distance` | Metres, on both `MateDistanceDim` and `MateLimitDistanceDim` | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
+| `MateAlignment` | Read **7602281** on a plain distance mate whose `IMate2.Alignment` read 2; do not trust it there | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 (value suspect) |
+| `MaximumDistance` / `MinimumDistance` | Listed in the interop assembly; never read | Unverified |
+
 ## IMateEntity2 (from `IMate2.MateEntity(i)`)
 
 | Member | Purpose | Status |
 |---|---|---|
 | `ReferenceComponent` | The component the entity is on; `None` for the assembly's own | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
-| `ReferenceType2` | 1 edge, 2 face, 24 sketch point were seen | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `ReferenceType2` | 1 edge, 2 face, 24 sketch point were seen. Also 11 (`swSelSKETCHPOINTS`, the assembly's own origin) and 25 (`swSelEXTSKETCHPOINTS`, a sub-assembly's) on coordinate mates; values are `swSelectType_e` ([assemblies/06](entries/assemblies/06-read-every-mate.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 and 2026-10-28 |
 | `EntityParams` | In **assembly** coordinates, metres: items 0–2 a point on the axis, 3–5 the direction, 6 the radius (0 for a sketch point). Matched `CylinderParams` of the same face carried through the component's `Transform2` | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 
 ## IInterferenceDetectionMgr (from `IAssemblyDoc.InterferenceDetectionManager`)
@@ -523,7 +548,13 @@ Also seen on SW 2026 (34.0.0): `RefAxis`,
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
 `Revolution`, `BlendCut`, `MoveCopyBody`, and from the helical runs `Sweep`,
-`SweepCut`, `MirrorSolid`.
+`SweepCut`, `MirrorSolid`. Mates on SW 2024 SP5 (32.5.0): `MateConcentric`,
+`MateCoincident`, **`MateGearDim`** (a gear mate), `MateCoordinate`,
+`MateLimitDistanceDim`, and `FtrFolder` for folder markers under `MateGroup`.
+
+`swMateType_e` (read from `swconst.dll`): `0` coincident, `1` concentric,
+`5` distance, `10` gear, `20` coordinate. `swSelectType_e`: `1` edges, `2`
+faces, `11` sketch points, `25` external sketch points.
 
 `swGuideCurveInfluence_e`: `0` to next guide (run, and the hand-made loft's
 value), `1` to next sharp, `2` to next edge, `3` global (read only).

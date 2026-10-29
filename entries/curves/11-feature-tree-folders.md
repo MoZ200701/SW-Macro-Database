@@ -351,6 +351,8 @@ to its group's free name through `IFeature.Name` and read back as asked.
 
 ## See also
 
+- [assemblies/06 — Read every mate](../assemblies/06-read-every-mate.md) — the same markers
+  inside an assembly's `MateGroup`
 - [curves/02 — Insert a curve from a file](02-insert-curve-from-file.md) — what
   usually creates the features you are about to gather
 - [curves/06 — Composite curves](06-composite-curve.md) — the derived curve

@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 76,
+  "count": 77,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 63
+    "verified": 64
   },
   "entries": [
     {
@@ -271,6 +271,71 @@
       "answers": "How do I find out from code whether an assembly can move, and which mate is stopping it?"
     },
     {
+      "id": "assemblies-06-read-every-mate",
+      "title": "Read every mate in an assembly, with its entities, gear ratio and folder",
+      "path": "entries/assemblies/06-read-every-mate.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeature.GetFirstSubFeature",
+        "IFeature.GetNextSubFeature",
+        "IFeature.GetTypeName2",
+        "IFeature.GetSpecificFeature2",
+        "IFeature.GetDefinition",
+        "IFeature.IsSuppressed",
+        "IFeature.GetErrorCode2",
+        "IMate2.Type",
+        "IMate2.Alignment",
+        "IMate2.Flipped",
+        "IMate2.MaximumVariation",
+        "IMate2.MinimumVariation",
+        "IMate2.GetMateEntityCount",
+        "IMate2.MateEntity",
+        "IMateEntity2.ReferenceComponent",
+        "IMateEntity2.ReferenceType2",
+        "IMateEntity2.EntityParams",
+        "IGearMateFeatureData.GearRatioNumerator",
+        "IGearMateFeatureData.GearRatioDenominator",
+        "IGearMateFeatureData.Reverse",
+        "IDistanceMateFeatureData.Distance",
+        "IDistanceMateFeatureData.MateAlignment"
+      ],
+      "keywords": [
+        "read mates",
+        "list mates",
+        "dump mates",
+        "mate inventory",
+        "existing mates",
+        "MateGroup",
+        "MateGearDim",
+        "MateConcentric",
+        "MateCoincident",
+        "MateCoordinate",
+        "MateDistanceDim",
+        "MateLimitDistanceDim",
+        "gear mate ratio",
+        "GearRatioNumerator",
+        "GearRatioDenominator",
+        "which gear is the numerator",
+        "swMateType_e",
+        "swSelectType_e",
+        "ReferenceType2",
+        "EntityParams",
+        "mate folder",
+        "FtrFolder",
+        "___EndTag___",
+        "limit mate range",
+        "MaximumVariation",
+        "suppressed mates",
+        "mechanism from mates"
+      ],
+      "answers": "How do I read every mate in an existing assembly — its type, the components and faces it joins, a gear mate's ratio, and which folder it is in?"
+    },
+    {
       "id": "connect-01-attach-vbscript",
       "title": "Attach to a running SolidWorks from VBScript",
       "path": "entries/connect/01-attach-from-vbscript.md",
@@ -417,7 +482,13 @@
         "2024 2025 2026",
         "minimum version",
         "choose session",
-        "multiple installs"
+        "multiple installs",
+        "WrongVersion",
+        "connect refuses 2024",
+        "This needs SolidWorks 2026",
+        "MINIMUM_MAJOR",
+        "find_candidates",
+        "read-only tool on an older version"
       ],
       "answers": "Several SolidWorks versions are installed. Which one should my tool drive?"
     },

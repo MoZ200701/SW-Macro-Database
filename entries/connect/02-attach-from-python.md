@@ -224,6 +224,11 @@ The year offset is display only. Getting it wrong costs one wrong word in a
 message and nothing else, which is the right amount of trust to put in a
 convention.
 
+`MINIMUM_MAJOR = 34` is the floor of the app this module came from, and
+`connect()` enforces it: on 2024 it raises `WrongVersion`. A tool whose calls
+are proven on an older version picks from `find_candidates()` itself; see
+[connect/05](05-choosing-among-versions.md#the-floor-belongs-to-the-application-not-to-swcom).
+
 ## Setting an indexed property
 
 Some SolidWorks properties take an index. In VBA, changing an equation in the

@@ -953,3 +953,38 @@ could only take to under 9°. To ask whether something can move, drag it with
 `IDragOperator`; use a `Transform2` put only to restore a snapshot. SolidWorks
 2024 SP5 (32.5.0). See
 [assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md).
+
+## 74. `swcom.connect()` refuses SolidWorks 2024 and 2025
+
+`connect()` raised `WrongVersion: Found SolidWorks 2024 (revision 32.5.0). This
+needs SolidWorks 2026 (revision 34) or newer.` with 2024 open. The floor
+(`MINIMUM_MAJOR = 34`) is the Airfoil Converter's, the app `swcom.py` came
+from, not a limit of the attach: a read-only tool taking its session from
+`find_candidates()` read a whole 2024 SP5 assembly. Set the floor for your own
+tool; do not lower the shared one. See
+[connect/05](entries/connect/05-choosing-among-versions.md#the-floor-belongs-to-the-application-not-to-swcom).
+
+## 75. A gear mate's numerator belongs to its *second* entity, and is not the geometry
+
+Read back from `IGearMateFeatureData`, `GearRatioNumerator` goes with
+`IMate2.MateEntity(1)` and the denominator with `MateEntity(0)`: a mate listing
+(pinion, ring) had the ring's diameter as numerator, and dragging the ring
+turned the pinion by that ratio. Every gear mate in the assembly fit. Reading it
+the other way round makes a correct gear train look inconsistent. The ratio is
+also only what was typed: an internal gear's picked face was about a third
+larger than its mates said, and 1 : 1 "gear" mates joined faces of different
+sizes. Never derive a ratio from `EntityParams`. SolidWorks 2024 SP5 (32.5.0). See
+[assemblies/06](entries/assemblies/06-read-every-mate.md#which-gear-the-numerator-belongs-to).
+
+## 76. Mate folders do not contain their mates
+
+Under `MateGroup`, `GetFirstSubFeature` / `GetNextSubFeature` returns a folder's
+mates as siblings between the folder's `FtrFolder` and its `___EndTag___`
+(§19 again), and asking the folder for sub-features gave none: every record
+came back at the top level. Track the nesting as a stack in walk order. End tag
+names neither match their folder (`Folder3___EndTag___` closed a folder the
+user had renamed)
+nor are unique (`Folder1___EndTag___` twice in one assembly). Also,
+`MateGearDim` is the gear mate's type name, and a limit distance mate shares
+`IMate2.Type` 5 with a plain one. SolidWorks 2024 SP5 (32.5.0). See
+[assemblies/06](entries/assemblies/06-read-every-mate.md#folders-are-markers-not-parents).

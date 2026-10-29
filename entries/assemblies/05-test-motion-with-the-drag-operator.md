@@ -137,7 +137,9 @@ added next to their gear mate.
 **Gear mates did carry motion through a drag.** With the tangent mate
 suppressed, dragging the output 30° turned the ring gear 30° and back-drove
 the pinion by 30° times the gear mate's
-`GearRatioNumerator / GearRatioDenominator`.
+`GearRatioNumerator / GearRatioDenominator`. The numerator
+is the ring gear's, the mate's *second* entity
+([assemblies/06](06-read-every-mate.md#which-gear-the-numerator-belongs-to)).
 
 ## What it does not do
 
@@ -179,6 +181,7 @@ ProgID failed with `MK_E_UNAVAILABLE`).
 
 - [assemblies/02 — Mates from code](02-mates-from-code.md) — walking `MateGroup`, `AddMate5`
 - [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — `CreateTransform` and the `Transform2` put used to restore
+- [assemblies/06 — Read every mate](06-read-every-mate.md) — which gear a mate's numerator belongs to, and the whole mate list as data
 - [reading/12 — Snapshot suppression before you suppress](../reading/12-snapshot-suppression-before-you-suppress.md)
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md)
 - [connect/10 — Driving from outside Windows](../connect/10-driving-from-outside-windows.md)
