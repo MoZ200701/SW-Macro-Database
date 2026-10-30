@@ -187,3 +187,4 @@ The VBA macro is the same sequence and was written from the same run, but the
 - [reading/01 — Dependencies of a closed file](../reading/01-dependencies-of-a-closed-file.md)
 - [reading/09 — Bounding box as a check](../reading/09-bounding-box.md)
 - [GOTCHAS §23, §24](../../GOTCHAS.md)
+- [assemblies/07 — Configurations that hold different positions](../assemblies/07-configurations-that-hold-different-positions.md) — configurations of an assembly

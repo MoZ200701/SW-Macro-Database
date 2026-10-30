@@ -290,3 +290,4 @@ order, not live.
 - [connect/05 — Choosing among versions](../connect/05-choosing-among-versions.md) — attaching to 2024 or 2025
 - [connect/10 — Driving from outside Windows](../connect/10-driving-from-outside-windows.md)
 - [GOTCHAS §19, §74, §75, §76](../../GOTCHAS.md)
+- [assemblies/07 — Configurations that hold different positions](07-configurations-that-hold-different-positions.md) — `IsSuppressed2` across configurations, and `EntityParams` as a position check

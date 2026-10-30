@@ -237,3 +237,4 @@ in `assembly_components_and_mates`:
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md)
 - [assemblies/03 — Interference detection](03-interference-detection.md) — checking inserted parts for overlap
 - [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — setting a component's frame
+- [assemblies/08 — Exploded view from code](08-exploded-view-from-code.md) — `Transform2` as the check on each explode step

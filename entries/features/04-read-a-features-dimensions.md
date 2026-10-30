@@ -122,3 +122,5 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [GOTCHAS §33](../../GOTCHAS.md)
 - [reading/08 — Dimensions and equations](../reading/08-dimensions-and-equations.md) — the same walk over every feature, for a whole part
 - [features/09 — Twisted sweep](09-twisted-sweep.md) — a sweep's one dimension, the twist, found by value
+- [reading/15 — Measure a part that has no dimensions](../reading/15-measure-a-part-that-has-no-dimensions.md)
+- [drawings/05 — Read and tidy dimensions](../drawings/05-read-and-tidy-dimensions.md)

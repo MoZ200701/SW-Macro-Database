@@ -76,3 +76,4 @@ folders is common and picking the wrong one is silent.
 
 - [reading/01 — Dependencies of a closed file](01-dependencies-of-a-closed-file.md)
 - [GOTCHAS §16](../../GOTCHAS.md)
+- [files/05 — Rename a component's file](../files/05-rename-a-component-file.md) — renaming from inside the assembly, references kept

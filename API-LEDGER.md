@@ -167,12 +167,20 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `GetRenderMaterialsCount2(1, None)` | How many; 1 and 0 for the same parts | Verified, SW 2024 (32.5.0), 2026-10-01 |
 | `DeleteDisplayStateSpecificRenderMaterial(ids1, ids2)` | Delete appearances by ID. **Two arrays**, the first IDs and the second IDs, each `VT_ARRAY \| VT_I4`. One combined array `[11, 0]` returned `False`; `[11]`, `[0]` returned `True` and the count went to 0. **Must be invoked with `DISPATCH_METHOD`**: by attribute access it ran with no arguments and gave `'bool' object is not callable` ([GOTCHAS §55, §70](GOTCHAS.md)) | Verified, SW 2024 (32.5.0), 2026-10-01 |
 | `RemoveMaterialProperty(Config_opt, Config_names)` | Exists (`GetIDsOfNames`). The help says it is meant for features with a changed material property value. Never run | Unverified |
+| `SaveAs(path.png, 0, 3, null, out, out)` on a drawing | A PNG of the sheet as the window shows it; silent copy, the drawing keeps its path. `ViewZoomtofit2` first ([drawings/01](entries/drawings/01-new-drawing-and-place-views.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SelectByID2("<name>@<view>", "NOTE", 0, 0, 0, True, 0, null, 0)` | Select a note or balloon (`DetailItemNN`) for `EditDelete`. Where `IAnnotation.Select3` deleted nothing, this worked (GOTCHAS §80) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SelectByID2("RDn@<view>", "DIMENSION", …)` / `SelectByID2("<view name>", "DRAWINGVIEW", …)` | Select a drawing dimension, or a whole view (for `CreateUnfoldedViewAt3`, `InsertAlternateView`, `AutoBalloon5`, or deleting an alternate position) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SelectByID2("<sketch>@<root component>-N@<view>", "SKETCH", …)` | An assembly sketch through a drawing view; selected object type 9. Used to `UnblankSketch` explode lines (GOTCHAS §85) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `RenameDocument(newName)` | Rename the selected component's file, pending until the assembly is saved with references; returns 0 on success ([files/05](entries/files/05-rename-a-component-file.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `HasRenamedDocuments` | `True` while a rename is pending | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `CustomPropertyManager("")` | The file-level `ICustomPropertyManager` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 
 ## IConfigurationManager (from `IModelDoc2.ConfigurationManager`)
 
 | Member | Purpose | Status |
 |---|---|---|
 | `ActiveConfiguration` | The active `IConfiguration`. Read its `Name` rather than trusting `ShowConfiguration2` | Verified, SW 2026 SP1.1 |
+| `AddConfiguration2(name, comment, "", 0, "", "", True)` | Add an assembly configuration; it became the active one ([assemblies/07](entries/assemblies/07-configurations-that-hold-different-positions.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 
 ## IConfiguration
 
@@ -181,6 +189,9 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `Name` | Configuration name | Verified, SW 2026 SP1.1 |
 | `Description` | Its description. Can throw; wrap it | Verified, SW 2026 SP1.1 |
 | `GetParent` | Non-null means this configuration is derived from that one | Verified, SW 2026 SP1.1 |
+| `GetRootComponent3(True)` | The root component; its `GetChildren` are the top-level components | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `AddExplodeStep2(dist, axis, reverse, 0.0, -1, False, False, False, out err)` | Explode the components selected at mark 1 by `dist` **metres** along the assembly's X/Y/Z for `axis` 0/1/2, negative way with `reverse`; `err` 0. Other arguments not varied ([assemblies/08](entries/assemblies/08-exploded-view-from-code.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetNumberOfExplodeSteps` / `GetExplodeStep(i)` / `DeleteExplodeStep(name)` | Read and remove existing steps; names `Explode StepN`, or the user's | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 
 ## IPartDoc (a part, cast from IModelDoc2)
 
@@ -275,6 +286,8 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `SetSuppression2(action, 1, None)` on a **mate** | Suppress (`0`) or unsuppress (`1`) one mate under `MateGroup`; `IsSuppressed` read `True` then `False`. No cascade seen on mates ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 | `GetDefinition` on a **mate** | `IGearMateFeatureData` on `MateGearDim`, `IDistanceMateFeatureData` on distance mates; concentric and coincident data answered `MateAlignment`; `MateCoordinate` answered none of the members tried | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
 | `GetErrorCode2(ByRef bool)` on a **mate** | `0` on a solved mate; **51** with the warning flag `True` on mates left unsolved after a `Transform2` put and rebuild (GOTCHAS §73) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
+| `SetSuppression2(0, 3, names)` on a **mate** | Suppress it in the **listed** configurations (`3`), leaving it live in the rest: one configuration's position mates ([assemblies/07](entries/assemblies/07-configurations-that-hold-different-positions.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IsSuppressed2(3, names)` | One suppression flag per listed configuration, without switching configuration | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `GetFirstDisplayDimension` / `GetNextDisplayDimension(prev)` | Walk a feature's dimensions; includes its sketch's | Verified, SW 2026 (34.0.0) |
 | `GetFirstSubFeature` / `GetNextSubFeature` | Children, e.g. the mates under `MateGroup`, or the sketch a feature was made from. **Step children with `GetNextSubFeature`**: `GetNextFeature` from a child walked on through the main tree and repeated names | Verified, SW 2026 (34.0.0) |
 
@@ -444,6 +457,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `AddComponent5(path, 0, "", False, "", x, y, z)` | Insert a saved, open part; position in metres; returns the component | Verified, SW 2026 (34.0.0) |
 | `AddMate5(type, 2, flip, d, d, d, 1, 1, a, a, a, False, False, 0, out long)` | Mate the two entities at mark 1; returned the mate, not a tuple. An angle mate's `D1` (radians) linked to a global was accepted. Also an angle between two axes (`MatePlanarAngleDim`), and a point's distance from a plane, **measured along the plane's normal**: `flip` `True` for a point on the negative side (GOTCHAS §42) | Verified, SW 2026 (34.0.0); axes and flip, dev runs 2026-09-15 |
 | `FixComponent()` | Fix the selected component; returns `None`. A free component's `IsFixed` went `False` → `True`. **Call it with parentheses**: reached by attribute access it came back as a Python `method` and never ran | Verified, SW 2026 (34.0.0), rerun 20260914-183429 |
+| `AddMate5(0, 2, False, 0, …)` / `AddMate5(5, 2, False, d, d, d, …)` on 2024 | Coincident and distance mates. The out code read **1** when the mate solved and **5** when the assembly came out over-defined, with mates then at `GetErrorCode2` 51 (GOTCHAS §83) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetExplodedViewNames2(config)` | The exploded views in a configuration, e.g. `Exploded View1` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ShowExploded2(True, name)` | Show that exploded view; returned `True` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 
 ## IComponent2
 
@@ -511,6 +527,114 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `GetInterferences` | The interferences, a tuple. **A property get** | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `Done` | Release the manager. **A method**: call `manager.Done()`; attribute access fetches it without running it | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `IInterference.Volume` | The interference's volume in **cubic metres**, a property get; matched a lens of two circles to 1e-3 | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
+
+## IDrawingDoc (a drawing, late-bound)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `ISldWorks.NewDocument(template.drwdot, 0, 0, 0)` | A drawing from a template; the template's sheet and format kept | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `Create3rdAngleViews2(modelPath)` | Front, top and right views of a saved model; `True`, view `Type` 7, 4, 4 | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `CreateDrawViewFromModelView3(path, "*Front", x, y, 0)` | One named model view at a sheet point, metres. **The first one rescales the sheet** (GOTCHAS §77) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `CreateUnfoldedViewAt3(x, y, 0, False)` | A projected view of the **selected** view toward the point; follows the sheet's projection angle | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetFirstView` / `IView.GetNextView` | The sheet first (`Type` 1), then the views | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetCurrentSheet` | The `ISheet` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `EditTemplate` / `EditSheet` | Into and out of the sheet format, to change title-block notes; `EditSheet` before `InsertNote` makes a sheet note (GOTCHAS §79) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `CreateAutoBalloonOptions` / `AutoBalloon5(options)` | Balloon the selected view; returns the balloon notes. **Skips parts with no visible edge** (GOTCHAS §81) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `InsertCenterMark3(2, False, False)` | A centre mark on the selected circular edge; the mark, or `None` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `InsertCenterLine2` | A centre line on the selected cylindrical face's axis | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IModelDoc2.InsertNote(text)` | A note, `"\n"` for line breaks. **Goes into the active view** (GOTCHAS §79) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IModelDoc2.UnblankSketch` | Show the selected sketch; returns nothing, so call it ([drawings/07](entries/drawings/07-explode-lines-in-a-drawing-view.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IModelDoc2.EditDelete` | Delete the selection: notes, dimensions, centre marks, an alternate position view | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## ISheet (from `IDrawingDoc.GetCurrentSheet`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetProperties2` | Item 2 and 3 the scale, 4 first-angle (`False` = third angle), 5 and 6 the size in metres | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SetScale(num, den, False, False)` | Set the sheet scale. Call it again after the first model view | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetTemplateName` | The sheet format file | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## IView (a drawing view)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetName2`, `Type`, `ScaleDecimal` | Name (`Drawing ViewN`, `Alternate PositionN`), type (1 sheet, 4 projected, 7 standard base, 10 alternate position were seen), scale | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `UseSheetScale = True` | Follow the sheet's scale | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetOutline` / `Position` (get and put) | Outline `[xmin, ymin, xmax, ymax]` and position `[x, y]`, sheet metres. `Position` is the outline's centre, not the model's (GOTCHAS §86) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ModelToViewTransform` | `ArrayData` items 9 and 10: the sheet position of the model origin, metres. Aligns two views by model | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SetDisplayMode4(False, 1, False, True, False)` | Hidden lines drawn dashed. Only these values run | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ReferencedConfiguration` (get and put) | The view's configuration. **The view can draw another configuration's pose** (GOTCHAS §82) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `InsertAlternateView(config)` | On the selected base view: an `Alternate PositionN` view in phantom lines, `Type` 10 ([drawings/06](entries/drawings/06-alternate-position-views.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ShowExploded(True)` / `IsExploded` | Show the assembly's exploded state in the view; `True` / `True` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `InsertBomTable5(False, x, y, 2, 2, "", template, False, 0, False, False)` | A top-level BOM placed by its top-right corner. **Empty until `SetConfigurations`** (GOTCHAS §78) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetTableAnnotations` | Tables on the sheet (`Type` 2 = BOM); a property get | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetVisibleEntities2(null, 1)` / `(null, 3)` | The view's visible edges / faces | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SelectEntity(entity, False)` | Select an edge or face of the view, for a centre mark or line | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetFirstNote` / `INote.GetNext`, `GetNotes` | The view's notes (balloons included) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetFirstDisplayDimension5` / `IDisplayDimension.GetNext5` | The view's dimensions | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetFirstCenterMark` / `ICenterMark.GetNext` | The view's centre marks | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `RootDrawingComponent` | Its `Name` is the root component with instance suffix, for selecting through the view | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## INote, IAnnotation and ICenterMark (drawing annotations)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `INote.GetText` / `SetText(text)` | Read (line breaks as `"\r\n"`) and replace a note's text, title-block notes included | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `INote.GetName` | `DetailItemNN`, for `SelectByID2` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `INote.GetExtent` / `GetTextPoint2` | Its box `[xmin, ymin, z, xmax, ymax, z]` / text point, sheet metres | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `INote.IsBomBalloon` | `True` for a BOM balloon; its text is the item number | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IAnnotation.SetPosition2(x, y, 0)` / `GetPosition` | Move a note or balloon, sheet metres (top-left for a note) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IAnnotation.GetLeaderCount` | 1 for a note with a leader, 0 without | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IAnnotation.Select3(True, null)` | **Selected nothing that `EditDelete` removed**, on nine balloons (GOTCHAS §80) | Verified not to work, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ICenterMark.GetPosition(0)` | Its centre in **model** metres, not sheet | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ICenterMark.Select(True, null)` | Select it; `EditDelete` then removed it | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## IDisplayDimension and IDimensionTolerance (on a drawing)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetDimension2(0)` → `IDimension.SystemValue` | The value, metres | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IDimension.Tolerance.Type` | 2 bilateral, 4 symmetric, 8 fit with tolerance were seen, each matching what the sheet showed | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IDimensionTolerance.GetHoleFitValue` / `GetShaftFitValue` | `'H9'`, `'h6'`, `''` for the side not set | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IDimensionTolerance.GetMaxValue` / `GetMinValue` | ± and +/− tolerance limits, metres | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ShowParenthesis` | `True` on a reference dimension | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetText(1)` / `GetText(2)` | Prefix / suffix (`'2X <MOD-DIAM>'`, `' THRU'`) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SetText(1, text)` | Replace the prefix; read back | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SetPrecision3(primary, dual, tol, dualTol)` | Decimal places, `-1` to leave a field; returned 0 and the display changed | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `Type2` | 6 on a diameter dimension SolidWorks put on an arc | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `IDimensionTolerance.SetType`, `SetFitValues`; `IDisplayDimension.Diametric` | Written, never reached ([drawings/05](entries/drawings/05-read-and-tidy-dimensions.md)) | Unverified |
+
+## IBomFeature and the table (from `IBomTableAnnotation.BomFeature`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetConfigurationCount(visibleOnly)` | 0 visible, 1 available straight after `InsertBomTable5` | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `GetConfigurations(False, out visible)` | Names and visible flags | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `SetConfigurations(True, bool[], names[])` | Show those configurations; the table filled (GOTCHAS §78) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `FollowAssemblyOrder2 = True` | Item numbers in tree order; balloons renumber with it | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `TableType` | 2 | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ITableAnnotation.RowCount` / `ColumnCount` / `Text(r, c)` | Read the table | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## ICustomPropertyManager (from `IModelDocExtension.CustomPropertyManager`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `Add3("Description", 30, text, 2)` | Add or replace a text property; returned 0. A BOM's DESCRIPTION column showed it after the part was saved and the drawing rebuilt | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## Explode lines (assembly)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `ISketchManager.InsertExplodeLineSketch` | Open (and close) the explode-line sketch for editing. **Segments deleted inside it came back on rebuild** (GOTCHAS §84) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ISldWorks.RunCommand(3307, "")` | Tried to dissolve smart explode lines; returned `False`, nothing changed. The ID's meaning not established | Verified not to work, SW 2024 SP5 (32.5.0), 2026-10-30 |
+
+## Body faces (from `IPartDoc.GetBodies2` and `IBody2.GetFaces`)
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IFace2.GetBox` | The face's box, metres; **a property get** (`f.GetBox()` raised `'tuple' object is not callable`) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ISurface.PlaneParams` | Normal (0–2), a point (3–5), metres; an axis-aligned face's offset is item `3 + axis` ([reading/15](entries/reading/15-measure-a-part-that-has-no-dimensions.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ISurface.Identity` | 4004 and 4005 on fillet corner blends | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 
 ## Constants used
 
