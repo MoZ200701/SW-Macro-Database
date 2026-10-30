@@ -119,4 +119,5 @@ The check as it ran is `CheckBox` in
 - [sketches/05 — Units and number format](../sketches/05-units-and-number-format.md)
 - [GOTCHAS §2](../../GOTCHAS.md), [GOTCHAS §24](../../GOTCHAS.md)
 - [reading/10 — Mass properties as an oracle](10-mass-properties-as-an-oracle.md) —
+- [reading/15 — Measure a part that has no dimensions](15-measure-a-part-that-has-no-dimensions.md) — every face, not just the box
   the part's volume as the same kind of check

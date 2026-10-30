@@ -182,3 +182,4 @@ swApp.CloseDoc "Part3"
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) —
   the `SaveAs` the journal shows as `Save3`
 - [GOTCHAS §69](../../GOTCHAS.md)
+- [drawings/07 — Explode lines in a drawing view](../drawings/07-explode-lines-in-a-drawing-view.md) — an open question the journal could settle

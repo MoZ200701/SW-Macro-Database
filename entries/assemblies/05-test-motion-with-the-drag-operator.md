@@ -186,3 +186,4 @@ ProgID failed with `MK_E_UNAVAILABLE`).
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md)
 - [connect/10 — Driving from outside Windows](../connect/10-driving-from-outside-windows.md)
 - [GOTCHAS §1, §10, §55, §73](../../GOTCHAS.md)
+- [assemblies/07 — Configurations that hold different positions](07-configurations-that-hold-different-positions.md) — fixing a mechanism at chosen positions instead of dragging

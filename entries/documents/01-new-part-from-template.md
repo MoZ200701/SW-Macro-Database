@@ -168,3 +168,4 @@ and `document_units`; the records are in
 - [sketches/05 — Units and number format](../sketches/05-units-and-number-format.md) — the API side of the unit boundary
 - [connect/11 — Probe an API member on a live session](../connect/11-probe-an-api-member-on-a-live-session.md) — how these facts were established
 - [GOTCHAS §25](../../GOTCHAS.md)
+- [drawings/01 — New drawing and place views](../drawings/01-new-drawing-and-place-views.md) — the same call with a drawing template

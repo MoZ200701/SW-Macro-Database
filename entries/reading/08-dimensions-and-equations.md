@@ -172,4 +172,6 @@ measuring geometry, not by reading dimensions — see
 - [equations/02 — Link a dimension to a global](../equations/02-link-a-dimension-to-a-global.md) —
   the `Dim@Owner` names an equation uses
 - [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) —
+- [reading/15 — Measure a part that has no dimensions](15-measure-a-part-that-has-no-dimensions.md) — when there are none to read
+- [drawings/05 — Read and tidy dimensions](../drawings/05-read-and-tidy-dimensions.md) — dimensions on a drawing
   the same display-dimension walk, used to find one dimension by value

@@ -277,3 +277,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [assemblies/04 — Mates between non-parallel axes](04-mates-between-non-parallel-axes.md) — origins, angles between axes, and `Flip`
 - [assemblies/05 — Test motion with the drag operator](05-test-motion-with-the-drag-operator.md) — whether the mated parts can move, and which mate stops them
 - [assemblies/06 — Read every mate](06-read-every-mate.md) — reading back mates someone else made
+- [assemblies/07 — Configurations that hold different positions](07-configurations-that-hold-different-positions.md) — mates that pin one position per configuration

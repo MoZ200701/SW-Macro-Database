@@ -111,6 +111,20 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Set a component's rotation, and mate parts on axes at an angle (bevel, crossed) | [assemblies/04 — Mates between non-parallel axes](entries/assemblies/04-mates-between-non-parallel-axes.md) |
 | Find out whether a mechanism can move, and which mate is stopping it | [assemblies/05 — Test motion with the drag operator](entries/assemblies/05-test-motion-with-the-drag-operator.md) |
 | Read every existing mate: type, components, axes, gear ratio, folder, suppression | [assemblies/06 — Read every mate](entries/assemblies/06-read-every-mate.md) |
+| Make configurations that each hold a mechanism in a different position | [assemblies/07 — Configurations that hold different positions](entries/assemblies/07-configurations-that-hold-different-positions.md) |
+| Build an exploded view step by step, and check each step moved the right way | [assemblies/08 — Exploded view from code](entries/assemblies/08-exploded-view-from-code.md) |
+
+## Make drawings
+
+| I want to… | Entry |
+|---|---|
+| Make a drawing from a template, place views at the right scale, line them up, export a PNG | [drawings/01 — New drawing and place views](entries/drawings/01-new-drawing-and-place-views.md) |
+| Add a BOM that actually lists the parts, fill DESCRIPTION, balloon every part | [drawings/02 — BOM table and balloons](entries/drawings/02-bom-table-and-balloons.md) |
+| Add sheet notes, fill the title block, change or delete notes and balloons | [drawings/03 — Notes, the title block, and deleting annotations](entries/drawings/03-notes-title-block-and-deleting-annotations.md) |
+| Put centre marks on chosen holes, axis lines on shafts, and remove unwanted marks | [drawings/04 — Centre marks and centre lines](entries/drawings/04-centre-marks-and-centre-lines.md) |
+| Review a drawing's dimensions and tolerances, fix trailing zeros and prefixes | [drawings/05 — Read and tidy dimensions](entries/drawings/05-read-and-tidy-dimensions.md) |
+| Show a mechanism's other positions as phantom lines | [drawings/06 — Alternate position views](entries/drawings/06-alternate-position-views.md) |
+| Show explode lines in an exploded drawing view | [drawings/07 — Explode lines in a drawing view](entries/drawings/07-explode-lines-in-a-drawing-view.md) |
 
 ## Read an existing model
 
@@ -119,6 +133,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | List what a closed file references | [reading/01 — Dependencies of a closed file](entries/reading/01-dependencies-of-a-closed-file.md) |
 | Build a full reference tree | [reading/02 — Walk a reference tree](entries/reading/02-walk-a-reference-tree.md) |
 | Rename or move a file and fix references | [reading/03 — Repair references after a move](entries/reading/03-repair-references-after-a-move.md) |
+| Rename an assembly's part files without breaking it | [files/05 — Rename a component's file](entries/files/05-rename-a-component-file.md) |
 | Find out what the user just clicked | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 | Convert sketch coordinates to model coordinates | [reading/05 — Sketch to model transform](entries/reading/05-sketch-to-model-transform.md) |
 | Watch the active sketch while the user works | [reading/06 — Live sketch monitor](entries/reading/06-live-sketch-monitor.md) |
@@ -131,6 +146,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Measure the wall between two surfaces without exporting anything | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Get one body's volume, where `IMassProperty` will not take bodies | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Find out afterwards what a program did to a part, when it kept no log | [reading/14 — The journal records API calls](entries/reading/14-the-journal-records-api-calls.md) |
+| Get the real sizes of a derived or imported part that has no dimensions | [reading/15 — Measure a part that has no dimensions](entries/reading/15-measure-a-part-that-has-no-dimensions.md) |
 | Read a pick without crashing SolidWorks | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 
 ## Change how a part looks
@@ -156,7 +172,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 06, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, surfacing/04, files/04
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

@@ -988,3 +988,93 @@ nor are unique (`Folder1___EndTag___` twice in one assembly). Also,
 `MateGearDim` is the gear mate's type name, and a limit distance mate shares
 `IMate2.Type` 5 with a plain one. SolidWorks 2024 SP5 (32.5.0). See
 [assemblies/06](entries/assemblies/06-read-every-mate.md#folders-are-markers-not-parents).
+
+## 77. A drawing's first model view rescales the sheet
+
+On a sheet set to 2:1 before any view, the first
+`IDrawingDoc.CreateDrawViewFromModelView3` reset the **sheet** to suit the model
+(2:1 came back 1:2) and placed its view at 0.5. Set `IView.UseSheetScale = True`
+on the view and call `ISheet.SetScale` again *after* the first view, then read
+`ScaleDecimal` on every view. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/01](entries/drawings/01-new-drawing-and-place-views.md#one-model-view-then-projected-views-from-it).
+
+## 78. A BOM inserted from code lists nothing until its configuration is switched on
+
+`IView.InsertBomTable5` returned a table with a header row only — no QTY column,
+no parts — because no configuration was visible in it
+(`IBomFeature.GetConfigurationCount(True)` 0, `(False)` 1).
+`SetConfigurations(True, [True], [name])` filled it: 10 rows × 4 columns. Nothing
+in the insert's return says the table is empty. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/02](entries/drawings/02-bom-table-and-balloons.md).
+
+## 79. `InsertNote` puts the note in the active view
+
+Straight after views are created from code, a view is active, and
+`IModelDoc2.InsertNote` attaches the note to it: it moves with that view and is
+listed under it. `IDrawingDoc.EditSheet` and `ClearSelection2` first make it a
+sheet note. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/03](entries/drawings/03-notes-title-block-and-deleting-annotations.md#a-sheet-note).
+
+## 80. `IAnnotation.Select3` then `EditDelete` deleted nothing
+
+Nine balloons, each `GetAnnotation().Select3(True, null)`, then one `EditDelete`:
+no error, and nine balloons still there. `IModelDocExtension.SelectByID2` with
+`"<note name>@<view name>"` and type `"NOTE"` selected all nine and the same
+`EditDelete` removed them. Count before and after any delete. Centre marks, by
+contrast, delete through `ICenterMark.Select`. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/03](entries/drawings/03-notes-title-block-and-deleting-annotations.md#deleting-an-annotation).
+
+## 81. Auto-balloon skips parts it cannot see, without saying so
+
+`IDrawingDoc.AutoBalloon5` on an isometric of nine parts made seven balloons; the
+two parts inside others got none, and the return was just the seven. Compare the
+balloon count with the BOM's rows and balloon the rest in a view that shows them.
+SolidWorks 2024 SP5 (32.5.0). See
+[drawings/02](entries/drawings/02-bom-table-and-balloons.md#balloons).
+
+## 82. A drawing view can name a configuration and draw another one's pose
+
+A base view whose `ReferencedConfiguration` read one end-of-travel configuration
+drew the mechanism where the assembly had last been solved — the other end.
+`ForceRebuild3` on the drawing changed nothing. `ShowConfiguration2` in the
+assembly, `ForceRebuild3` there, then on the drawing, drew the right pose. Check
+the exported picture, not the property. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/06](entries/drawings/06-alternate-position-views.md#make-sure-the-solid-pose-is-the-configurations).
+
+## 83. Component positions are not stored per configuration
+
+A configuration stores suppression, not where free components sit. Two
+configurations whose only difference was where a part had been dragged showed
+the same position. Each configuration needs its own mates that fix the position
+**uniquely** and do not fight the rest: distances to planes beside an existing
+limit mate, a second limit mate, and a target point 0.001 mm off the pin's circle
+all added with `AddMate5` error 5 and put mates at error 51; the moving axis
+coincident with an *exact* point in an assembly sketch solved in every
+configuration. SolidWorks 2024 SP5 (32.5.0). See
+[assemblies/07](entries/assemblies/07-configurations-that-hold-different-positions.md).
+
+## 84. Deleted smart-explode-line segments come back
+
+Smart Explode Lines make a 3D sketch (`3DExplode1`, `ExplodeLineProfileFeature`).
+Selecting five of its segments and `EditDelete` — inside
+`InsertExplodeLineSketch` or by editing the feature — left the count unchanged,
+and after the rebuild all five were there. Accept them, or make your own lines.
+SolidWorks 2024 SP5 (32.5.0). See
+[drawings/07](entries/drawings/07-explode-lines-in-a-drawing-view.md#segments-you-do-not-want).
+
+## 85. Explode lines are hidden in a drawing view that already existed
+
+An exploded drawing view did not show the assembly's explode lines. Selecting
+the sketch through the view — `SelectByID2("3DExplode1@<root>-N@<view>", "SKETCH", …)`
+— and `UnblankSketch` showed them. `UnblankSketch` returns nothing, so it must be
+called, not reached by attribute ([§55](#55-a-zero-argument-member-that-returns-nothing-or-an-array-comes-back-uncalled)).
+SolidWorks 2024 SP5 (32.5.0). See
+[drawings/07](entries/drawings/07-explode-lines-in-a-drawing-view.md#showing-them-in-an-existing-view).
+
+## 86. A drawing view's `Position` is its outline's centre, not its model's
+
+Two views of one assembly at the same `IView.Position` were offset on the sheet
+by a part's travel, because one view's outline included an extra phantom position. Align views
+by where each puts the model origin — `ModelToViewTransform.ArrayData` items 9
+and 10 — not by `Position`. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/01](entries/drawings/01-new-drawing-and-place-views.md#laying-views-out).
