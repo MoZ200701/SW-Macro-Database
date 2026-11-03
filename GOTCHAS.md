@@ -43,6 +43,11 @@ One attempt with `.32` failed earlier in the same session, before it later
 worked, and its error message came back empty, so why it failed is not known.
 SolidWorks 2024 SP5 (32.5.0), 2026-10-01.
 
+It moves: on the same machine on 2026-11-03 the unversioned
+`SldWorks.Application` named `{666aaee2-…}`, the 2026 class, with `.32`
+`{afbec3b2-…}` and `.33` `{6af263bb-…}` (registry read, Plane-Builder probe run
+`pv1_facts-20261103-034206`). The table above is a snapshot, not a constant.
+
 ## 2. The API is in metres, always
 
 The file format takes a `mm` suffix and honours it. The API does not take
@@ -63,6 +68,11 @@ Radians for angles, on the same principle. See
 Calling it on `IFeatureManager` raises **error 438, object doesn't support
 this property or method**, which reads like the method does not exist. It
 does. It is on `IModelDoc2`.
+
+From pywin32 the same mistake is `AttributeError: <unknown>.InsertCurveFile`,
+and `GetIDsOfNames` on `IFeatureManager` refuses the name; on `IModelDoc2` it
+returned True and made one `CurveInFile`. SolidWorks 2026 (34.0.0),
+Plane-Builder probe run `pv1_facts-20261103-034206`.
 
 ## 4. A bare `None` is a type mismatch for an absent COM object
 
@@ -120,7 +130,11 @@ from `oleaut32.dll` yourself, or walk the Running Object Table via
 
 Set `feature.Name = "S9"` when an `S9` already exists and you get `S91` or
 similar, with no error. A record holding a name that does not exist is a
-silent failure. **Always read the name back:**
+silent failure. On SolidWorks 2026 (34.0.0) the rename was simply dropped: a
+curve renamed to a name another curve held kept its **default** name,
+`Curve8`, again with no error, and `FeatureByName` still found the other one
+(Plane-Builder probe run `pv1_facts-20261103-034206`). **Always read the name
+back:**
 
 ```python
 feature.Name = new
@@ -222,6 +236,11 @@ The only call that puts features in a folder is
 folder. So an arrangement is rebuilt rather than patched. This is affordable
 because deleting a folder deletes only the folder: everything it held stays
 where it was. See [curves/11](entries/curves/11-feature-tree-folders.md).
+
+Still so on SolidWorks 2026 (34.0.0) on 2026-11-03: `MoveToFolder("PB Curves",
+"PB_S2_extra", False)` returned `False` and the folder still held 7. Deleting the
+folder and wrapping all eight again worked (Plane-Builder probe run
+`pv1_facts-20261103-034206`).
 
 ## 19. A folder is two features in the tree
 

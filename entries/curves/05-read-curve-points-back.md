@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IFeature.GetDefinition, PointArray]
-keywords: [PointArray, read curve, curve points, metres, round trip, verify]
+keywords: [PointArray, read curve, curve points, metres, round trip, verify, GetPointCount counts doubles, 99 for 33 points]
 answers: "How do I check what a curve feature actually contains?"
 ---
 
@@ -26,6 +26,14 @@ def curve_points(self, name):
 
 `PointArray` on the curve's feature data returns a **flat** array: x, y, z, x,
 y, z, and so on. In metres, like everything else in the API.
+
+**Count points from `PointArray`, not `GetPointCount`.** On the same feature
+data (`IFreePointCurveFeatureData`), `GetPointCount` returned **99** for a curve
+of 33 points — the number of doubles, three per point — on a file-inserted curve
+and on a point-streamed one alike. `PointArray` held the 33 points, all equal to
+the file's rows ÷ 1000 to 0.0 mm, the closed curve's repeated last row
+included. SolidWorks 2026 (34.0.0), Plane-Builder probe run
+`pv1_facts-20261103-034206`.
 
 ## What it is for
 

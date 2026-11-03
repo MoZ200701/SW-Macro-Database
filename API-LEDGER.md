@@ -142,6 +142,7 @@ entries it links.
 | `AddDimension2(x, y, z)` | Dimension the selection, text at a point in metres; returns an `IDisplayDimension`. On the Top plane an angle placed at a **model-space** point read the angle (GOTCHAS §43) | Verified, SW 2026 (34.0.0) |
 | `GetFeatureCount` | How many features; half of a cheap change key. Its **change** across an insert says how many features the insert made (552 → 553 for one curve, rolled back or not); a different count from a full listing's, which includes sub-features (552 against 559) | Verified, SW 2026, Airfoil Converter 2026-09-16 and 2026-09-23 |
 | `GetUpdateStamp` | A number that moves when the model changes and stood still while it was only orbited; with `GetFeatureCount`, under a millisecond | Verified, SW 2026, Airfoil Converter 2026-09-16 |
+| `GetUpdateStamp`, what moves it | Inserts, curve reloads, `ForceRebuild3`, rollbacks, deletes, `EditUndo2`, `HideBody`, `SetSuppression2`; **not** a rename, selection, view, zebra, `Save3`, an idle `EditRebuild3`, or a dimension set before rebuilding ([reading/11](entries/reading/11-cheap-change-detection.md#what-moves-the-stamp)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p3_stamp-20261103-043931` |
 | `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | Surface loft through the curves at mark 1 along those at mark 2; returns nothing useful, so judge by the tree. A fallback where a solid was refused; that such a surface was made was observed, the arguments' meanings were not examined | Partly verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `EditRebuild3` | Rebuild what changed. **0.8 s against `ForceRebuild3(False)`'s 25 s** on a 397-feature part, geometry identical to twelve digits. **Returns `False` whenever any feature in the part is in error**, including ones that were already in error, so its answer is not "did not run" (GOTCHAS §58) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `EditSketch` | Open the selected sketch feature for editing; returns `None` and opens it (`ActiveSketch` then not `None`) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-041026` |
@@ -253,6 +254,7 @@ entries it links.
 |---|---|---|
 | `InsertFeatureTreeFolder2(type)` | Folder around the current selection. Pass `2`; see the constants below | Verified, SW 2026 |
 | `MoveToFolder(folder, feature, moveAfter)` | Would add a feature to an existing folder. **Returned `False` and did nothing, every way it was tried** | Verified not to work, SW 2026 |
+| `MoveToFolder("PB Curves", curve, False)` | Re-checked: `False`, nothing moved (GOTCHAS §18) | Verified not to work, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pv1_facts-20261103-034206` |
 | `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed. Set `False` (with `EnableFeatureTreeWindow = False`), a curve reload's `ModifyDefinition` took 12.2 s against 9.7 s with it on: no help there ([curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md)) | Verified, SW 2026; set, SW 2026 SP0.0 2026-09-23 |
 | `FeatureExtrusion3` (23 arguments) | Blind boss from the selected sketch, depth in metres; returns the feature | Verified, SW 2026 (34.0.0) |
 | `FeatureExtrusion3` with the 18th argument (Merge) `False` | Each extrusion its own body; typed `ICE` when another body existed (GOTCHAS §96). From a plane offset to −Z it still grew toward +Z (GOTCHAS §95) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p6_bodies-20261103-041327`, `-041508` |
@@ -313,6 +315,7 @@ entries it links.
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration, to export one loft at a time. In the code whose STEP files were measured, but whether it accepted the bare `None` and isolated the body was not recorded | Unverified, Airfoil Converter 2026-09-16 |
 | `IsRolledBack` | Whether this feature is below the rollback bar. A genuine `bool` through late binding, and the thing to trust where `EditRollback`'s return cannot be | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `IsSuppressed` | Whether it is suppressed. A property get, answers a `bool` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `Name` (put) onto a name another feature holds | Dropped silently: the feature kept its default name (`Curve8`); no error (GOTCHAS §8) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pv1_facts-20261103-034206` |
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration. The bare `None` **is** accepted here. **It cascades**: on one part it suppressed 74 features built on the one asked for, and unsuppressing that one restored none of them (GOTCHAS §62) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFaces` | The faces a feature made. A property get. The route to a feature's **body**, which a feature does not offer: take a face and ask it | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetErrorCode2(ByRef bool)` | A feature's error code, `0` for clean, with a by-ref warning flag passed as `VARIANT(VT_BYREF \| VT_BOOL, False)`. Read `1` on each of a part's 13 pre-existing failures | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
@@ -331,6 +334,7 @@ entries it links.
 |---|---|---|
 | `LoadPointsFromFile(path)` | Replace the points from a file, in place | Verified, SW 2026 |
 | `PointArray` | The points it holds, flat, in metres | Verified, SW 2026 |
+| `GetPointCount` | **The number of doubles**, not points: 99 for 33 points, inserted or streamed. Count points from `PointArray` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pv1_facts-20261103-034206` |
 
 ## Composite curve feature data (from `IFeature.GetDefinition` on a `CompositeCurve`)
 
@@ -442,6 +446,7 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `GetCurve` | IEdge, ISketchSegment | The underlying curve | Verified |
 | `IsLine` | ICurve | Whether it is straight | Verified |
 | `IsCircle` / `CircleParams` | ICurve | Whether it is a circle; centre (0–2), axis (3–5), radius (6), **metres**. A revolve's end edge read radius 30.000000000 mm | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854` |
+| `GetLength3(t0, t1)` | ICurve | Length between two parameters (from `IEdge.GetCurveParams2`): 157.0793 mm for a 32-point closed curve of radius 25 (2π·25 = 157.0796) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pv1_facts-20261103-034206` |
 | `GetEndParams(out t0, out t1, out closed, out periodic)` | ICurve | The parameter range; through pywin32 a 5-tuple `(ok, t0, t1, closed, periodic)` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
 | `ReverseEvaluate(x, y, z)` | ICurve | The parameter of a point on the curve; a sketch arc's ends gave its two parameters, a line's 0 and its length in metres | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
 | `Evaluate2(t, 1)` and `GetTessPts(…, start, end)` on a **sketch** curve | ICurve | Tangents for exact corner angles; points between the segment's own ends (sketch space), following an arc the way it was drawn | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
@@ -517,6 +522,7 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 |---|---|---|
 | `DisplayMode` (read) | The view's display style as `swViewDisplayMode_e`. Read `5`, `swViewDisplayMode_ShadedWithEdges` | Verified, SW 2024 (32.5.0), 2026-10-01 |
 | `DisplayZebraStripes` (put, get) | Zebra stripes on a part's view, through late binding; read back True | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
+| `Orientation3` → `ArrayData` | The view's orientation; after `ShowNamedView2("*Front", 1)` its rotation was the identity | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pv1_facts-20261103-034206` |
 | `IModelDoc2.SaveBMP(path, 0, 0)` | The graphics window as drawn, zebra stripes included; returned `True` (GOTCHAS §97) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
 | `IModelDocExtension.SaveAs(path.png, 0, 3, null, out, out)` on a **part** | Returned `True` and wrote the model shaded, **without** the zebra stripes on screen (GOTCHAS §97) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
 | `IModelDocExtension.SetUserPreferenceToggle(198, 0, True)` | `swViewDisplayHideAllTypes`: hides curves, planes and sketches for a clean picture; set back after | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |

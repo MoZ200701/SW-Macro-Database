@@ -111,6 +111,13 @@ the only signal.
 If you find a version or a case where it works, downgrade this section and say
 which.
 
+Re-checked on SolidWorks 2026 (34.0.0), 2026-11-03: `MoveToFolder("PB Curves",
+"PB_S2_extra", False)` for an eighth curve returned `False` and the folder
+still held 7. Deleting the folder removed exactly 2 features (the folder and its
+end tag) and kept every curve; wrapping all eight again made a folder of 8, and
+curves reloaded inside it still drove the Boundary Surface built on them (error
+0). Plane-Builder probe run `pv1_facts-20261103-034206`.
+
 ## Deleting a folder keeps everything it held
 
 This is what makes the whole thing workable. Select the folder and delete it,

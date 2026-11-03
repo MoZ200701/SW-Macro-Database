@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IModelDoc2.GetFeatureCount, IModelDoc2.GetUpdateStamp, IFeatureManager.GetFeatures]
-keywords: [polling, poll, change detection, GetUpdateStamp, GetFeatureCount, GetFeatures, stutter, lag, orbit, feature tree walk, UI thread, slow, every second, watch the part, 397 features, tree walk cost, ten seconds, nothing changed push]
+keywords: [polling, poll, what advances GetUpdateStamp, rename does not change stamp, change detection, GetUpdateStamp, GetFeatureCount, GetFeatures, stutter, lag, orbit, feature tree walk, UI thread, slow, every second, watch the part, 397 features, tree walk cost, ten seconds, nothing changed push]
 answers: "My tool polls SolidWorks every second and orbiting the model stutters. What can I ask that is cheap and still tells me the part changed?"
 ---
 
@@ -129,15 +129,35 @@ and `e24`.
 - **The update stamp does not move when the model is only looked at.** While
   the user orbited the model it stood still, so the poll did not turn into a
   full read every second.
-- **A change may move neither number.** Whether a rename does was not tested.
-  The tool also re-reads when its window gets the focus back, which is when a
-  rename made in SolidWorks is freshest.
+- **A change may move neither number.** **A rename moves neither**: measured
+  below. The tool also re-reads when its window gets the focus back, which is
+  when a rename made in SolidWorks is freshest.
+
+## What moves the stamp
+
+Measured on SolidWorks 2026 (34.0.0), on a small part (three curves, four guides,
+a Boundary Surface), `GetUpdateStamp` and `GetFeatureCount` read either side of
+each operation (Plane-Builder probe run `p3_stamp-20261103-043931`; the shared
+rows of `p3_stamp-20261103-042418` agreed):
+
+| Advances the stamp | Does not |
+|---|---|
+| `InsertCurveFile`; `InsertNetBlend2` | **renaming a feature** (`IFeature.Name`): neither the stamp nor the count moves |
+| reloading a curve (`LoadPointsFromFile` + `ModifyDefinition`), which also rebuilds there and then: a following `EditRebuild3` moved nothing — and the count did **not** move | `EditRebuild3` with nothing to rebuild |
+| `ForceRebuild3(False)` (+20 here) | `Select2`, `ClearSelection2` |
+| `EditRollback` to a feature, and back to the end (+1 each) | `ShowNamedView2`, `ViewZoomtofit2`, zebra stripes on and off |
+| deleting a feature; `EditUndo2(1)` | `Save3` |
+| `IBody2.HideBody(True)` and `(False)` (+1 each) | `IDimension.SetSystemValue3(…)` before a rebuild (returned 0); the `EditRebuild3` after it advanced the stamp and moved the plane |
+| `IFeature.SetSuppression2` either way (returned True) | |
+
+So the stamp is needed alongside the count (a reload changes only the stamp),
+and **neither sees a rename**: a tool that finds its features by name learns of
+a rename only when it next looks one up and does not find it.
 
 ## What it does not do
 
-- Which operations advance `GetUpdateStamp` was not enumerated. Rebuilds and
-  added features were what the tool relied on; a rename, a suppression, and a
-  change to a curve's points without a rebuild were not tested one by one.
+- Which operations advance `GetUpdateStamp` is enumerated above for one small
+  part; sketch edits were not tried.
 - `GetFeatures(False)` and the walk were compared for speed ("nearly twice as
   long"), but whether they list exactly the same features in the same order
   was not checked; the tool only uses the names and types as a set.

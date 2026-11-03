@@ -147,6 +147,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Check that a generated file is the size it should be | [reading/09 — Bounding box as a check](entries/reading/09-bounding-box.md) |
 | Check that a feature changed the solid the way I meant | [reading/10 — Mass properties as an oracle](entries/reading/10-mass-properties-as-an-oracle.md) |
 | Poll for changes every second without making SolidWorks stutter | [reading/11 — Cheap change detection](entries/reading/11-cheap-change-detection.md) |
+| Know which operations move `GetUpdateStamp` (a rename does not) | [reading/11 — Cheap change detection](entries/reading/11-cheap-change-detection.md#what-moves-the-stamp) |
 | Suppress one body feature without losing everything built on it | [reading/12 — Snapshot suppression before you suppress](entries/reading/12-snapshot-suppression-before-you-suppress.md) |
 | Find which bodies a feature made, or which feature made a body, and get their triangles | [reading/17 — The bodies a feature made](entries/reading/17-bodies-of-a-feature-and-their-tessellation.md) |
 | Measure the wall between two surfaces without exporting anything | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |

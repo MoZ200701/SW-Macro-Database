@@ -952,7 +952,9 @@
         "curve points",
         "metres",
         "round trip",
-        "verify"
+        "verify",
+        "GetPointCount counts doubles",
+        "99 for 33 points"
       ],
       "answers": "How do I check what a curve feature actually contains?"
     },
@@ -2801,6 +2803,8 @@
       "keywords": [
         "polling",
         "poll",
+        "what advances GetUpdateStamp",
+        "rename does not change stamp",
         "change detection",
         "GetUpdateStamp",
         "GetFeatureCount",

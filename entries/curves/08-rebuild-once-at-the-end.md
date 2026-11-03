@@ -19,6 +19,14 @@ some curves carry the old geometry and some the new. Guide curves genuinely do
 not pierce the sections at that moment. The surface genuinely does not close.
 SolidWorks is right to complain, and the complaint is meaningless.
 
+Measured on SolidWorks 2026 (34.0.0): with one section of a three-section
+cylinder reloaded to a larger radius and its four guides not yet, the Boundary
+Surface over them read `GetErrorCode2` **1 with 0 faces**, and a surface loft
+over the same curves error 1. With the guides reloaded too, both were clean and
+the surface lay on the new section to 0.0001 mm, nothing re-picked
+(Plane-Builder probe run `pv1_facts-20261103-034206`). Mid-push errors are
+expected; judge the part after the last reload.
+
 **It is slow.** You rebuild the whole model once per curve, twelve times, for a
 result you discard eleven times.
 

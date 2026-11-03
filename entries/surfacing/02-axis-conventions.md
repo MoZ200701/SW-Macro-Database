@@ -36,8 +36,10 @@ model **−Z**, sketch y along +Y and its normal along +X; the Right view looks
 from +X, so model +Z points to the left. Draw at sketch x = 60 mm on the Right
 Plane and the point lands at model Z = −60. SolidWorks 2026 (34.0.0),
 Plane-Builder probe run `p11_nose-20261103-035854`
-([GOTCHAS §91](../../GOTCHAS.md)). The Front and Top rows were not re-measured
-there.
+([GOTCHAS §91](../../GOTCHAS.md)). The Front row was confirmed the same night:
+after `ShowNamedView2("*Front", 1)`, `IModelView.Orientation3.ArrayData` had the
+identity rotation — screen right +X, up +Y, toward the viewer +Z
+(`pv1_facts-20261103-034206`). The Top row was not re-measured.
 
 ## Remap at the boundary, once
 

@@ -28,7 +28,10 @@ reading members; setting goes through normal attribute assignment.
 
 **SolidWorks quietly keeps its own name on a collision.** Set `Name = "S9"`
 when an `S9` already exists and you get something else — `S91`, or the original
-generated name — with no error, no exception, no `False` return.
+generated name — with no error, no exception, no `False` return. On SolidWorks
+2026 (34.0.0) it was the original name: a curve renamed to `PB_S1`, which
+another curve held, kept `Curve8` (Plane-Builder probe run
+`pv1_facts-20261103-034206`).
 
 If you then record `"S9"` in your own state file, you have a record pointing at
 a feature that does not exist, and nothing later can detect it. The next refresh

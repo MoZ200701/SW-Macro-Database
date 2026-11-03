@@ -334,7 +334,7 @@ built, error 0, one face, and held its 336 section points to 0.00037 mm
 (`p13_fairing-20261103-042019`). Two direction-1 curves that **meet at one
 point**, with the direction-2 sections stopping short of it, built a pointed
 patch, error 0, one face — but its curvature was unbounded near the point (a
-principal curvature of +2.31 /mm 0.5 mm from it, against 0.03 a few mm away)
+principal curvature of +2.31 /mm 0.5 mm from it, against 0.031 /mm 5 mm from it)
 (`p13_fairing-20261103-042226`). Two flanks sharing a ridge curve met in a
 crease of 64.1° that a plane later cut cleanly and one planar cap closed with
 the body (`p13_fairing-20261103-043914`).
