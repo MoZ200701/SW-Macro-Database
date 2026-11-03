@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [typescript]
 api: []
-keywords: [axes, front plane, top plane, right plane, orientation, Y up, Z up, axis map, mirror, standard views]
+keywords: [axes, front plane, top plane, right plane, right plane sketch x is -Z, orientation, Y up, Z up, axis map, mirror, standard views]
 answers: "Why does my exported geometry come out lying on its side?"
 ---
 
@@ -27,7 +27,17 @@ elevation, and every standard view is wrong.
 |---|---|---|
 | Front | X right, Y up | Z toward the viewer |
 | Top | X right, Z toward the viewer | Y up |
-| Right | Z right, Y up | X |
+| Right | **−Z** right, Y up | +X |
+
+**Corrected 2026-11-03.** The Right row said "Z right". A sketch on the Right
+Plane, read through its `ModelToSketchTransform` by columns
+([reading/05](../reading/05-sketch-to-model-transform.md)), has sketch x along
+model **−Z**, sketch y along +Y and its normal along +X; the Right view looks
+from +X, so model +Z points to the left. Draw at sketch x = 60 mm on the Right
+Plane and the point lands at model Z = −60. SolidWorks 2026 (34.0.0),
+Plane-Builder probe run `p11_nose-20261103-035854`
+([GOTCHAS §91](../../GOTCHAS.md)). The Front and Top rows were not re-measured
+there.
 
 ## Remap at the boundary, once
 
@@ -132,3 +142,5 @@ geometry comes out the right shape, on the right plane, facing the wrong way.
 
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md)
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md)
+- [reading/05 — Sketch to model transform](../reading/05-sketch-to-model-transform.md) — reading a plane's sketch frame
+- [GOTCHAS §10, §91](../../GOTCHAS.md)

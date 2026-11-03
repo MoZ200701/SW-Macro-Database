@@ -1193,3 +1193,13 @@ not assume a closed file's seam behaves like the end of an open one, in either
 direction. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
 `p9_creases-20261103-040014` and `-043213`. See
 [curves/01](entries/curves/01-sldcrv-file-format.md#closed-curves).
+
+## 91. On the Right Plane, sketch x is model −Z
+
+A sketch on the Right Plane reads, through `ModelToSketchTransform` by columns
+(§10), sketch x = model **−Z**, sketch y = +Y, normal +X. A point drawn at
+sketch x = +60 mm is at model Z = −60. [surfacing/02](entries/surfacing/02-axis-conventions.md)
+said "Z right" until 2026-11-03; code written from that table puts a profile on
+the Right Plane mirrored front to back. Put model points through the sketch's
+own transform rather than mapping axes by hand. SolidWorks 2026 (34.0.0),
+Plane-Builder probe run `p11_nose-20261103-035854`.

@@ -3139,6 +3139,7 @@
         "front plane",
         "top plane",
         "right plane",
+        "right plane sketch x is -Z",
         "orientation",
         "Y up",
         "Z up",

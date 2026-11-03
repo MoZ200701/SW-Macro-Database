@@ -113,6 +113,15 @@ normal = (tip[0] - root[0], tip[1] - root[1], tip[2] - root[2])
 
 That cannot get the row-versus-column question wrong, because whatever
 convention `transform_point` uses, it uses it consistently for both points.
+
+Read that way, a sketch on the **Right Plane** has sketch x = model **−Z**,
+sketch y = +Y and normal +X (SolidWorks 2026, 34.0.0, Plane-Builder probe run
+`p11_nose-20261103-035854`), and a sketch on a plane offset from the Front
+plane by `InsertRefPlane(8 | 256, d, …)` has the identity rotation (x = +X,
+y = +Y, normal +Z) with only a translation (`p1_sketch_read-20261103-041058`).
+On that Front-parallel plane, reading the rotation by rows instead gave the same
+points to 0.0 mm, which is GOTCHAS §10's warning made concrete: only a non-Front
+plane can catch the transpose. See [GOTCHAS §91](../../GOTCHAS.md).
 This is how a reference plane's normal is read in
 [reading/04](04-read-the-selection.md).
 
@@ -126,7 +135,8 @@ any machine and catches the transpose immediately.
 ## See also
 
 - [reading/04 — Read the selection](04-read-the-selection.md)
-- [GOTCHAS §10](../../GOTCHAS.md)
+- [GOTCHAS §10, §91](../../GOTCHAS.md)
+- [surfacing/02 — Axis conventions](../surfacing/02-axis-conventions.md) — the three standard planes' sketch axes
 - [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — a component's `Transform2.ArrayData`
 - [assemblies/04 — Mates between non-parallel axes](../assemblies/04-mates-between-non-parallel-axes.md) — writing the same sixteen numbers, by columns, to set a component's frame
 - [features/06 — Reference plane normal to a line](../features/06-reference-plane-normal-to-a-line.md) — a plane's sketch frame read back this way
