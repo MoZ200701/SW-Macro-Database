@@ -192,6 +192,7 @@ with the same facts in both. Excerpts:
 
 ## See also
 
+- [features/13 — A surface revolve from an imported curve](13-surface-revolve-from-an-imported-curve.md) — `InsertRevolvedRefSurface`, with the profile converted from or written like a curve file
 - [features/01 — Boss extrude](01-boss-extrude.md) — selecting a sketch, and the other way to make a blank
 - [features/06 — Reference plane normal to a line](06-reference-plane-normal-to-a-line.md) — the other feature that selects a sketch line by name
 - [features/07 — Loft cut](07-loft-cut.md) — what was cut from the revolved blank

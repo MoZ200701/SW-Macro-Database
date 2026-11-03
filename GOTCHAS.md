@@ -892,6 +892,8 @@ about 9 mm point spacing, 10.3° at 4.4 mm, 1.21° at 0.54 mm and 0.30° at
 23.9° chine came out 30.2°. Pack points toward every cut on both sides.
 SolidWorks 2026 (34.0.0), Plane-Builder probe runs `p9_creases-20261103-040649`
 and `-040239`. See [curves/06](entries/curves/06-composite-curve.md#a-composites-corner-is-set-by-its-pieces-ends).
+A profile converted into a sketch from an open curve file keeps the zero end
+curvature: [features/13](entries/features/13-surface-revolve-from-an-imported-curve.md).
 
 ## 66. Diffing the tree around every insert costs two full listings
 
@@ -1203,3 +1205,27 @@ said "Z right" until 2026-11-03; code written from that table puts a profile on
 the Right Plane mirrored front to back. Put model points through the sketch's
 own transform rather than mapping axes by hand. SolidWorks 2026 (34.0.0),
 Plane-Builder probe run `p11_nose-20261103-035854`.
+
+## 92. An edge held across a delete and rebuild goes stale: `RPC_E_DISCONNECTED`
+
+An `IEdge` fetched before a feature was deleted and the part rebuilt raised
+**`0x80010108 RPC_E_DISCONNECTED`, "The object invoked has disconnected from its
+clients"** on its next `Select4`. Nothing was wrong with SolidWorks, which
+carried on with the next probe. Fetching the edge again after the change fixed
+it. Do not keep `IEdge` (or face) objects across a delete, an insert or a
+rebuild; keep what finds them (the feature, and where the edge is) and look them
+up again. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
+`p9_creases-20261103-040530` (failed) and `-041135` (the edge fetched again per
+attempt: built).
+
+## 93. `ISurface.EvaluateAtPoint` returned `None` on points off the face's own edge
+
+Points read off an edge's curve (`IEdge.GetCurve`, `GetCurveParams2`,
+`ICurve.Evaluate2`) and handed to `ISurface.EvaluateAtPoint` of a face that edge
+bounds came back `None`, and the code that indexed the result
+raised `TypeError: 'NoneType' object is not subscriptable`. Projecting each
+point onto the face first with `IFace2.GetClosestPointOn`, and evaluating
+there, worked. Check for `None` before indexing anything `EvaluateAtPoint`
+returns. Why those points were refused (a tolerance, or the edge lying on the
+face's boundary) was not established. SolidWorks 2026 (34.0.0), Plane-Builder
+probe run `p11_nose-20261103-034016`.

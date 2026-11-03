@@ -348,7 +348,9 @@ when it is deleted, as for a loft ([GOTCHAS §67](../../GOTCHAS.md)).
   slope, or treat the joint as G0. [GOTCHAS §88](../../GOTCHAS.md).
 - `SetNetBlendDirectionData`'s trim and closed flags, thin and solid options,
   draft, and every `InsertNetBlend2` argument beyond the counts were not varied.
-- Solid output (`CreateSolid` True) was not tried.
+- Solid output (`CreateSolid` True) was not tried. Knitting the sheet to a
+  revolve and a planar cap made a solid:
+  [surfacing/04](04-cap-a-refused-loft-into-a-solid.md#the-same-knit-on-a-revolve-and-a-boundary-surface).
 - Only fuselage-like closed sections with 4–6 guides were built.
 
 ## Evidence
@@ -389,4 +391,5 @@ from WSL, the Plane-Builder probes of 2026-11-03. Result records by filename
 - [curves/12 — Roll the tree back before reloading](../curves/12-roll-the-tree-back-before-reloading.md)
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the loft, and where its rules differ
 - [surfacing/04 — Cap a refused loft into a solid](04-cap-a-refused-loft-into-a-solid.md) — knitting the sheet into a solid
+- [features/13 — A surface revolve from an imported curve](../features/13-surface-revolve-from-an-imported-curve.md) — the nose whose edge was profile 0
 - [GOTCHAS §14, §49, §55, §59, §66, §67, §68, §87, §88, §89](../../GOTCHAS.md)

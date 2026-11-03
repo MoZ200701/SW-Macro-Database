@@ -144,6 +144,8 @@ entries it links.
 | `GetUpdateStamp` | A number that moves when the model changes and stood still while it was only orbited; with `GetFeatureCount`, under a millisecond | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | Surface loft through the curves at mark 1 along those at mark 2; returns nothing useful, so judge by the tree. A fallback where a solid was refused; that such a surface was made was observed, the arguments' meanings were not examined | Partly verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `EditRebuild3` | Rebuild what changed. **0.8 s against `ForceRebuild3(False)`'s 25 s** on a 397-feature part, geometry identical to twelve digits. **Returns `False` whenever any feature in the part is in error**, including ones that were already in error, so its answer is not "did not run" (GOTCHAS §58) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `EditSketch` | Open the selected sketch feature for editing; returns `None` and opens it (`ActiveSketch` then not `None`) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-041026` |
+| `EditDelete` in a sketch | Delete the selected sketch spline; returned `None` and the spline was gone | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-041026` |
 | `FeatureByPositionReverse(0)` | The last feature in the tree. Ask it `IsRolledBack` rather than believe `EditRollback` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertPlanarRefSurface` | A planar surface across the **selected edges**. **No arguments**; reads the selection, returns a bool, 0.2 s. Refuses a reference or composite curve as a boundary, in 0.0 s. Feature type `PlanarSurface`. Can cap a sliver's loop instead of the end and still answer `True` (GOTCHAS §60) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertLoftRefSurface2(False, keepTangency, False, 1.0, 0, 0)` | The surface loft again: made the loft at every offset where the solid was refused, 10–15 s, and is the first step of a capped solid ([surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md)). The arguments' meanings were still not examined | Partly verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
@@ -270,6 +272,8 @@ entries it links.
 | `EditRollback(action, featureName)` | Move the rollback bar. `swMoveRollbackBarTo_e` **1 End, 2 PreviousPosition, 3 BeforeFeature, 4 AfterFeature**, read off this machine's `swconst.tlb`. `4` with a name 0.1–0.3 s, `1` with `""` 0.8–25 s. **`2` answers `True` and moves nothing** (GOTCHAS §57); `3` not tried | Verified for 1 and 4, verified not to work for 2, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetRollbackBarPosition` | Where the bar is. **Not reachable through pywin32 late binding**: attribute access raised `AttributeError: <unknown>.GetRollbackBarPosition` | Verified not to work from Python, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertSewRefSurface(True, tryToFormSolid, False, 1e-4, 1e-4)` | Knit the selected surface bodies; tolerances in **metres** (1e-4 m = 0.1 mm). 0.2–8.4 s. Feature type `SewRefSurface`. **With `tryToFormSolid` `True` it can sew a sheet and still make a feature** — count the solid bodies (GOTCHAS §61). Deleting it leaves the sheets it knitted in the tree | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `InsertRevolvedRefSurface(2π, False, 0, 0)` | A surface revolve of the selected sketch (open profile and one centreline; nothing else selected), a full turn in radians. Feature type `RevolvRefSurf`, one face, one circular edge ([features/13](entries/features/13-surface-revolve-from-an-imported-curve.md)). The last three arguments not varied | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854`, `-041026` |
+| `InsertSewRefSurface(True, False, False, 1e-4, 1e-4)` then `(True, True, False, 1e-4, 1e-4)` | A revolve and a Boundary Surface knitted to one sheet, then with a planar cap to one solid (0 → 1 solid bodies) ([surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md#the-same-knit-on-a-revolve-and-a-boundary-surface)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854` |
 | `InsertFillSurface2(3, 0, boundaries, contacts, null, null)` | A filled surface over edges. Capped the same ends as the planar surface. **Needs typed arrays**: `VARIANT(VT_ARRAY\|VT_DISPATCH, edges)` and `VARIANT(VT_ARRAY\|VT_I4, [0]*n)`. Five other argument forms — a `SelectData`, Python tuples, a typed null, "read the selection", and the obsolete `InsertFillSurface` — returned `None` in 3.9–4.5 s each | Verified in that one form, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertProtrusionBlend2` (18 arguments) | Also: **a refused solid returns `Nothing` with no feature, no error and no dialog**, after 7–9.5 s. On one wing it refused at 1.30–1.40 mm of inward offset and built at 1.25 and 1.45–1.60, from the same code; one guide curve was responsible ([surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `FeatureCut3` | Listed by the probe, never called | Unverified |
@@ -375,6 +379,8 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `CreateCircleByRadius(cx, cy, cz, r)` | A circle | Verified, SW 2026 (34.0.0) |
 | `CreateCircle(cx, cy, cz, px, py, pz)` | A circle through a point | Verified, SW 2026 (34.0.0) |
 | `CreateSpline(pointArray)` | A spline through a flat array of triples | Unverified |
+| `CreateSpline2(points, simulateNaturalEnds)` | A sketch spline through `VARIANT(VT_ARRAY \| VT_R8, [x, y, z, …])` in sketch metres; returns the segment. With `False` the end kept its curvature (0.003055 against 0.003091 /mm) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-041026`, `p1_sketch_read-20261103-041058` |
+| `SketchUseEdge3(False, False)` | Convert Entities: with an imported `CurveInFile` selected (`REFERENCECURVES`, mark 0) in an open sketch, returned `True` and made one spline that **follows later reloads of the curve**. Its end curvature is 0, as the curve's | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854` |
 | `CreateEquationSpline2(x, y, "", t1, t2, False, 0, 0, 0, True, True)` | Equation Driven Curve. Document units, **radian trig**; `*180/pi` refused (`None`) | Verified, SW 2026 (34.0.0) |
 | `AddConstraint(name)` | Add a relation to the current selection. `IModelDoc2.SketchAddConstraints` is the form that has run | Unverified |
 
@@ -399,6 +405,7 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `GetLength` | Length in metres | Verified, SW 2026 (34.0.0) |
 | `GetRadius` (ISketchArc) | Radius in metres, arcs and circles | Verified, SW 2026 (34.0.0) |
 | `GetPoints2` (ISketchSpline) | The spline's points as sketch point objects, not doubles | Verified, SW 2026 (34.0.0) |
+| `SetCoords(x, y, z)` (ISketchPoint) | Move a spline's fit point (from `GetPoints2`) inside `EditSketch`, sketch metres; 25 of 25 `True`, read back within 1.4e-14 mm, and the spline and everything built on it followed | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-041026` |
 | `GetName` (ISketchSegment) | The segment's name, e.g. `'Line2'`, for `SelectByID2` after the sketch closes | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 
 ## ISelectionMgr
@@ -421,8 +428,10 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `GetPoint` | IVertex, IRefPoint | A point's coordinates, in metres | Verified |
 | `GetCurve` | IEdge, ISketchSegment | The underlying curve | Verified |
 | `IsLine` | ICurve | Whether it is straight | Verified |
+| `IsCircle` / `CircleParams` | ICurve | Whether it is a circle; centre (0–2), axis (3–5), radius (6), **metres**. A revolve's end edge read radius 30.000000000 mm | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854` |
 | `GetStartVertex` / `GetEndVertex` | IEdge | An edge's ends | Verified |
 | `GetSurface` | IFace2 | The underlying surface | Verified |
+| `EvaluateAtPoint(x, y, z)` | ISurface | **Returned `None`** at points taken off an edge's own curve, on a face that edge bounds (GOTCHAS §93); after projecting the point onto the face with `IFace2.GetClosestPointOn`, the evaluation worked | Verified to return `None` there, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-034016` |
 | `IsPlane` | ISurface | Whether it is planar | Verified |
 | `PlaneParams` | ISurface | Normal first, then a root point | Verified |
 | `Transform` → `ArrayData` | IRefPlane feature | Sixteen doubles: rotation **by columns**, translation, scale | Verified |
@@ -720,7 +729,9 @@ Also seen on SW 2026 (34.0.0): `RefAxis`,
 `ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut),
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
-`Revolution`, `BlendCut`, `MoveCopyBody`, and from the helical runs `Sweep`,
+`Revolution`, `BlendCut`, `MoveCopyBody`, from the Plane-Builder probes of
+2026-11-03 `NetBlend` (a Boundary Surface) and `RevolvRefSurf` (a surface
+revolve), and from the helical runs `Sweep`,
 `SweepCut`, `MirrorSolid`. Mates on SW 2024 SP5 (32.5.0): `MateConcentric`,
 `MateCoincident`, **`MateGearDim`** (a gear mate), `MateCoordinate`,
 `MateLimitDistanceDim`, and `FtrFolder` for folder markers under `MateGroup`.

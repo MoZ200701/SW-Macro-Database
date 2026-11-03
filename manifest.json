@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 89,
+  "count": 90,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 76
+    "verified": 77
   },
   "entries": [
     {
@@ -2182,6 +2182,53 @@
         "loft follows reloaded curves"
       ],
       "answers": "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
+    },
+    {
+      "id": "features-13-surface-revolve-from-an-imported-curve",
+      "title": "A surface revolve from an imported curve, that follows the curve",
+      "path": "entries/features/13-surface-revolve-from-an-imported-curve.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISketchManager.SketchUseEdge3",
+        "ISketchManager.CreateSpline2",
+        "ISketchManager.CreateCenterLine",
+        "IFeatureManager.InsertRevolvedRefSurface",
+        "ISketch.ModelToSketchTransform",
+        "IModelDoc2.EditSketch",
+        "ISketchPoint.SetCoords",
+        "ISketchSpline.GetPoints2",
+        "IModelDoc2.EditDelete",
+        "ICurve.IsCircle",
+        "ICurve.CircleParams"
+      ],
+      "keywords": [
+        "InsertRevolvedRefSurface",
+        "revolved surface",
+        "RevolvRefSurf",
+        "surface revolve",
+        "nose",
+        "spinner",
+        "Convert Entities",
+        "SketchUseEdge3",
+        "CreateSpline2",
+        "SimulateNaturalEnds",
+        "sketch spline from points",
+        "revolve an imported curve",
+        "Curve Through XYZ Points in a sketch",
+        "follows reload",
+        "EditSketch",
+        "SetCoords",
+        "rewrite a spline",
+        "Right Plane",
+        "end curvature zero",
+        "G2 joint"
+      ],
+      "answers": "How do I revolve an imported curve into a surface from code, and keep the revolve following the curve when it changes?"
     },
     {
       "id": "files-01-batch-convert-step",

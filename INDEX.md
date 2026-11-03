@@ -92,6 +92,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Repeat a feature around an axis | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 | Find an extrusion's depth or a pattern's count to name or link | [features/04 — Read a feature's dimensions](entries/features/04-read-a-features-dimensions.md) |
 | Revolve a profile about a centreline, choosing the axis line | [features/05 — Revolve](entries/features/05-revolve.md) |
+| Revolve an imported curve into a surface, and keep it following the curve | [features/13 — A surface revolve from an imported curve](entries/features/13-surface-revolve-from-an-imported-curve.md) |
 | Make a plane square to a sketch line at its end, and know which way its sketch faces | [features/06 — Reference plane normal to a line](entries/features/06-reference-plane-normal-to-a-line.md) |
 | Cut a loft between two sketched sections | [features/07 — Loft cut](entries/features/07-loft-cut.md) |
 | Make a plane at a distance from another, on the side I choose, driven by a global | [features/08 — Offset reference plane](entries/features/08-offset-reference-plane.md) |
@@ -169,13 +170,14 @@ set in one read should use [manifest.json](manifest.json) instead.
 | See how a loft's accuracy scaled with the number of guides, in one measured case | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 | Get a solid out of a loft SolidWorks refuses as a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
 | Put a flat face across the end of a surface, and knit sheets into a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
+| Knit a revolve to a Boundary Surface, cap it and make a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md#the-same-knit-on-a-revolve-and-a-boundary-surface) |
 | Find out why a solid loft is refused while its surface builds — check the curve files' decimals first | [curves/01 — The .sldcrv format](entries/curves/01-sldcrv-file-format.md), then [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 | Loft through many sections with guides that SolidWorks accepts, and how accurate that was | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, surfacing/05, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, surfacing/05, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

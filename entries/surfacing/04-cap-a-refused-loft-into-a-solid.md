@@ -249,6 +249,30 @@ def knit_to_solid(self, surfaces: Sequence[str], name: str, solid: bool = True) 
 - `solid_bodies()` is `len(IPartDoc.GetBodies2(0, False))`; `swBodyType_e` is
   **0 solid, 1 sheet**.
 
+### The same knit on a revolve and a Boundary Surface
+
+The same three steps closed a different shape: a surface revolve
+([features/13](../features/13-surface-revolve-from-an-imported-curve.md)) and a
+Boundary Surface whose first profile was the revolve's end edge
+([surfacing/05](05-boundary-surface-from-code.md)). On SolidWorks 2026
+(34.0.0), Plane-Builder probe run `p11_nose-20261103-035854`, every variant
+built:
+
+| Step | Call | Result |
+|---|---|---|
+| Knit the two sheets | both bodies by `SelectByID2(body.Name, "SURFACEBODY", …, mark 1)`, `InsertSewRefSurface(True, False, False, 1e-4, 1e-4)` | `SewRefSurface`, error 0; **2 sheets → 1**; the joint became one edge with two faces |
+| Cap the open end | the knit body's edges at the tail selected by `IEntity.Select4`, `InsertPlanarRefSurface` | `PlanarSurface`, 9,676.36 mm² against the section's 9,676.47 (−0.0012 %) |
+| Knit to a solid | knit body and cap by name, `InsertSewRefSurface(True, True, False, 1e-4, 1e-4)` | solid bodies **0 → 1**, sheets 0, 3 faces; volume 3,949,074.8 mm³ against the analytic 3,951,758.3 (−0.068 %, the Boundary Surface sagging inside the analytic body near a 2° kink at the joint) |
+
+The §61 check (count solids before and after) passed every time. After all the
+curves under it were reloaded to a new shape, knit, cap and solid rebuilt with
+error 0 and stayed one solid.
+
+Where the Boundary Surface started from a closed section curve instead of the
+revolve's exact edge, the knit closed the gap between the two without
+complaint; the knitted joint edge was then a B-spline (`Identity` 3006) lying
+−0.15 to +0.34 µm off the 30 mm radius (`p11_nose-20261103-041026`).
+
 ## Why it is not obvious
 
 **A boundary has to be edges.** Neither `InsertPlanarRefSurface` nor
@@ -388,5 +412,7 @@ and put a suppression back").
 - [reading/13 — Measure a wall between two bodies](../reading/13-measure-a-wall-between-two-bodies.md) — reading the body this makes
 - [files/04 — Export a body to STEP](../files/04-export-a-body-to-step.md) — writing it out, and what its feature type means there
 - [surfacing/01 — The boundary surface recipe](01-boundary-surface-recipe.md)
+- [surfacing/05 — Build a Boundary Surface from code](05-boundary-surface-from-code.md) — a sheet knitted and capped this way
+- [features/13 — A surface revolve from an imported curve](../features/13-surface-revolve-from-an-imported-curve.md) — the revolve it was knitted to
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md) — the decimals that caused most refusals
 - [GOTCHAS §55, §60, §61, §63, §67](../../GOTCHAS.md)
