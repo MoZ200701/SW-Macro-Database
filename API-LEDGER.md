@@ -508,6 +508,10 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | Member | Purpose | Status |
 |---|---|---|
 | `DisplayMode` (read) | The view's display style as `swViewDisplayMode_e`. Read `5`, `swViewDisplayMode_ShadedWithEdges` | Verified, SW 2024 (32.5.0), 2026-10-01 |
+| `DisplayZebraStripes` (put, get) | Zebra stripes on a part's view, through late binding; read back True | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
+| `IModelDoc2.SaveBMP(path, 0, 0)` | The graphics window as drawn, zebra stripes included; returned `True` (GOTCHAS §97) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
+| `IModelDocExtension.SaveAs(path.png, 0, 3, null, out, out)` on a **part** | Returned `True` and wrote the model shaded, **without** the zebra stripes on screen (GOTCHAS §97) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
+| `IModelDocExtension.SetUserPreferenceToggle(198, 0, True)` | `swViewDisplayHideAllTypes`: hides curves, planes and sketches for a clean picture; set back after | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `pz_capture-20261103-032233` |
 
 ## IDimension / IDisplayDimension
 

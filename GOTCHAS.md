@@ -344,6 +344,11 @@ document's units and set them:
 `IModelDocExtension.SetUserPreferenceInteger(263, 0, 5)` (swUnitSystem, MMGS)
 worked. See [documents/01](entries/documents/01-new-part-from-template.md).
 
+It is per machine and per session, not a fixed fact of 2026: on another 2026
+session (34.0.0, 2026-11-03) `GetDocumentTemplate` returned the 2026 folder's
+`MMGS 8 Decimals.prtdot` (Plane-Builder probe run
+`p10_boundary-20261103-032408`). Read the units every time either way.
+
 ## 26. The Equation Manager says no with -1, not an exception
 
 Three calls returned `-1` on SolidWorks 2026 and did nothing:
@@ -1264,3 +1269,17 @@ from cuts by type name, or finds "the extrusions", gets these wrong. Ask the
 feature for its faces and bodies instead
 ([reading/17](entries/reading/17-bodies-of-a-feature-and-their-tessellation.md)).
 SolidWorks 2026 (34.0.0), Plane-Builder probe run `p6_bodies-20261103-041508`.
+
+## 97. Saving a part view as PNG drops the zebra stripes; `SaveBMP` keeps them
+
+With `IModelView.DisplayZebraStripes = True` (it reads back True) on a part,
+`IModelDocExtension.SaveAs(path.png, 0, 3, null, out, out)` returned `True` and
+wrote a shaded picture **without** the stripes; so did a `.jpg` three seconds
+later. `IModelDoc2.SaveBMP(path, 0, 0)` wrote the graphics window as drawn,
+stripes included (a 3440 × 1241 BMP); convert it yourself. To hide curves,
+planes and sketches for the shot, `IModelDocExtension.SetUserPreferenceToggle(198,
+0, True)` (`swViewDisplayHideAllTypes`, read from `swconst.tlb`), and put it back
+after. SolidWorks 2026 (34.0.0), Plane-Builder probe run
+`pz_capture-20261103-032233`; the stripes' presence and absence were judged by
+looking at the files. Turning on zebra stripes and saving the window changes the
+user's view: do it only on a document your program owns.
