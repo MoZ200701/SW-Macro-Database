@@ -1134,7 +1134,14 @@ were the same before and after. On a Boundary Surface built against a revolve,
 the same commit swallowed a face the revolve's size into the new solid as well.
 
 Read a Boundary Surface's data if you need to, but never commit it, and count
-bodies after any `ModifyDefinition` on one. SolidWorks 2026 (34.0.0), runs
+bodies after any `ModifyDefinition` on one.
+
+It can also fail outright. On a Boundary Surface whose two direction-1 curves
+were both edges, `SetGuideTangencyType` then `ModifyDefinition` returned
+**False** — with and without `AccessSelections` — and left the feature at
+`GetErrorCode2` 1 with **0 faces** (`p13_fairing-20261103-041711`, `-041920`).
+
+SolidWorks 2026 (34.0.0), runs
 `p10c_modify-20261103-042859` (access and release: unchanged),
 `-042906` (modify only: capped), `-042914` (access and modify: capped),
 `p11_nose-20261103-040238`. See
@@ -1163,8 +1170,12 @@ reads 0 whatever was set, which looks like "not stored"; and the per-curve
 part and see whether it shows the condition and whether OK applies it. Until
 that is settled, do not rely on a face condition; carry the joint slope in the
 guides (denser guide rows near the joint took the kink from 2.10° to 0.87°).
+A second fixture behaved the same: a fairing with tangency or curvature to
+face on both its direction-1 edges was identical to seven digits to one with
+none, with 16 or 64 sections (a 3.2–4.7° kink at both edges).
 SolidWorks 2026 (34.0.0), runs `p11_nose-20261103-035854`, `-040039`,
-`-040333`, `-040739`, `-042911`, `-042950`, `-043530`. See
+`-040333`, `-040739`, `-042911`, `-042950`, `-043530`;
+`p13_fairing-20261103-042019`, `-042108`. See
 [surfacing/05](entries/surfacing/05-boundary-surface-from-code.md#what-it-does-not-do).
 
 ## 89. `GetErrorCode2` and `GetWhatsWrong` put their outs in the VARIANTs, not in a tuple

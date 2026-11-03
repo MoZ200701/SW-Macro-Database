@@ -327,6 +327,18 @@ again after every addition.
 The cost: anything built on the surface — trims, knits, caps — goes with it
 when it is deleted, as for a loft ([GOTCHAS §67](../../GOTCHAS.md)).
 
+### Edges as both direction-1 curves, and a pointed end
+
+Both direction-1 curves can be edges of other surfaces: the fairing above
+built, error 0, one face, and held its 336 section points to 0.00037 mm
+(`p13_fairing-20261103-042019`). Two direction-1 curves that **meet at one
+point**, with the direction-2 sections stopping short of it, built a pointed
+patch, error 0, one face — but its curvature was unbounded near the point (a
+principal curvature of +2.31 /mm 0.5 mm from it, against 0.03 a few mm away)
+(`p13_fairing-20261103-042226`). Two flanks sharing a ridge curve met in a
+crease of 64.1° that a plane later cut cleanly and one planar cap closed with
+the body (`p13_fairing-20261103-043914`).
+
 ## What it does not do
 
 - **Tangency or curvature to face on an edge profile.** Observed, cause not
@@ -346,6 +358,13 @@ when it is deleted, as for a loft ([GOTCHAS §67](../../GOTCHAS.md)).
   on one of these parts and see whether it shows the stored condition and
   whether pressing OK applies it. Until then, make the guides carry the joint
   slope, or treat the joint as G0. [GOTCHAS §88](../../GOTCHAS.md).
+  **A second fixture showed the same.** A fairing ring with **both**
+  direction-1 curves edges (a trimmed skin's hole and a fin wall's bottom edge,
+  `Select4` at marks 8193 and 16385) and 16 sections in direction 2, tangency 3
+  or 4 on both edges: stored (3, 3 or 4, 4 inside `AccessSelections`), and the
+  surface identical to seven digits to tangency 0, with a kink of 3.2–3.5° at
+  the foot and up to 4.7° at the top. With 64 sections the foot was unchanged
+  (3.68° at 0.1 mm from the edge). Runs `p13_fairing-20261103-042019`, `-042108`.
 - `SetNetBlendDirectionData`'s trim and closed flags, thin and solid options,
   draft, and every `InsertNetBlend2` argument beyond the counts were not varied.
 - Solid output (`CreateSolid` True) was not tried. Knitting the sheet to a
@@ -376,6 +395,9 @@ from WSL, the Plane-Builder probes of 2026-11-03. Result records by filename
   surface ([GOTCHAS §87](../../GOTCHAS.md)).
 - `p11_nose-20261103-035854`: an edge as profile 0, built; the end condition
   reading 0 outside `AccessSelections`.
+- `p13_fairing-20261103-042019`, `-042108`, `-042226`, `-043914`: the
+  fairing with two edges in direction 1, its end condition stored and not
+  applied, the pointed patch, the ridge crease.
 - `p11_nose-20261103-042911` and `-042950`: values stored inside access;
   plain marks; direction-2 influence 0 changed the shape; the face refused;
   the edge by `SelectByID2`. `p11_nose-20261103-043530`: a solid's edge, the
