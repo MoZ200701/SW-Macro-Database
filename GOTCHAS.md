@@ -881,6 +881,18 @@ nose and 0.5 % light. Draw a smooth nose as one curve; cut only where there is
 a real corner. SolidWorks 2026 SP0.0. See
 [surfacing/03](entries/surfacing/03-how-a-loft-fills-between-profiles.md).
 
+**This applies to open curve files only.** A closed file, first row repeated as
+the last, is drawn as a periodic spline with no ends, so its seam is smooth
+(§90). Every piece of a composite is open, though, so every cut pays it, and it
+is more than a flat spot: the two natural ends lean in and the joint is a
+**kink**. Cutting a smooth 15–22 mm radius at a sample point turned 23.0° at
+about 9 mm point spacing, 10.3° at 4.4 mm, 1.21° at 0.54 mm and 0.30° at
+0.135 mm, roughly linear in the spacing, with the curvature at the joint exactly
+0 every time. At a real corner with curved sides it makes the corner wrong: a
+23.9° chine came out 30.2°. Pack points toward every cut on both sides.
+SolidWorks 2026 (34.0.0), Plane-Builder probe runs `p9_creases-20261103-040649`
+and `-040239`. See [curves/06](entries/curves/06-composite-curve.md#a-composites-corner-is-set-by-its-pieces-ends).
+
 ## 66. Diffing the tree around every insert costs two full listings
 
 Finding what `InsertCurveFile` (or any insert that returns a boolean) made by
@@ -1166,3 +1178,18 @@ SolidWorks 2026 (34.0.0), the Plane-Builder probe harness, run
 `p10_boundary-20261103-032408`. The run's record keeps the normalised result,
 so which form came back is from the write-up of that run, not the record. See
 [surfacing/05](entries/surfacing/05-boundary-surface-from-code.md).
+
+## 90. A closed curve file is periodic, and a corner at its seam is rounded away
+
+Repeat the first row as the last and SolidWorks 2026 fits one **periodic**
+cubic through the loop, not an open spline that happens to close. The seam is
+always G2. So a corner placed at the seam row — a V keel, say — is not kept at
+any angle: corners of 16–102° all came out with a 0.000° turn, the curve
+swinging up to 0.88 mm outside the V, and a Boundary Surface over those sections
+had no keel at all. A guide lying exactly on the corner did not help. Cut the
+section at the corner into open pieces and join them, or end the file 0.0001 mm
+short of closing (that gave a natural, clamped spline and kept the corner). Do
+not assume a closed file's seam behaves like the end of an open one, in either
+direction. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
+`p9_creases-20261103-040014` and `-043213`. See
+[curves/01](entries/curves/01-sldcrv-file-format.md#closed-curves).

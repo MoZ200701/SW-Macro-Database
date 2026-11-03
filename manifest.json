@@ -818,7 +818,7 @@
       "path": "entries/curves/01-sldcrv-file-format.md",
       "category": "curves",
       "status": "verified",
-      "verified_on": "SolidWorks 2025 and 2026",
+      "verified_on": "SolidWorks 2025 and 2026 (the periodic closed curve on 2026, 34.0.0)",
       "language": [
         "any"
       ],
@@ -832,6 +832,11 @@
         "tab delimited",
         "CRLF",
         "closed curve",
+        "periodic spline",
+        "seam",
+        "corner at the seam rounded",
+        "GetBCurveParams5",
+        "Periodic",
         "duplicate points",
         "near-duplicate",
         "refused file",

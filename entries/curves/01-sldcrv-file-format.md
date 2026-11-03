@@ -2,10 +2,10 @@
 id: curves-01-sldcrv-format
 title: The Curve Through XYZ Points file format
 status: verified
-verified_on: SolidWorks 2025 and 2026
+verified_on: SolidWorks 2025 and 2026 (the periodic closed curve on 2026, 34.0.0)
 language: [any]
 api: []
-keywords: [sldcrv, curve through xyz points, file format, mm suffix, units, tab delimited, CRLF, closed curve, duplicate points, near-duplicate, refused file, thin points, natural cubic spline, chord length parametrisation, interpolation]
+keywords: [sldcrv, curve through xyz points, file format, mm suffix, units, tab delimited, CRLF, closed curve, periodic spline, seam, corner at the seam rounded, GetBCurveParams5, Periodic, duplicate points, near-duplicate, refused file, thin points, natural cubic spline, chord length parametrisation, interpolation]
 answers: "What exactly do I write into a .sldcrv file so SolidWorks reads it correctly?"
 ---
 
@@ -69,12 +69,53 @@ measured **100.00 mm**. Units round-trip exactly.
 keeps it: a 32-point closed section produced 33 `InsertCurveFilePoint` calls,
 so the repeated row was neither rejected as a duplicate nor silently dropped.
 
-Zebra stripes across the seam of a real surface built this way flowed unbroken,
-so it is at least visually smooth and not merely closed. No deviation analysis
-number was taken, so a subtle curvature break at the seam cannot be excluded.
+**SolidWorks 2026 draws a closed file as a periodic spline.** When the last row
+is the first row again, it fits **one periodic cubic** through the loop instead
+of an open spline with natural ends. Measured on 36 closed sections of 48
+points (2026-11-03):
 
-If a future shape does show a seam, the fallback is to export the section as
-two open halves split at the poles and pick both as profiles.
+- `ICurve.GetBCurveParams5(False, False, False, True)` gave `Periodic` 1,
+  order 4, 50 control points, 51 knots on [0, 1], end multiplicities [1, 3].
+  (That read passed `IsClosed` True, so on its own it is not independent
+  evidence. The next two are.)
+- A chord-length **periodic** cubic interpolant through the same points matched
+  the drawn curve to 0.0000000 mm at 12 points either side of the seam, on every
+  section. A natural-end cubic missed by 0.01–0.87 mm.
+- At the seam the two end tangents from `ICurve.Evaluate2(t, 2)` were equal
+  and the curvature was the same, non-zero, at t = 0 and t = 1: the seam is G2.
+  On a smooth section the curve lay within 0.0014 mm of the analytic section
+  over its whole length.
+
+So the seam is always smooth, which settles the question this section used to
+leave open: a Boundary Surface over such sections had no edge at the seam line
+and halved its normal angle across it with the step
+([surfacing/05](../surfacing/05-boundary-surface-from-code.md)). The same held
+for a 48-point circle of radius 30 mm: it lay 0.023 µm from the exact circle at
+worst, and the same at the seam as anywhere else.
+
+**The other side of that: a corner at the seam is rounded away.** V-keel
+sections with corners of 16° to 102° at the seam row all came out with a
+0.000° turn there; the curve passed through the corner row and swung up to
+0.88 mm outside the V nearby. To keep a corner on a closed section, either:
+
+- **cut there**: write the section as open pieces that start and end at the
+  corner, and join them with a composite
+  ([curves/06](06-composite-curve.md#a-composites-corner-is-set-by-its-pieces-ends));
+  or
+- **leave the file open by a hair**: the last row moved 0.0001 mm off the
+  first gave `Periodic` 0, clamped end knots [4, 4], natural ends, and the
+  corner to within 0.05°. A Boundary Surface over six such sections built, with
+  a 0.0001 mm slit along the corner (two free edges) that a later knit has to
+  close. That knit was not tried.
+
+Either way the corner then sits between two natural ends, which lean in on
+curved sides ([GOTCHAS §65](../../GOTCHAS.md)); the 0.05° and 0.11° above were
+on **straight** V sides. [GOTCHAS §90](../../GOTCHAS.md).
+
+Plane-Builder probe runs on SolidWorks 2026 (34.0.0): `p9_creases-20261103-040014`
+(corners at the seam, and halves joined), `p9_creases-20261103-040223` (a smooth
+seam), `p9_creases-20261103-043213` (one open curve, the hair gap),
+`p11_nose-20261103-035854` (the circle).
 
 ## Negative zero
 
@@ -245,10 +286,11 @@ tip plus three edge guides) refused at six decimals and built at ten.
 
 ## The curve SolidWorks draws through the points
 
-**A Curve Through XYZ Points is a natural cubic spline through the file's
+**An open Curve Through XYZ Points is a natural cubic spline through the file's
 points, parametrised by chord length**: the parameter advances by the straight
 distance from each point to the next, and the ends have zero second
-derivative. Modelled that way, the curve matched the same curve read out of a
+derivative. A **closed** file (last row the same as the first) is the periodic
+version of the same, with no ends at all: see *Closed curves* above. Modelled that way, the curve matched the same curve read out of a
 SolidWorks STEP export to **0.0007 mm** on SolidWorks 2026. Straight lines
 between the same 57 points of a wing rib sat 0.18 mm inside the drawn curve at
 its nose.
@@ -276,4 +318,6 @@ yourself.
 - [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — guides that meet the drawn spline
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — the solid loft that asks whether an end is flat
 - [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — what was built when the rounding was not yet known
-- [GOTCHAS §53, §63](../../GOTCHAS.md)
+- [curves/06 — Composite curves](06-composite-curve.md) — cutting a section where it must keep a corner
+- [surfacing/05 — Build a Boundary Surface from code](../surfacing/05-boundary-surface-from-code.md) — closed sections as profiles, and the seamless face they make
+- [GOTCHAS §53, §63, §65, §90](../../GOTCHAS.md)
