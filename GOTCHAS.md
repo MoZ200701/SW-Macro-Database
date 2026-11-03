@@ -1167,7 +1167,7 @@ SolidWorks 2026 (34.0.0), runs
 [surfacing/05](entries/surfacing/05-boundary-surface-from-code.md). The same
 family as §61: a call that answers success and changes the body type.
 
-## 88. A Boundary Surface's Tangency or Curvature to Face is stored, and did not change the shape
+## 88. A Boundary Surface's Tangency or Curvature to Face set from code never reaches the feature
 
 **Observed, cause not established.** A Boundary Surface made from code with a
 revolve's end edge as its first profile, and
@@ -1185,16 +1185,34 @@ shape, so the call's data is used.
 Two traps sit in front of this one. Outside `AccessSelections` every getter
 reads 0 whatever was set, which looks like "not stored"; and the per-curve
 `GetTangentInfluence` reads −1.0 until set, separately from the per-direction
-`D1CurveInfluence`. **Still to do:** open the PropertyManager by hand on such a
-part and see whether it shows the condition and whether OK applies it. Until
-that is settled, do not rely on a face condition; carry the joint slope in the
-guides (denser guide rows near the joint took the kink from 2.10° to 0.87°).
+`D1CurveInfluence`.
+
+**The PropertyManager check (by hand, 2026-11-03).** On such a part, Edit
+Feature showed the edge's end condition as **None**, although
+`GetGuideTangencyType(0, 0)` read 4. So that getter does not report what the
+feature applies, and the value from code never reached it. Set by hand to
+Curvature To Face, SolidWorks warned *"The guide or profile curve's tangent at
+the constrained point(s) does not match the tangent of the constraint. The
+discrepancy will be propagated."* On one part the condition stuck and the joint
+got worse: 1.52° at the guides, unchanged, and 3.04° between them, from 2.10°.
+On another it silently reverted to None. The conflict is the **guides**: they
+are open curve files, so their natural ends lean at the joint (§65).
+
+**What works instead (G1, not G2).** Leave the condition at None and make the
+geometry agree. Write the revolve's profile as a sketch spline
+(`CreateSpline2`, which keeps the end slope), and add profiles packed just aft
+of the joint (+0.3, 1, 3, 10, 30 mm), with the guides through their rows. The
+kink fell to 0.017°, against 1.87° unpacked. A curvature step of about
+0.003 /mm remains. Packing only the guides' rows removed the step at the
+guides (0.003°) but left 0.62° between them.
 A second fixture behaved the same: a fairing with tangency or curvature to
 face on both its direction-1 edges was identical to seven digits to one with
 none, with 16 or 64 sections (a 3.2–4.7° kink at both edges).
 SolidWorks 2026 (34.0.0), runs `p11_nose-20261103-035854`, `-040039`,
 `-040333`, `-040739`, `-042911`, `-042950`, `-043530`;
-`p13_fairing-20261103-042019`, `-042108`. See
+`p13_fairing-20261103-042019`, `-042108`; the hand check
+`p11_handcheck-*` and the packed geometry `p11_nose-20261103-115242`,
+`-115417` (Plane-Builder results). See
 [surfacing/05](entries/surfacing/05-boundary-surface-from-code.md#what-it-does-not-do).
 
 ## 89. `GetErrorCode2` and `GetWhatsWrong` put their outs in the VARIANTs, not in a tuple
