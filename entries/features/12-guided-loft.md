@@ -232,7 +232,9 @@ Then one `ForceRebuild3(False)` after all the lofts, not one per loft
 - **Profiles have to be cut into the same number of pieces.** A composite
   profile of three pieces lofted only to another three-piece composite; a
   two-piece to a three-piece was refused. See
-  [curves/06](../curves/06-composite-curve.md).
+  [curves/06](../curves/06-composite-curve.md). This is the loft's rule: a
+  Boundary Surface built from code took a one-piece profile against
+  three-piece composites ([surfacing/05](../surfacing/05-boundary-surface-from-code.md)).
 - **Guides very near a sharp corner of a profile break the loft.** See
   [surfacing/03](../surfacing/03-how-a-loft-fills-between-profiles.md).
 - **The call returns the feature or not, but the name is SolidWorks'.** Find
@@ -282,6 +284,10 @@ surface loft call itself is unchanged and is still the first step of that.
 - Changing an existing loft's profiles or guides from code is not covered.
   Replacing a composite profile makes a new composite that the loft does not
   use; see [curves/06](../curves/06-composite-curve.md). Two things are known:
+  - A Boundary Surface (`NetBlend`) does have feature data, but its curve
+    lists could not be changed from Python either, and committing it capped
+    the surface ([surfacing/05](../surfacing/05-boundary-surface-from-code.md),
+    [GOTCHAS §87](../../GOTCHAS.md)).
   - **A surface loft has no feature data.** `IFeature.GetDefinition` on a
     `BlendRefSurface` returned `Nothing`, on every one tried; on a solid
     `Blend` it returned an object. So a surface loft's profile list cannot be
@@ -334,6 +340,7 @@ profile at its nose, ...").
 
 - [surfacing/03 — How a loft fills between two profiles](../surfacing/03-how-a-loft-fills-between-profiles.md) — how close the result came, how that scaled with the number of guides, and which guide refuses a solid
 - [surfacing/04 — Cap a refused loft into a solid](../surfacing/04-cap-a-refused-loft-into-a-solid.md) — what to build when the solid is refused
+- [surfacing/05 — Build a Boundary Surface from code](../surfacing/05-boundary-surface-from-code.md) — the other surface over curves, with different rules
 - [curves/09 — Curves as loft profiles](../curves/09-curves-as-loft-profiles.md)
 - [curves/06 — Composite curves](../curves/06-composite-curve.md) — joined profiles, and what deleting one does to the loft
 - [curves/04 — Reload a curve in place](../curves/04-reload-curve-in-place.md) — the loft follows

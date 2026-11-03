@@ -23,6 +23,14 @@ so everything referring to it carries on referring to it.
 Confirmed on a real part: all 12 curves refreshed, `ForceRebuild3` returned
 True, the boundary surface rebuilt with no reference re-picked.
 
+The same holds for a Boundary Surface made **from code**
+([surfacing/05](../surfacing/05-boundary-surface-from-code.md)). On SolidWorks
+2026 (34.0.0), ten curves under one were reloaded from a different shape with
+the tree rolled back first ([curves/12](12-roll-the-tree-back-before-reloading.md)):
+3.1 s, one `EditRebuild3` (True, 0.1 s), the surface's `GetErrorCode2` 0, and
+the surface then lay on the new curves to 0.017 mm, 20.6 mm from where it had
+been. Plane-Builder probe run `p10_boundary-20261103-032408`, 2026-11-03.
+
 The same holds for a loft. On SolidWorks 2026 a loft already in the part,
 built from code on imported curves and composites of them
 ([features/12](../features/12-guided-loft.md)), followed its curves when they
@@ -176,4 +184,5 @@ interface PushState {
 - [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — what this costs on a big part, and how to stop paying it
 - [connect/08 — Find a feature by name](../connect/08-find-a-feature-by-name.md)
 - [features/12 — Insert a guided loft](../features/12-guided-loft.md) — a loft that follows reloaded curves
+- [surfacing/05 — Build a Boundary Surface from code](../surfacing/05-boundary-surface-from-code.md) — a boundary surface that follows reloaded curves
 - [`code/vbscript/ImportCurves.vbs`](../../code/vbscript/ImportCurves.vbs)

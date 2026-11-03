@@ -175,6 +175,15 @@ Adding a curve to a surface or loft that already exists still is.) An automatic 
 looks connected and is not, which is a quieter failure than a missing curve.
 This is why insertion should be opt-in.
 
+A Boundary Surface made from code is no exception. Its feature data
+(`IBoundaryBossFeatureData`) lists the curves as `D1Curves` / `D2Curves`, but
+36 puts of a longer or shorter array from late-bound Python were ignored, and
+committing the data capped the surface (§87). Early binding, VBA and arrays from
+the selection manager were not tried. Deleting the surface and inserting it
+again from code with the new lists works (0.4 s), and takes anything built on
+it along. SolidWorks 2026 (34.0.0), run `p10c_modify-20261103-042939`. See
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md).
+
 ## 15. Never text-merge SolidWorks binaries
 
 Part, assembly and drawing files are opaque binaries. In git, mark them binary
@@ -646,7 +655,9 @@ change, rename the old one aside (it keeps holding up the loft), make a new one
 under the old name, and tell the user to re-pick it in the loft. Profiles must
 also be cut into the same number of pieces: a three-piece composite lofted only
 to another three-piece composite. SolidWorks 2026. See
-[curves/06](entries/curves/06-composite-curve.md).
+[curves/06](entries/curves/06-composite-curve.md). (That last rule is the loft's.
+A Boundary Surface took a one-piece profile against three-piece composites:
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md).)
 
 ## 50. The order guides are picked in can change the loft
 
@@ -900,6 +911,9 @@ profile count and names constant and reload the curves instead, which a loft
 follows. SolidWorks 2026 SP0.0. See
 [features/12](entries/features/12-guided-loft.md).
 
+A Boundary Surface (`NetBlend`) is different: `GetDefinition` returns
+`IBoundaryBossFeatureData`. That is not a way in either; see §14 and §87.
+
 ## 69. The journal records a program's calls, but not all of them, and not always as made
 
 `%APPDATA%\SolidWorks\SOLIDWORKS 2026\swxJRNL.swj` records API calls an
@@ -1078,3 +1092,77 @@ by a part's travel, because one view's outline included an extra phantom positio
 by where each puts the model origin — `ModelToViewTransform.ArrayData` items 9
 and 10 — not by `Position`. SolidWorks 2024 SP5 (32.5.0). See
 [drawings/01](entries/drawings/01-new-drawing-and-place-views.md#laying-views-out).
+
+## 87. `ModifyDefinition` on a Boundary Surface turns it into a capped solid
+
+`IFeature.ModifyDefinition(data, doc, null)` with a Boundary Surface's own
+feature data (`IBoundaryBossFeatureData` from `GetDefinition`) returned `True`,
+raised nothing, left `GetErrorCode2` at 0 — and turned the open sheet into a
+**solid**: faces 1 → 3 (two planar end caps), sheet bodies 1 → 0, solid bodies
+0 → 1, area 188,544.5 → 202,844.4 mm². It does so **with nothing changed**, and
+with or without `AccessSelections` first. `AccessSelections` followed by
+`ReleaseSelectionAccess()` alone left the surface as it was. The data has no
+property for surface against solid or for capped ends; its readable properties
+were the same before and after. On a Boundary Surface built against a revolve,
+the same commit swallowed a face the revolve's size into the new solid as well.
+
+Read a Boundary Surface's data if you need to, but never commit it, and count
+bodies after any `ModifyDefinition` on one. SolidWorks 2026 (34.0.0), runs
+`p10c_modify-20261103-042859` (access and release: unchanged),
+`-042906` (modify only: capped), `-042914` (access and modify: capped),
+`p11_nose-20261103-040238`. See
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md). The same
+family as §61: a call that answers success and changes the body type.
+
+## 88. A Boundary Surface's Tangency or Curvature to Face is stored, and did not change the shape
+
+**Observed, cause not established.** A Boundary Surface made from code with a
+revolve's end edge as its first profile, and
+`IFeatureManager.SetNetBlendCurveData(0, 0, 4, …)` (curvature to face) or
+`(0, 0, 3, …)` (tangency to face), built with error 0 and came out identical to
+six digits to tangency 0: the same 2.1029° kink across the joint. The value was
+stored: read inside `AccessSelections`,
+`IBoundaryBossFeatureData.GetGuideTangencyType(0, 0)` gave 4 or 3. No lever
+tried applied it: `applyToAll` False, plain marks, the edge picked by point,
+five setter call styles, a solid's edge instead of a sheet's, and the condition
+written afterwards with `SetGuideTangencyType` and committed (which also hit
+§87). The direction influence in `SetNetBlendDirectionData` **does** change the
+shape, so the call's data is used.
+
+Two traps sit in front of this one. Outside `AccessSelections` every getter
+reads 0 whatever was set, which looks like "not stored"; and the per-curve
+`GetTangentInfluence` reads −1.0 until set, separately from the per-direction
+`D1CurveInfluence`. **Still to do:** open the PropertyManager by hand on such a
+part and see whether it shows the condition and whether OK applies it. Until
+that is settled, do not rely on a face condition; carry the joint slope in the
+guides (denser guide rows near the joint took the kink from 2.10° to 0.87°).
+SolidWorks 2026 (34.0.0), runs `p11_nose-20261103-035854`, `-040039`,
+`-040333`, `-040739`, `-042911`, `-042950`, `-043530`. See
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md#what-it-does-not-do).
+
+## 89. `GetErrorCode2` and `GetWhatsWrong` put their outs in the VARIANTs, not in a tuple
+
+Through pywin32, `IFeature.GetErrorCode2(VARIANT(VT_BYREF | VT_BOOL, False))`
+returned the error code as a **plain int** and wrote the warning flag into the
+VARIANT's `.value`; code that unpacks a tuple fails or reads the wrong thing.
+`IModelDocExtension.GetWhatsWrong` with three `VARIANT(VT_BYREF | VT_VARIANT,
+None)` outs returned a bare `True`, with the features, codes and warnings in the
+three VARIANTs (all empty on a part with nothing wrong). Accept both forms:
+
+```python
+def error_of(self, feature: Any) -> Dict[str, Any]:
+    """``IFeature.GetErrorCode2``: 0 is clean (API-LEDGER, Airfoil Converter)."""
+    flag = out_bool()
+    res = call(feature, "GetErrorCode2", flag)
+    if isinstance(res, tuple):
+        code, warning = int(res[0]), bool(res[1])
+    else:  # pywin32 writes the by-reference out into the VARIANT, and returns the code alone
+        code, warning = int(res), bool(flag.value)
+    return {"feature": str(call(feature, "Name")), "type": str(call(feature, "GetTypeName2")),
+            "code": code, "warning": warning}
+```
+
+SolidWorks 2026 (34.0.0), the Plane-Builder probe harness, run
+`p10_boundary-20261103-032408`. The run's record keeps the normalised result,
+so which form came back is from the write-up of that run, not the record. See
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md).

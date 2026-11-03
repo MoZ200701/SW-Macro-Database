@@ -161,7 +161,10 @@ set in one read should use [manifest.json](manifest.json) instead.
 
 | I want to… | Entry |
 |---|---|
-| Turn imported curves into a surface | [surfacing/01 — The boundary surface recipe](entries/surfacing/01-boundary-surface-recipe.md) |
+| Turn imported curves into a surface | [surfacing/05 — Build a Boundary Surface from code](entries/surfacing/05-boundary-surface-from-code.md); by hand, [surfacing/01 — The boundary surface recipe](entries/surfacing/01-boundary-surface-recipe.md) |
+| Build a Boundary Surface over curves, composites or an edge from code (`InsertNetBlend2`) | [surfacing/05 — Build a Boundary Surface from code](entries/surfacing/05-boundary-surface-from-code.md) |
+| Add or remove a profile or guide on an existing Boundary Surface | [surfacing/05 — Build a Boundary Surface from code](entries/surfacing/05-boundary-surface-from-code.md#adding-or-removing-a-curve-delete-and-insert-again) |
+| Know why Curvature to Face did nothing on a Boundary Surface made from code | [surfacing/05 — Build a Boundary Surface from code](entries/surfacing/05-boundary-surface-from-code.md#what-it-does-not-do), and [GOTCHAS §88](GOTCHAS.md) |
 | Land geometry the right way up | [surfacing/02 — Axis conventions](entries/surfacing/02-axis-conventions.md) |
 | See how a loft's accuracy scaled with the number of guides, in one measured case | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 | Get a solid out of a loft SolidWorks refuses as a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
@@ -172,7 +175,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, surfacing/05, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

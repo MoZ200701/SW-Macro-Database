@@ -62,6 +62,15 @@ evidence is in
 [appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
 A member found to exist with `GetIDsOfNames` but never run is unverified.
 
+Rows marked "Plane-Builder probes 2026-11-03" come from one night of probe runs
+on SolidWorks 2026 SP0.0 (revision 34.0.0), Windows Python 3.13 with pywin32
+driven from WSL, building a fuselage-like part from imported curves. Each row
+names the result record that showed it (`p10_boundary-…`, `p9_creases-…` and so
+on: the probe and its timestamp). Two records whose outcome was later corrected,
+`p10c_modify-20261103-040947` and `-041533`, are not cited. The evidence is in
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md) and the
+entries it links.
+
 ## ISldWorks (the application)
 
 | Member | Purpose | Status |
@@ -163,6 +172,11 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `SaveAs3(path, 0, 1, null, null, out, out)` | Save as, silently. Returned plain `True`, not a tuple. **Overwrites an existing file** | Verified, SW 2026 (34.0.0) |
 | `CreateMassProperty` | An `IMassProperty` for the document | Verified, SW 2026 (34.0.0) |
 | `GetLastFeatureAdded` | The feature the last insert made. Named the new curve in 0.010 s after `InsertCurveFile`, with the tree forward and with the bar rolled back (where the new feature is not the last in the tree). With `GetFeatureCount` either side, replaces diffing two listings of the tree ([curves/02](entries/curves/02-insert-curve-from-file.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
+| `GetLastFeatureAdded` after `IFeatureManager.InsertNetBlend2` | Named the Boundary Surface (`Boundary-Surface1`, `NetBlend`), which the insert itself does not return | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
+| `GetWhatsWrong(out, out, out)` | Every feature in error, with codes and warnings. Through pywin32 it returned a bare `True` and left the three arrays in the `VARIANT(VT_BYREF \| VT_VARIANT)` outs, empty on a clean part (GOTCHAS §89) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
+| `SelectByID2(name, "REFERENCECURVES", 0, 0, 0, True, 8192·(i+1)+d, null, 0)` | A curve or composite as Boundary Surface curve `i` of direction `d` (1 profiles, 2 guides); selected type 26 ([surfacing/05](entries/surfacing/05-boundary-surface-from-code.md)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408`, `p11_nose-20261103-042911` |
+| `SelectByID2("", "EDGE", x, y, z, append, mark, null, 0)` | An edge by a point on it, metres; selected the revolve's edge (type 51) at mark 8193 and built the same Boundary Surface as `IEntity.Select4`. So an edge **can** be picked by `SelectByID2`, by position | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-040333`, `-042950` |
+| `SelectByID2("", "FACE", x, y, z, False, 8193, null, 0)` | Selected a revolve's face (type 2); `InsertNetBlend2` then refused it as a profile | Verified (the selection), SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
 | `GetRenderMaterials2(1, None)` | The appearances applied to the document, as `IRenderMaterial`s; `1` is `swThisDisplayState`. Gave one for a part with a part-level `color.p2m`, none for parts with no appearance | Verified, SW 2024 (32.5.0), 2026-10-01 |
 | `GetRenderMaterialsCount2(1, None)` | How many; 1 and 0 for the same parts | Verified, SW 2024 (32.5.0), 2026-10-01 |
 | `DeleteDisplayStateSpecificRenderMaterial(ids1, ids2)` | Delete appearances by ID. **Two arrays**, the first IDs and the second IDs, each `VT_ARRAY \| VT_I4`. One combined array `[11, 0]` returned `False`; `[11]`, `[0]` returned `True` and the count went to 0. **Must be invoked with `DISPATCH_METHOD`**: by attribute access it ran with no arguments and gave `'bool' object is not callable` ([GOTCHAS §55, §70](GOTCHAS.md)) | Verified, SW 2024 (32.5.0), 2026-10-01 |
@@ -249,6 +263,10 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `InsertProtrusionBlend2` (18 arguments) | Solid loft through the curves at mark 1, in order, along the guides at mark 2: `False, keepTangency, False, 1.0, 0, 0, 1.0, 1.0, False, False, False, 0.0, 0.0, 0, merge, False, True, guideInfluence`. With tangency on and influence `0` (To next guide) it **reproduced a hand-made loft exactly**. Some solids were refused where the same surface loft was made | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `GetFeatures(False)` | Every feature, sub-features included, in one call; about half the time of a `FirstFeature`/`GetNextFeature` walk. Order and folder end tags not checked | Verified, SW 2026, Airfoil Converter 2026-09-16 |
 | `InsertMirrorFeature2(True, False, True, False, 0)` | Mirror the body at mark 256 about the plane at mark 2, merged into one `MirrorSolid` body. **With the body at mark 1 it returned `None`** (GOTCHAS §47) | Verified, SW 2026 (34.0.0), helical runs 2026-09-15 |
+| `InsertNetBlend2(2, n1, n2, False, 0.0001, False, True, True, True, False, -1, -1, False, -1, False, False, -1, False, -1, True, False)` | **A Boundary Surface** (type 2, surface) over the curves selected at `8192·(i+1)+d`: imported curves, composites, or an edge as a profile. **Returns `None` even when it builds**; find it by `GetFeatureCount` and `GetLastFeatureAdded`. Feature type `NetBlend`, default name `Boundary-Surface1`. 0.28–0.4 s. Refused (`None`, no feature) with no direction-2 curves, and with a face as a profile ([surfacing/05](entries/surfacing/05-boundary-surface-from-code.md)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408`, `p9_creases-20261103-040239`, `-041135`, `p11_nose-20261103-040531`, `-042911` |
+| `SetNetBlendCurveData(dir, index, tangency, draft, length, applyToAll)` | Per-curve data before `InsertNetBlend2`, `dir` 0 or 1; returns `None`. Stored: read back inside `AccessSelections`. **Tangency 3 or 4 on an edge profile did not change the shape** (GOTCHAS §88, cause not established) | Verified stored; the tangency's effect not observed, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `SetNetBlendDirectionData(dir, influence, trim, closed, unused)` | Per-direction data; returns `None`. Influence 32 global, 0 to next curve: direction-2 influence 0 changed the surface | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `InsertBoundarySurface` | **Does not exist**: `GetIDsOfNames` refused it here and on `IModelDoc2`. The Boundary Surface is `InsertNetBlend2` | Verified absent, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 | `EditRollback(action, featureName)` | Move the rollback bar. `swMoveRollbackBarTo_e` **1 End, 2 PreviousPosition, 3 BeforeFeature, 4 AfterFeature**, read off this machine's `swconst.tlb`. `4` with a name 0.1–0.3 s, `1` with `""` 0.8–25 s. **`2` answers `True` and moves nothing** (GOTCHAS §57); `3` not tried | Verified for 1 and 4, verified not to work for 2, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetRollbackBarPosition` | Where the bar is. **Not reachable through pywin32 late binding**: attribute access raised `AttributeError: <unknown>.GetRollbackBarPosition` | Verified not to work from Python, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `InsertSewRefSurface(True, tryToFormSolid, False, 1e-4, 1e-4)` | Knit the selected surface bodies; tolerances in **metres** (1e-4 m = 0.1 mm). 0.2–8.4 s. Feature type `SewRefSurface`. **With `tryToFormSolid` `True` it can sew a sheet and still make a feature** — count the solid bodies (GOTCHAS §61). Deleting it leaves the sheets it knitted in the tree | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
@@ -272,7 +290,9 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `GetNextFeature` | Next sibling in the tree | Verified |
 | `GetTypeName2` | Type string, e.g. `"CurveInFile"`, `"CompositeCurve"` | Verified |
 | `GetDefinition` | Feature data you can modify. **Returns `Nothing` on a surface loft (`BlendRefSurface`)**, an object on a solid loft (`Blend`) — so a surface loft's profiles cannot be edited through it (GOTCHAS §68) | Verified; `Nothing` on `BlendRefSurface`, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
+| `GetDefinition` on a **Boundary Surface** (`NetBlend`) | Returns an object, `IBoundaryBossFeatureData` (below), unlike a surface loft | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 | `ModifyDefinition(data, doc, component)` | Commit modified feature data | Verified, SW 2026 |
+| `ModifyDefinition(data, doc, null)` with a **Boundary Surface's** data | Returned `True` and **turned the open surface into a capped solid**, even with nothing changed, with or without `AccessSelections` (GOTCHAS §87). Never commit it | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10c_modify-20261103-042906`, `-042914`, `-042939` |
 | `GetSpecificFeature2` | The concrete feature behind a reference plane; on an `FtrFolder`, the `IFeatureFolder`; on a sketch feature, the `ISketch` | Verified |
 | `GetParents` | The features this one is built on. On a composite curve, the curves it joins, in **0.001 s** and without the rollback `AccessSelections` makes (12.9 s); order not promised, so compare as a set ([curves/06](entries/curves/06-composite-curve.md)) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-23 |
 | `Select2(append, mark)` | Select this feature. Works where `SelectByID2` with `"BODYFEATURE"` returned `False`. Judge by the selection count | Verified, SW 2026 |
@@ -283,6 +303,7 @@ A member found to exist with `GetIDsOfNames` but never run is unverified.
 | `SetSuppression2(action, 1, None)` | Suppress (`0`) or unsuppress (`1`) in this configuration. The bare `None` **is** accepted here. **It cascades**: on one part it suppressed 74 features built on the one asked for, and unsuppressing that one restored none of them (GOTCHAS §62) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFaces` | The faces a feature made. A property get. The route to a feature's **body**, which a feature does not offer: take a face and ask it | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetErrorCode2(ByRef bool)` | A feature's error code, `0` for clean, with a by-ref warning flag passed as `VARIANT(VT_BYREF \| VT_BOOL, False)`. Read `1` on each of a part's 13 pre-existing failures | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetErrorCode2(ByRef bool)`, the out | Through pywin32 it returned the code as a plain int and wrote the warning flag into the VARIANT's `.value` (GOTCHAS §89) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 | `SetSuppression2(action, 1, None)` on a **mate** | Suppress (`0`) or unsuppress (`1`) one mate under `MateGroup`; `IsSuppressed` read `True` then `False`. No cascade seen on mates ([assemblies/05](entries/assemblies/05-test-motion-with-the-drag-operator.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
 | `GetDefinition` on a **mate** | `IGearMateFeatureData` on `MateGearDim`, `IDistanceMateFeatureData` on distance mates; concentric and coincident data answered `MateAlignment`; `MateCoordinate` answered none of the members tried | Verified, SW 2024 SP5 (32.5.0), 2026-10-28 |
 | `GetErrorCode2(ByRef bool)` on a **mate** | `0` on a solved mate; **51** with the warning flag `True` on mates left unsolved after a `Transform2` put and rebuild (GOTCHAS §73) | Verified, SW 2024 SP5 (32.5.0), 2026-10-06 |
@@ -307,6 +328,26 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `AccessSelections(doc, null)` | Open the definition's selections for reading. Returned `True` in 0.1 s — and **rolled the model back to just before the feature**, which the help documents and which is easy to read past (GOTCHAS §59) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetEntitiesToJoin(ByRef types)` | The curves the composite joins, as objects with `Name`, in join order; `types` passed as `VARIANT(VT_BYREF \| VT_VARIANT, None)`. Three curves back off a three-piece composite, whole read 3.2–4.5 s | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `ReleaseSelectionAccess` | Close them again, in a `finally`; rolls the tree forward again in 0.9 s. **A `Sub`, so late binding hands it over as an uncalled method object** — call it with parentheses (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+
+## IBoundaryBossFeatureData (from `IFeature.GetDefinition` on a `NetBlend`)
+
+A Boundary Surface's feature data. **Read it inside `AccessSelections`**: outside,
+the tangency, tangent length and influence getters read 0 whatever was set.
+**Never commit it** with `ModifyDefinition` (GOTCHAS §87). See
+[surfacing/05](entries/surfacing/05-boundary-surface-from-code.md).
+
+| Member | Purpose | Status |
+|---|---|---|
+| `GetCurvesCount(dir)` | Curves per direction, `dir` 0 or 1: 6 and 4 on a six-section, four-guide surface; also outside `AccessSelections` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
+| `D1Curves` / `D2Curves` (get) | The curves, as `IFeature` objects | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10c_modify-20261103-042939` |
+| `D1Curves` / `D2Curves` (put) | **Ignored from late-bound Python**: arrays of `IFeature`, `IReferenceCurve` or `IEdge`, as `VARIANT(VT_ARRAY \| VT_DISPATCH)` by attribute, as a tuple, or by `Invoke(DISPATCH_PROPERTYPUT)`, 36 puts, none read back changed. Early binding, VBA and selection-manager arrays not tried (GOTCHAS §14) | Verified not to work from Python, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10c_modify-20261103-042939` |
+| `D1CurveInfluence` / `D2CurveInfluence` | The per-direction influence: 32 inside access, as set; 0 outside | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `GetGuideTangencyType(dir, i)` | The per-curve end condition: 4, 3 or 0 as set, inside access; 0 outside | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `GetTangentLength(dir, i)` / `GetTangentInfluence(dir, i)` / `GetTangentApplyToAll(dir, i)` | 1.0 / −1.0 (unset) / the `applyToAll` passed, inside access | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `SetGuideTangencyType(dir, i, t)` / `SetTangentInfluence(dir, i, v)` / `SetTangentLength(dir, i, v)` | Stored inside access (read back 4, 1.0, 1.0); the commit that would apply them caps the surface, and the joint did not change | Verified stored, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-040238`, `-042911` |
+| `AccessSelections(doc, null)` | Opens the selections; rolls the tree back (GOTCHAS §59) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10c_modify-20261103-042859` |
+| `ReleaseSelectionAccess()` | Rolls it forward with the geometry unchanged. Must be **called** (GOTCHAS §55) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10c_modify-20261103-042859` |
+| `MergeTangentFaces` / `TrimByD1` | Read `True` / `False` on a surface built as in surfacing/05 | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 
 ## ISweepFeatureData (from `IFeature.GetDefinition` on a `Sweep` or `SweepCut`)
 
@@ -369,6 +410,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `GetSelectedObjectType3(index, mark)` | A `swSelectType_e` number | Verified |
 | `GetSelectedObjectsSketch(index)` | The sketch a selected entity belongs to | Verified |
 | `CreateSelectData` | A selection data object; set `Mark` on it before `IBody2.Select2` | Verified, SW 2026 (34.0.0), run 20260915-015506 and helical runs 2026-09-15 |
+| `CreateSelectData`, with `Mark` 8193 | Mark carried into `IEntity.Select4` for an edge as Boundary Surface profile 0; marks read back by `GetSelectedObjectMark` as `[8193, 16385, …, 8194, …]` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p9_creases-20261103-041135`, `p11_nose-20261103-042911` |
+| `GetSelectedObjectMark(index)` | The mark a selected object carries, 1-based index | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
+| `AddSelectionListObject(obj, null)` | Select an object handed back by another call (here `D1Curves[0]`); returned `True`, after which `GetSelectedObjectType3` classified it | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-042911` |
 
 ## Geometry interrogation
 
@@ -392,6 +436,7 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `Identity` | ICurve | The curve type; **3005 for a spline** | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `Evaluate2(t, 0)` | ICurve | The point at parameter `t`, in metres, in its first three items. Used to sample two fitted splines either side of a crease | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `Select4(append, selectData)` | IEntity (an IEdge here) | Add an edge to the selection; `selectData` from `ISelectionMgr.CreateSelectData`, no mark needed. **The only route for an edge**, which has no name for `SelectByID2` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetTwoAdjacentFaces2` | IEdge | The faces either side; on an open edge (one face) two items, the second `None` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 | `GetTessTriangles(True)` | IFace2 | The face's tessellation, a flat array of doubles, three per vertex, **in metres** with `True`. **Comes back as an uncalled method object** (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetClosestPointOn(x, y, z)` | IFace2 | The nearest point of that face to a point, **metres in and out**, first three items. Per face, so a distance to a body is the minimum over its faces. Checked by measuring a point back to its own face: 0.000000 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFirstSegment` / `GetNextSegment` | IReferenceCurve (from `GetSpecificFeature2` on a `CurveInFile` or `CompositeCurve`) | The curve's edges in order: one for an imported curve, one per piece for a composite. `GetCurveParams2` on each gave its ends; a composite's pieces met end to end to 0.0 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
@@ -713,7 +758,16 @@ is reopened it can be `FolderN___EndTag___0`; do not match it by name
 
 Selection type numbers seen from `GetSelectedObjectType3`: 1 edge, 2 face,
 3 vertex, 4 plane, 5 axis, 6 reference point, 9 sketch, 24 sketch segment,
-25 sketch point.
+25 sketch point; and on 2026-11-03 (Plane-Builder probes, `p11_nose-20261103-042911`,
+`-043530`): 26 a reference curve picked as `REFERENCECURVES`, 51
+`swSelREFEDGES` for a **sheet** body's edge, 1 for a solid body's edge.
+
+Boundary Surface constants, from the 2026 API help and used in calls that ran
+(Plane-Builder probes 2026-11-03): `swBoundaryBossTangencyType_e` 0 none,
+3 tangency to face, 4 curvature to face (1 normal to profile and 6 default
+listed, not used); `swBoundaryBossCurveInfluenceType_e` 32 global, 0 to next
+curve. Feature type `NetBlend` is a Boundary Surface; default name
+`Boundary-Surface1`.
 
 Neutral-format errors seen on a `.step`: `2097152` `swFileRequiresRepairError`
 from `OpenDoc6`, `1024` `swInvalidFileTypeError` from `GetOpenDocSpec`. See

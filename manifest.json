@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 88,
+  "count": 89,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 75
+    "verified": 76
   },
   "entries": [
     {
@@ -973,6 +973,11 @@
       "keywords": [
         "InsertCompositeCurve",
         "composite curve",
+        "boundary surface profile",
+        "composite corner angle",
+        "natural end lean",
+        "kink at cut",
+        "pack points at cut",
         "SelectByID2",
         "selection mark",
         "REFERENCECURVES",
@@ -3107,7 +3112,9 @@
         "fill",
         "manual steps",
         "recipe",
-        "surface"
+        "surface",
+        "InsertNetBlend2",
+        "from code"
       ],
       "answers": "Which parts of building a surface from curves are automatable, and what stays manual?"
     },
@@ -3246,6 +3253,73 @@
         "composite curve as boundary"
       ],
       "answers": "SolidWorks refuses my solid loft but makes the surface — how do I get a solid out of it from code?"
+    },
+    {
+      "id": "surfacing-05-boundary-surface-from-code",
+      "title": "Build a Boundary Surface from code, and what can and cannot be changed afterwards",
+      "path": "entries/surfacing/05-boundary-surface-from-code.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertNetBlend2",
+        "IFeatureManager.SetNetBlendCurveData",
+        "IFeatureManager.SetNetBlendDirectionData",
+        "IModelDocExtension.SelectByID2",
+        "IEntity.Select4",
+        "IModelDocExtension.GetLastFeatureAdded",
+        "IModelDoc2.GetFeatureCount",
+        "IFeature.GetDefinition",
+        "IBoundaryBossFeatureData.GetCurvesCount",
+        "IBoundaryBossFeatureData.D1Curves",
+        "IBoundaryBossFeatureData.D2Curves",
+        "IBoundaryBossFeatureData.GetGuideTangencyType",
+        "IBoundaryBossFeatureData.AccessSelections",
+        "IBoundaryBossFeatureData.ReleaseSelectionAccess",
+        "IFeature.ModifyDefinition",
+        "IModelDocExtension.DeleteSelection2"
+      ],
+      "keywords": [
+        "boundary surface",
+        "InsertNetBlend2",
+        "NetBlend",
+        "net blend",
+        "SetNetBlendCurveData",
+        "SetNetBlendDirectionData",
+        "Boundary-Surface1",
+        "InsertBoundarySurface",
+        "selection mark 8193",
+        "8194",
+        "8192",
+        "direction 1",
+        "direction 2",
+        "profiles and guides",
+        "returns None",
+        "GetLastFeatureAdded",
+        "IBoundaryBossFeatureData",
+        "D1Curves",
+        "D2Curves",
+        "add a profile",
+        "add a guide",
+        "ModifyDefinition caps",
+        "capped solid",
+        "delete and re-insert",
+        "composite profile",
+        "mixed piece count",
+        "edge as profile",
+        "tangency to face",
+        "curvature to face",
+        "end condition ignored",
+        "swBoundaryBossTangencyType_e",
+        "influence 32",
+        "periodic face",
+        "no seam edge",
+        "follows reload"
+      ],
+      "answers": "How do I make a Boundary Surface over imported curves from code, and can I change its curves afterwards?"
     }
   ]
 }

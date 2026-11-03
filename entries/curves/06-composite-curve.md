@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026
 language: [python]
 api: [IModelDoc2.InsertCompositeCurve, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, AccessSelections, GetEntitiesToJoin, ReleaseSelectionAccess, IFeature.GetParents]
-keywords: [InsertCompositeCurve, composite curve, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild, AccessSelections, ReleaseSelectionAccess, rolls the tree back, IsRolledBack, method object never ran, GetParents, which curves a composite joins, slow composite read]
+keywords: [InsertCompositeCurve, composite curve, boundary surface profile, composite corner angle, natural end lean, kink at cut, pack points at cut, SelectByID2, selection mark, REFERENCECURVES, sharp corner, loft profile, piece count, delete composite deletes loft, rename aside, edit composite, GetEntitiesToJoin, hairpin, select after rebuild, AccessSelections, ReleaseSelectionAccess, rolls the tree back, IsRolledBack, method object never ran, GetParents, which curves a composite joins, slow composite read]
 answers: "How do I join two curves into one thing a loft can select, keeping the corner sharp?"
 ---
 
@@ -122,7 +122,8 @@ things were learned on SolidWorks 2026 doing that:
 - **Profiles must be cut into the same number of pieces.** A three-piece
   composite lofted only against another three-piece composite. A two-piece
   profile would not loft to a three-piece one. The Airfoil Converter now cuts
-  every profile at the same places so the counts always match.
+  every profile at the same places so the counts always match. A Boundary
+  Surface does not ask this (below).
 - **It follows its sources.** Reload the curves it joins in place
   ([curves/04](04-reload-curve-in-place.md)) and the composite, and a loft
   built on it, follow. A loft already in the part can be left as it is.
@@ -178,6 +179,54 @@ if join_as in present:
 
 `OLD_JOIN_SUFFIX` is `"_old"`. After this the function makes the new
 composite exactly as `insert_composite_curve` above does.
+
+### As a Boundary Surface profile
+
+A composite is also a Boundary Surface profile, selected the same way at the
+Boundary Surface's indexed marks ([surfacing/05](../surfacing/05-boundary-surface-from-code.md)).
+On SolidWorks 2026 (34.0.0), six three-piece composites and six guides made one
+`NetBlend`, error 0, with one face per piece, split along the joints (run
+`p9_creases-20261103-040239`). **The same-number-of-pieces rule above is a loft
+rule**: a Boundary Surface took a one-piece closed curve as its first profile
+against three-piece composites (same run), and a surface's single end edge
+likewise (`p9_creases-20261103-041135`).
+
+A composite that **has to be cut at a corner** of a closed section is now
+known to be the only way to keep that corner at all: a closed curve file is a
+periodic spline and rounds any corner at its seam away
+([curves/01](01-sldcrv-file-format.md#closed-curves)). Two open halves of a
+V-keel section, cut at the keel and joined, kept corners of 16–102° to 0.11°
+(at the 26 of 30 stations the probe read),
+and a Boundary Surface over them held the corner (45.72° across the keel at
+every step down to 0.05 mm, against 45.89° in the data). Those V sides were
+**straight**; see the next section for curved ones. Run
+`p9_creases-20261103-040014`.
+
+### A composite's corner is set by its pieces' ends
+
+A composite joins its pieces without refitting them, so its corner is sharp.
+But **it is the corner between the two pieces' end tangents, and each piece
+ends as a natural spline**, with zero curvature and a tangent that leans in
+([GOTCHAS §65](../../GOTCHAS.md)). Where the sides of the corner are straight,
+a natural end does not lean, and the corner comes out right. Where they are
+curved, it does not:
+
+| Cut at | Data's turn there | Composite's turn | Run |
+|---|---|---|---|
+| a 23.9° chine, curved sides, 48 points per section | 23.904–23.949° | **30.198–30.244°** | `p9_creases-20261103-040239` |
+| a smooth keel (no corner in the data) | 0.002° | 2.655–2.676° | same |
+| a smooth bilge, radius 15–22 mm, neighbours 9 / 4.4 / 0.54 / 0.135 mm away | 0° | **23.0° / 10.3° / 1.21° / 0.30°** | `p9_creases-20261103-040649` |
+| a V keel with straight sides | 15.9–101.6° | within 0.11° (26 of 30 stations read) | `p9_creases-20261103-040014` |
+
+A natural cubic through the same points predicted the 30.198° exactly, so the
+error is in the curve, not in anything downstream: a Boundary Surface over
+those composites followed them to 0.05°. The kink at a cut through smooth data
+falls roughly linearly with the distance to the neighbouring points, so **pack
+points toward every cut on both sides**: at 0.135 mm spacing a cut on a 15 mm
+radius turned 0.30° and the deviation near it was down to the uncut curve's
+(0.0012 mm). The curvature at the joint stays exactly 0 however close the
+points; packing narrows the flat spot but does not remove it. SolidWorks 2026
+(34.0.0), 2026-11-03.
 
 ### Reading what a composite joins, and the two traps in it
 
@@ -271,4 +320,6 @@ under a second in total.
 - [curves/04 — Reload a curve in place](04-reload-curve-in-place.md) — the composite follows
 - [curves/12 — Roll the tree back before reloading](12-roll-the-tree-back-before-reloading.md) — putting a rolled-back tree right, and checking it went
 - [connect/02 — Attach from Python](../connect/02-attach-from-python.md) — why the release had to be called with parentheses
-- [GOTCHAS §12, §49, §55, §59, §66](../../GOTCHAS.md)
+- [surfacing/05 — Build a Boundary Surface from code](../surfacing/05-boundary-surface-from-code.md) — composites as Boundary Surface profiles, where piece counts need not match
+- [curves/01 — The .sldcrv format](01-sldcrv-file-format.md#closed-curves) — why a corner on a closed section has to be a cut
+- [GOTCHAS §12, §49, §55, §59, §65, §66](../../GOTCHAS.md)
