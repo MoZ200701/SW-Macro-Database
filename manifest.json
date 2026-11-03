@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 91,
+  "count": 92,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 78
+    "verified": 79
   },
   "entries": [
     {
@@ -1743,6 +1743,10 @@
       "keywords": [
         "FeatureExtrusion3",
         "extrude",
+        "merge result false",
+        "separate bodies",
+        "ICE",
+        "offset plane direction",
         "boss",
         "blind",
         "swEndCondBlind",
@@ -2945,6 +2949,49 @@
         "import a section sketch"
       ],
       "answers": "How do I read a sketch the user drew back as ordered points in model space, with its corners, without editing it?"
+    },
+    {
+      "id": "reading-17-bodies-of-a-feature-and-their-tessellation",
+      "title": "Find the bodies a feature made, the feature a body came from, and their triangles",
+      "path": "entries/reading/17-bodies-of-a-feature-and-their-tessellation.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeature.GetFaces",
+        "IFace2.GetBody",
+        "IBody2.Name",
+        "IBody2.GetFeatures",
+        "IPartDoc.GetBodies2",
+        "IFace2.GetTessTriangles",
+        "IBody2.GetMassProperties",
+        "IFeatureManager.FeatureExtrusion3"
+      ],
+      "keywords": [
+        "bodies of a feature",
+        "which body",
+        "which feature made this body",
+        "GetFeatures",
+        "GetBody",
+        "body name",
+        "feature[1]",
+        "feature[2]",
+        "multibody",
+        "keep-in",
+        "tessellation",
+        "GetTessTriangles",
+        "triangles",
+        "mesh",
+        "chord error",
+        "containment",
+        "Merge False",
+        "separate bodies",
+        "ICE"
+      ],
+      "answers": "Which bodies did this feature make, which feature made this body, and how do I get their triangles?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",

@@ -252,6 +252,7 @@ entries it links.
 | `MoveToFolder(folder, feature, moveAfter)` | Would add a feature to an existing folder. **Returned `False` and did nothing, every way it was tried** | Verified not to work, SW 2026 |
 | `EnableFeatureTree` | Whether the tree is live; read `True` while the above failed. Set `False` (with `EnableFeatureTreeWindow = False`), a curve reload's `ModifyDefinition` took 12.2 s against 9.7 s with it on: no help there ([curves/12](entries/curves/12-roll-the-tree-back-before-reloading.md)) | Verified, SW 2026; set, SW 2026 SP0.0 2026-09-23 |
 | `FeatureExtrusion3` (23 arguments) | Blind boss from the selected sketch, depth in metres; returns the feature | Verified, SW 2026 (34.0.0) |
+| `FeatureExtrusion3` with the 18th argument (Merge) `False` | Each extrusion its own body; typed `ICE` when another body existed (GOTCHAS §96). From a plane offset to −Z it still grew toward +Z (GOTCHAS §95) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p6_bodies-20261103-041327`, `-041508` |
 | `FeatureCut4` (27 arguments) | Cut from the selected sketch. **Through all in the default direction returned `None`**; both directions (end condition 9) cut | Verified, SW 2026 (34.0.0) |
 | `FeatureCircularPattern5` (14 arguments) | Pattern the feature at mark 4 about the axis at mark 1; two `"NULL"` strings. On twisted cuts the fifth argument (geometry pattern) `True` made the same solid and rebuilt in about half the time (helical runs 2026-09-15) | Verified, SW 2026 (34.0.0) |
 | `FeatureRevolve2` (20 arguments) | Revolve the selected sketch a full turn (radians) about its centreline, or about the line at mark 16; returns a `Revolution` | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
@@ -454,6 +455,7 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `Select4(append, selectData)` | IEntity (an IEdge here) | Add an edge to the selection; `selectData` from `ISelectionMgr.CreateSelectData`, no mark needed. **The only route for an edge**, which has no name for `SelectByID2` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetTwoAdjacentFaces2` | IEdge | The faces either side; on an open edge (one face) two items, the second `None` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p10_boundary-20261103-032408` |
 | `GetTessTriangles(True)` | IFace2 | The face's tessellation, a flat array of doubles, three per vertex, **in metres** with `True`. **Comes back as an uncalled method object** (GOTCHAS §55) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetTessTriangles(True)`, how fine | IFace2 | A box face 2 triangles; a Ø30 × 100 mm cylinder 168 over its 3 faces, its polygon up to **0.042 mm inside** the true radius at the default resolution | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p6_bodies-20261103-041508` |
 | `GetClosestPointOn(x, y, z)` | IFace2 | The nearest point of that face to a point, **metres in and out**, first three items. Per face, so a distance to a body is the minimum over its faces. Checked by measuring a point back to its own face: 0.000000 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `GetFirstSegment` / `GetNextSegment` | IReferenceCurve (from `GetSpecificFeature2` on a `CurveInFile` or `CompositeCurve`) | The curve's edges in order: one for an imported curve, one per piece for a composite. `GetCurveParams2` on each gave its ends; a composite's pieces met end to end to 0.0 mm | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
 | `GetTessPts(chordTol, lengthTol, start, end)` | ICurve | Points along the curve SolidWorks drew, **metres**, three per point; tolerances in metres (1e-7 and 1e-8 used), `start`/`end` from `GetCurveParams2`. How a drawn section was checked flat (5–9e-7 mm off its plane at six decimals) | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-27 |
@@ -484,6 +486,8 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `IPartDoc.GetBodies2(0, True)` | The part's solid bodies; `len` of it counted one body after a cut | Verified, SW 2026 (34.0.0), dev runs 2026-09-15 |
 | `Select2(append, selectData)` | Select the body, at the mark set on `ISelectionMgr.CreateSelectData` | Verified at mark 1, SW 2026 (34.0.0), run 20260915-015506; at mark 256, appended, for a mirror, helical runs 2026-09-15 |
 | `Name` | The body's own name, which is how `SelectByID2` picks it as a `"SURFACEBODY"` | Verified, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
+| `GetFeatures` | The features that made the body: one each for three extrusions, both bodies of a two-region extrusion naming it ([reading/17](entries/reading/17-bodies-of-a-feature-and-their-tessellation.md)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p6_bodies-20261103-041508` |
+| `Name` of a body from a multi-body feature | `<feature>[1]`, `<feature>[2]` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p6_bodies-20261103-041508` |
 | `GetMassProperties(1.0)` | Twelve doubles; **item 3 is the volume, in cubic metres**. The route to one body's volume, where `IMassProperty.AddBodies` could not be called. Item 4 read once as an area in square metres; the rest were not identified | Verified for item 3, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `Select2(append, 0)` and `Select2(append, null)` | **Both raised on a sheet body**: `TypeError: The Python instance can not be converted to a COM object`. A real `SelectData` (which is what made the row above work on a solid body) was **not** retried here; the route taken instead was `SelectByID2` on the body's `Name` as a `"SURFACEBODY"`. `IBody2` has no `Select4` at all | Verified not to work with those two arguments, SW 2026 SP0.0, Airfoil Converter 2026-09-22 |
 | `MaterialPropertyValues2` (read) | The body's own nine appearance values. **`None`** on all nine bodies of a part whose only appearance was on the part as a whole | Verified, SW 2024 (32.5.0), 2026-10-01 |
@@ -733,7 +737,8 @@ Feature type names from `GetTypeName2`: `CurveInFile`, `CompositeCurve`,
 `PlanarSurface` (a planar cap), `FillRefSurface` (a filled surface), and, on
 the real part walked there, `Split`, `CombineBodies`, `NetBlend` and `ICE`.
 Also seen on SW 2026 (34.0.0): `RefAxis`,
-`ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut),
+`ProfileFeature` (a sketch), `OriginProfileFeature`, `Extrusion`, `ICE` (a cut, **and** an
+extrusion made with Merge off while another body exists, GOTCHAS §96),
 `CirPattern`, `EqnFolder`, `MaterialFolder`, `MateGroup`, `MateCoincident`,
 `MateDistanceDim`, `MatePlanarAngleDim`, and from the dev runs of 2026-09-15
 `Revolution`, `BlendCut`, `MoveCopyBody`, from the Plane-Builder probes of

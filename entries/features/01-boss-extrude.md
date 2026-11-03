@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2026 (revision 34.0.0)
 language: [python]
 api: [IFeatureManager.FeatureExtrusion3, IFeature.Select2, IModelDocExtension.SelectByID2, IFeature.Name, IMassProperty.CenterOfMass]
-keywords: [FeatureExtrusion3, extrude, boss, blind, swEndCondBlind, 23 arguments, depth, solid from sketch, FeatureManager, select sketch, extrude direction, which way, +Z, annulus, ring, two concentric circles, ring gear blank]
+keywords: [FeatureExtrusion3, extrude, merge result false, separate bodies, ICE, offset plane direction, boss, blind, swEndCondBlind, 23 arguments, depth, solid from sketch, FeatureManager, select sketch, extrude direction, which way, +Z, annulus, ring, two concentric circles, ring gear blank]
 answers: "How do I extrude a closed sketch into a solid boss from code?"
 ---
 
@@ -150,6 +150,36 @@ solid body, not a disc. The inner circle's dimension, linked by
 `"Tip@Ring Sketch"= "Probe Tip"` to 20, opened the hole to match: 9424.7780 mm³.
 That is how the Gear Generator makes a ring gear's blank.
 
+### Separate bodies: the eighteenth argument False
+
+With the eighteenth argument — `True` in the tuples above — passed **`False`**,
+each extrusion stayed its own body instead of merging with what was there:
+
+```python
+# FeatureExtrusion3 as features/01 ran it, merge (18th) False so every keep-in stays its own body
+args = (True, False, False, 0, 0, depth / MM, 0.0, False, False, False, False, 0.0, 0.0,
+        False, False, False, False, False, True, True, 0, 0.0, False)
+ok, feat = report.attempt(f"FeatureExtrusion3[{name}]", lambda: call(doc.fm, "FeatureExtrusion3", *args))
+```
+
+Three extrusions made four solid bodies (one sketch of two squares made two).
+The first was typed `Extrusion`; the two made while a body already existed
+were typed **`ICE`**, the type name a cut has ([GOTCHAS §96](../../GOTCHAS.md)).
+Plane-Builder probe run `p6_bodies-20261103-041508`, SolidWorks 2026 (34.0.0);
+reading the bodies back is [reading/17](../reading/17-bodies-of-a-feature-and-their-tessellation.md).
+
+### From a plane offset to −Z it still grows toward +Z
+
+The same arguments from a sketch on a plane made by `InsertRefPlane(8 | 256, d,
+…)` from the Front plane — the plane at Z = −d — extruded toward **+Z**, back
+through the plane's own side: a box sketched at Z = −150 to be 200 mm deep ran
+to Z = +50. That plane's sketch faces +Z
+([features/08](08-offset-reference-plane.md)), and the boss follows the sketch
+normal, not the side the plane was flipped to. Sketch on the face the solid
+should grow away from in +Z (the aft face, here). Plane-Builder probe runs
+`p6_bodies-20261103-041327` (the box through the nose) and `-041508`
+(sketched on the aft faces, in place) ([GOTCHAS §95](../../GOTCHAS.md)).
+
 ## Why it is not obvious
 
 **23 positional arguments and no names.** From late-bound Python there are no
@@ -175,9 +205,9 @@ both made, the flag restored, and one rebuild gave the right volume
 
 ## What it does not do
 
-- Only single-ended blind bosses on the first reference plane were made, from
-  one circle or two concentric circles. Mid-plane, two-direction, draft, thin features and
-  merge-result options were not varied.
+- Only single-ended blind bosses were made, from one circle, two concentric
+  circles, rectangles and two separate squares. Mid-plane, two-direction, draft
+  and thin features were not varied. Merge was varied only as above.
 - The first three boolean arguments were passed `True, False, False` and never
   changed, so which direction `True` means is not established. With them the
   boss grew toward +Z from the Front plane.
@@ -219,3 +249,4 @@ SolidWorks 2026 (revision 34.0.0), Python over pywin32, probe run
 - [curves/11 — Feature-tree folders](../curves/11-feature-tree-folders.md) — another use of `IFeature.Select2`
 - [features/05 — Revolve](05-revolve.md) — the other way to make a blank
 - [features/08 — Offset reference plane](08-offset-reference-plane.md) — planes on the side the boss grows
+- [reading/17 — The bodies a feature made](../reading/17-bodies-of-a-feature-and-their-tessellation.md) — separate bodies read back by feature

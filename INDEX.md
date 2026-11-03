@@ -146,6 +146,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Check that a feature changed the solid the way I meant | [reading/10 — Mass properties as an oracle](entries/reading/10-mass-properties-as-an-oracle.md) |
 | Poll for changes every second without making SolidWorks stutter | [reading/11 — Cheap change detection](entries/reading/11-cheap-change-detection.md) |
 | Suppress one body feature without losing everything built on it | [reading/12 — Snapshot suppression before you suppress](entries/reading/12-snapshot-suppression-before-you-suppress.md) |
+| Find which bodies a feature made, or which feature made a body, and get their triangles | [reading/17 — The bodies a feature made](entries/reading/17-bodies-of-a-feature-and-their-tessellation.md) |
 | Measure the wall between two surfaces without exporting anything | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Get one body's volume, where `IMassProperty` will not take bodies | [reading/13 — Measure a wall between two bodies](entries/reading/13-measure-a-wall-between-two-bodies.md) |
 | Find out afterwards what a program did to a part, when it kept no log | [reading/14 — The journal records API calls](entries/reading/14-the-journal-records-api-calls.md) |
@@ -179,7 +180,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, reading/16, surfacing/04, surfacing/05, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, reading/16, reading/17, surfacing/04, surfacing/05, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

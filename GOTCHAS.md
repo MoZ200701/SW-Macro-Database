@@ -1242,3 +1242,25 @@ were not moved. Set `AddToDB` for any sketch drawn from computed points, and
 read it back if it matters. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
 `p1_sketch_read-20261103-043300` (moved) and `-043327` (with `AddToDB`). See
 [reading/16](entries/reading/16-read-a-sketch-as-one-ordered-loop.md).
+
+## 95. An extrusion from a plane offset to −Z still grows toward +Z
+
+`InsertRefPlane(8 | 256, d, …)` from the Front plane puts the plane at Z = −d,
+but its sketch still faces +Z, and `FeatureExtrusion3` with the arguments of
+[features/01](entries/features/01-boss-extrude.md) extrudes along the sketch
+normal. A box sketched at Z = −150 to be 200 mm deep came out from −150 to
+**+50**, out through the front of the part, with no error. The flip moves the
+plane; it does not turn its sketch over. Sketch on the face the body grows away
+from in +Z, or check a body's extent after making it. SolidWorks 2026
+(34.0.0), Plane-Builder probe runs `p6_bodies-20261103-041327` and `-041508`.
+
+## 96. An extrusion kept as its own body is typed `ICE`, like a cut
+
+`FeatureExtrusion3` with Merge (the eighteenth argument) `False`, made while
+another solid body existed, reported `GetTypeName2` **`ICE`** — the type name
+a cut extrude has — and still added a solid body. The first such extrusion in
+the part, made with no body there yet, was `Extrusion`. Code that tells bosses
+from cuts by type name, or finds "the extrusions", gets these wrong. Ask the
+feature for its faces and bodies instead
+([reading/17](entries/reading/17-bodies-of-a-feature-and-their-tessellation.md)).
+SolidWorks 2026 (34.0.0), Plane-Builder probe run `p6_bodies-20261103-041508`.
