@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 92,
+  "count": 95,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 79
+    "verified": 82
   },
   "entries": [
     {
@@ -2157,6 +2157,7 @@
       ],
       "keywords": [
         "InsertProtrusionBlend2",
+        "loft does not follow reload without guides",
         "InsertLoftRefSurface2",
         "loft",
         "boss loft",
@@ -2233,6 +2234,74 @@
         "G2 joint"
       ],
       "answers": "How do I revolve an imported curve into a surface from code, and keep the revolve following the curve when it changes?"
+    },
+    {
+      "id": "features-14-combine-solid-bodies",
+      "title": "Join two solid bodies into one, with Combine Add or a loft that merges",
+      "path": "entries/features/14-combine-solid-bodies.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertCombineFeature",
+        "IModelDocExtension.SelectByID2",
+        "IFeatureManager.InsertProtrusionBlend2",
+        "IPartDoc.GetBodies2",
+        "IBody2.GetMassProperties"
+      ],
+      "keywords": [
+        "InsertCombineFeature",
+        "combine",
+        "Combine Add",
+        "SWBODYADD",
+        "15903",
+        "swBodyOperationType_e",
+        "SOLIDBODY",
+        "selection mark 2",
+        "CombineBodies",
+        "merge result",
+        "Merge True",
+        "multibody",
+        "junction",
+        "fin on fuselage",
+        "one body",
+        "GetFaces empty"
+      ],
+      "answers": "How do I add one solid body to another from code, so the part ends up as one body?"
+    },
+    {
+      "id": "features-15-cut-a-body-with-a-plane",
+      "title": "Cut one solid body with a plane (Cut With Surface)",
+      "path": "entries/features/15-cut-a-body-with-a-plane.md",
+      "category": "features",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.InsertCutSurface",
+        "IFeature.Select2",
+        "IFeatureManager.InsertRefPlane"
+      ],
+      "keywords": [
+        "InsertCutSurface",
+        "Cut With Surface",
+        "SurfCut",
+        "cut by a plane",
+        "cut one body",
+        "feature scope",
+        "bodies to cut",
+        "VT_ARRAY VT_DISPATCH",
+        "which side is kept",
+        "flip",
+        "overhang",
+        "multibody"
+      ],
+      "answers": "How do I cut just one body of a multibody part by a reference plane from code, and which side does it keep?"
     },
     {
       "id": "files-01-batch-convert-step",
@@ -3471,6 +3540,47 @@
         "follows reload"
       ],
       "answers": "How do I make a Boundary Surface over imported curves from code, and can I change its curves afterwards?"
+    },
+    {
+      "id": "surfacing-06-trim-a-surface-from-code",
+      "title": "Trim a surface from code, by a curve, a plane, another surface, or mutually",
+      "path": "entries/surfacing/06-trim-a-surface-from-code.md",
+      "category": "surfacing",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IFeatureManager.PreTrimSurface",
+        "IFeatureManager.PostTrimSurface",
+        "IModelDocExtension.SelectByRay",
+        "IModelDocExtension.SelectByID2",
+        "IEntity.Select4",
+        "IFeatureManager.InsertSewRefSurface"
+      ],
+      "keywords": [
+        "trim surface",
+        "PreTrimSurface",
+        "PostTrimSurface",
+        "TrimRefSurface",
+        "mutual trim",
+        "standard trim",
+        "trim tool",
+        "trim by curve",
+        "trim by plane",
+        "trim by edge refused",
+        "pieces to keep",
+        "SelectByRay",
+        "swSelSURFACEBODIES",
+        "75",
+        "SelectByID2 SURFACEBODY point returns False",
+        "selection cleared",
+        "GetFaces empty",
+        "junction",
+        "fairing foot"
+      ],
+      "answers": "How do I trim one surface by a curve, a plane or another surface from code, and choose which piece to keep?"
     }
   ]
 }

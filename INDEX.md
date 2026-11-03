@@ -99,6 +99,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Sweep a profile along a line with a twist, and choose its hand | [features/09 — Twisted sweep](entries/features/09-twisted-sweep.md) |
 | Cut along a path with a twist (a helical tooth space), and pattern it | [features/10 — Swept cut](entries/features/10-swept-cut.md) |
 | Mirror a body about a plane into one body (a herringbone) | [features/11 — Mirror a body](entries/features/11-mirror-body.md) |
+| Join two solid bodies into one (Combine Add), or loft one merged into another | [features/14 — Join two solid bodies into one](entries/features/14-combine-solid-bodies.md) |
+| Cut only one body of a multibody part at a plane | [features/15 — Cut a body with a plane](entries/features/15-cut-a-body-with-a-plane.md) |
 | Loft through curves along guide curves, with a hand-made loft's settings | [features/12 — Insert a guided loft](entries/features/12-guided-loft.md) |
 | Make a reference axis along a sketch line | [features/03 — Circular pattern](entries/features/03-circular-pattern.md) |
 
@@ -174,13 +176,16 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Get a solid out of a loft SolidWorks refuses as a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
 | Put a flat face across the end of a surface, and knit sheets into a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md) |
 | Knit a revolve to a Boundary Surface, cap it and make a solid | [surfacing/04 — Cap a refused loft into a solid](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md#the-same-knit-on-a-revolve-and-a-boundary-surface) |
+| Trim a surface by a curve, a plane or another surface, or two surfaces against each other | [surfacing/06 — Trim a surface from code](entries/surfacing/06-trim-a-surface-from-code.md) |
+| Pick which piece of a surface to keep, when `SelectByID2` at a point selects nothing | [surfacing/06 — Trim a surface from code](entries/surfacing/06-trim-a-surface-from-code.md), and [GOTCHAS §98](GOTCHAS.md) |
+| Know why a loft did not come back after reloading its curves | [GOTCHAS §100](GOTCHAS.md), and [features/12 — Insert a guided loft](entries/features/12-guided-loft.md) |
 | Find out why a solid loft is refused while its surface builds — check the curve files' decimals first | [curves/01 — The .sldcrv format](entries/curves/01-sldcrv-file-format.md), then [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 | Loft through many sections with guides that SolidWorks accepts, and how accurate that was | [surfacing/03 — How a loft fills between two profiles](entries/surfacing/03-how-a-loft-fills-between-profiles.md) |
 
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, reading/16, reading/17, surfacing/04, surfacing/05, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 15, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, reading/16, reading/17, surfacing/04, surfacing/05, surfacing/06, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

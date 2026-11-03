@@ -5,7 +5,7 @@ status: partly-verified
 verified_on: SolidWorks 2026 for the solid loft and its settings; the surface fallback's arguments were not examined
 language: [python]
 api: [IFeatureManager.InsertProtrusionBlend2, IFeature.GetDefinition, IModelDoc2.InsertLoftRefSurface2, IModelDocExtension.SelectByID2, IModelDoc2.ClearSelection2, IModelDoc2.ForceRebuild3, ISketchManager.ActiveSketch]
-keywords: [InsertProtrusionBlend2, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order, returns Nothing, silent refusal, solid refused, capped loft, end sections must be planar, 3D section that does not bound a face, many profiles, BlendRefSurface GetDefinition Nothing, edit a loft's profiles, loft follows reloaded curves]
+keywords: [InsertProtrusionBlend2, loft does not follow reload without guides, InsertLoftRefSurface2, loft, boss loft, surface loft, guide curves, guide curve influence, swGuideCurveInfluence_e, To next guide, maintain tangency, selection mark 2, Blend, BlendRefSurface, REFERENCECURVES, composite profile, surface fallback, 18 arguments, guide order, returns Nothing, silent refusal, solid refused, capped loft, end sections must be planar, 3D section that does not bound a face, many profiles, BlendRefSurface GetDefinition Nothing, edit a loft's profiles, loft follows reloaded curves]
 answers: "How do I make a solid loft through two curves, held by guide curves, from code, with the same settings as one made in the Loft property page?"
 ---
 
@@ -304,6 +304,14 @@ surface loft call itself is unchanged and is still the first step of that.
     left behind, went into error (no body) every time (`e55`, `e57`).
     Keeping the profile count and names constant is what lets a loft follow
     an edit.
+  - **Without guides it may not follow at all.** A two-profile loft with no
+    guide curves, reloaded A → B → A on SolidWorks 2026 (34.0.0), did not come
+    back to A (up to 10.33 mm off) with every curve exact and no error; on a
+    second pair of shapes it did not follow A → B. With guides through the
+    profiles' leading- and trailing-edge rows it came back to 8e-11 in volume in
+    five route-runs. Cause not established. Plane-Builder probe runs
+    `p12_junction-20261103-041027`, `-044202`, `-043842`, `-043955`
+    ([GOTCHAS §100](../../GOTCHAS.md)).
 - Profiles here are reference curves. Sketch profiles are
   [features/07](07-loft-cut.md)'s case, for a cut.
 - The tool's tests exercise the ordering, the fallback and the keep-existing
@@ -349,4 +357,5 @@ profile at its nose, ...").
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md) — why selecting mid-sketch is refused
 - [curves/08 — Rebuild once, at the end](../curves/08-rebuild-once-at-the-end.md)
 - [curves/01 — The .sldcrv format](../curves/01-sldcrv-file-format.md) — why a flat end can be refused as not flat
-- [GOTCHAS §49, §50, §51, §52, §63, §68](../../GOTCHAS.md)
+- [features/14 — Join two solid bodies into one](14-combine-solid-bodies.md) — a loft with merge on, or combined afterwards
+- [GOTCHAS §49, §50, §51, §52, §63, §68, §100](../../GOTCHAS.md)

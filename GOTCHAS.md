@@ -826,6 +826,14 @@ cut into — one edge per piece is what an end of a two-profile loft is.
 SolidWorks 2026 SP0.0. See
 [surfacing/04](entries/surfacing/04-cap-a-refused-loft-into-a-solid.md).
 
+Allow a few tenths of a percent the other way: a cap on a closed 48-point curve
+measured **+0.25 %** over the area of the polygon through its points (5,735.43
+against 5,720.97 mm²), because the spline bulges outside the chords. Against the
+analytic section it was −0.0012 % (`p11_nose-20261103-035854`) and +0.002 %
+(a cap that also closed a fairing's end, `p13_fairing-20261103-043914`).
+SolidWorks 2026 (34.0.0), Plane-Builder probe run `p12_junction-20261103-043842`
+for the polygon comparison.
+
 ## 61. A knit asked for a solid can sew a sheet and still make a feature
 
 `IFeatureManager.InsertSewRefSurface(True, True, False, 1e-4, 1e-4)` — with
@@ -1283,3 +1291,61 @@ after. SolidWorks 2026 (34.0.0), Plane-Builder probe run
 `pz_capture-20261103-032233`; the stripes' presence and absence were judged by
 looking at the files. Turning on zebra stripes and saving the window changes the
 user's view: do it only on a document your program owns.
+
+## 98. Pick a surface body by ray, not by point; and `PreTrimSurface` clears the selection
+
+`IModelDocExtension.SelectByID2("", "SURFACEBODY", x, y, z, …)` at a point
+lying exactly on a sheet (projected onto it with `IFace2.GetClosestPointOn`)
+returned **False** every time and selected nothing.
+`IModelDocExtension.SelectByRay(start, direction, 0.0005, 75, True, mark, 0)` —
+type 75 `swSelSURFACEBODIES`, from 3 mm before the point — selected the same
+body every time. By name (`SelectByID2(body.Name, "SURFACEBODY", 0, 0, 0, …)`)
+works when you want the whole body; a piece of a body about to be trimmed has
+no name, so the ray it is.
+
+In the same command, `IFeatureManager.PreTrimSurface` **empties the
+selection** (2 → 0): the tools are selected before it, the pieces after it.
+With nothing selected before it, `PostTrimSurface` made no feature. SolidWorks
+2026 (34.0.0), Plane-Builder probe runs `p12_junction-20261103-043842` and
+`-040255`. See [surfacing/06](entries/surfacing/06-trim-a-surface-from-code.md).
+
+## 99. Combine and Trim features report no faces
+
+`IFeature.GetFaces` on a `CombineBodies` feature and on a `TrimRefSurface`
+feature returned **nothing** (0 faces) while each had done its job: the combine
+had made one solid of two, the trim had removed 5,058.8 mm² of sheet. A check
+that a feature "made faces" — the usual cheap test — deleted good trims in one
+run. Judge these by the bodies: count them, and sum the sheets' areas before
+and after. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
+`p12_junction-20261103-043842` and `-040027`. See
+[features/14](entries/features/14-combine-solid-bodies.md),
+[surfacing/06](entries/surfacing/06-trim-a-surface-from-code.md).
+
+## 100. A loft without guide curves does not reliably follow reloaded profiles
+
+**Observed, cause not established.** A loft through two closed profiles and
+nothing else, solid or surface, was reloaded in place from shape A to shape B
+and back to A. Every curve's stored `PointArray` equalled its file, every
+feature read `GetErrorCode2` 0 and `EditRebuild3` returned True — and the loft
+was not back on A: up to **10.33 mm** off, the body 16,500 mm³ light.
+`ForceRebuild3(False)`, and reopening the part and forcing a rebuild, changed
+nothing. On a second pair of shapes it did not even follow A → B (0.83 mm off).
+**The same loft with two guide curves through the profiles' own leading- and
+trailing-edge rows came back exactly**: volume equal to 8e-11, in five
+route-runs on both pairs. A Boundary Surface over the fuselage curves in the same
+parts came back exactly every time; one with leading- and trailing-edge guides
+over the fin came back to its own 0.03 mm.
+
+Nothing reports this; only measuring the surface after the push does. Give a
+loft that will be reloaded guide curves, and measure it after each push.
+[curves/04](entries/curves/04-reload-curve-in-place.md)'s "the loft followed"
+was a loft with guides.
+
+A related caution from the same runs: **fresh builds of the same files are not
+bit-identical.** One combined part measured 5,479,315.146 and 5,479,316.598 mm³
+built twice from the same curves (guided), and 5,479,200.165 and 5,479,276.9
+unguided. Compare a reloaded part with a fresh build to about 2e-6, not 1e-9.
+SolidWorks 2026 (34.0.0), Plane-Builder probe runs
+`p12_junction-20261103-040514`, `-040701`, `-041027` (the failures),
+`-044202` (the second pair, unguided), `-043842`, `-043955`, `-044130`,
+`-041351` (guided). See [features/12](entries/features/12-guided-loft.md).

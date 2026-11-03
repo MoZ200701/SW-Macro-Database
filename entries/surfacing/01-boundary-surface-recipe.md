@@ -22,7 +22,8 @@ answers: "Which parts of building a surface from curves are automatable, and wha
 | Build a loft over them, with guides | Yes, since 2026-09-16 — [features/12](../features/12-guided-loft.md) |
 | Refresh the curves afterwards | Yes — [curves/04](../curves/04-reload-curve-in-place.md) |
 | Knit, and a planar cap | Yes — [surfacing/04](04-cap-a-refused-loft-into-a-solid.md) |
-| Trim, thicken | No |
+| Trim | Yes — [surfacing/06](06-trim-a-surface-from-code.md) |
+| Thicken | No |
 
 **Corrected 2026-11-03.** This entry used to say there was no automation for
 creating a boundary surface from a set of curves, because no
@@ -105,7 +106,8 @@ If your model needs more than one surface:
   the results so the shell is one surface.
 
 Knit, Planar and Fill have since been driven from code
-([surfacing/04](04-cap-a-refused-loft-into-a-solid.md)); Trim has not.
+([surfacing/04](04-cap-a-refused-loft-into-a-solid.md)), and so has Trim, standard and mutual
+([surfacing/06](06-trim-a-surface-from-code.md)).
 
 ## Boundary Surface or Loft
 

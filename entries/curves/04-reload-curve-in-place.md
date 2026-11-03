@@ -39,6 +39,15 @@ rather than rebuilding it. The one change reloading cannot carry is a change in
 *how many* curves there are: see [curves/06](06-composite-curve.md) for a
 composite whose pieces change.
 
+**Those lofts had guide curves.** A loft through two closed profiles and no
+guides, reloaded from shape A to B and back on SolidWorks 2026 (34.0.0), did
+not come back to A — up to 10.33 mm off, with every curve's stored points exact
+and every feature at error 0 — and on another pair of shapes did not follow
+A → B. With guides through the profiles' leading- and trailing-edge rows it
+came back exactly. Cause not established. Measure a loft after reloading it
+([GOTCHAS §100](../../GOTCHAS.md)). Plane-Builder probe runs
+`p12_junction-20261103-041027` and `-044202`.
+
 ## The three calls
 
 ```vb
