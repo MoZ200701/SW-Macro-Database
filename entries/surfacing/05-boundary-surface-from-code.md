@@ -140,7 +140,7 @@ help's word, not something observed here.
 
 | Argument | Values used | Seen to matter? |
 |---|---|---|
-| `SetNetBlendCurveData` tangency (`swBoundaryBossTangencyType_e`) | 0 none; 3 tangency to face, 4 curvature to face on an edge profile | Stored, but **no effect on the shape** was seen ([GOTCHAS §88](../../GOTCHAS.md), below) |
+| `SetNetBlendCurveData` tangency (`swBoundaryBossTangencyType_e`) | 0 none; 3 tangency to face, 4 curvature to face on an edge profile | Read back inside AccessSelections, but **never reaches the feature**: the PropertyManager shows None. G1 comes from packed geometry instead ([GOTCHAS §88](../../GOTCHAS.md), below) |
 | its draft, length, applyToAll | 0.0, 1.0, True (and False) | Not varied otherwise |
 | `SetNetBlendDirectionData` influence (`swBoundaryBossCurveInfluenceType_e`) | 32 global; 0 to next curve on direction 2 | **Yes**: direction-2 influence 0 changed the surface (0.45 mm from the analytic body at one place, against 0.17 mm with 32) |
 | its trim, closed | 0, False | Not varied |
