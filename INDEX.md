@@ -137,6 +137,8 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Rename an assembly's part files without breaking it | [files/05 — Rename a component's file](entries/files/05-rename-a-component-file.md) |
 | Find out what the user just clicked | [reading/04 — Read the selection](entries/reading/04-read-the-selection.md) |
 | Convert sketch coordinates to model coordinates | [reading/05 — Sketch to model transform](entries/reading/05-sketch-to-model-transform.md) |
+| Read a drawn sketch back as an ordered outline in model space, with its corners | [reading/16 — Read a sketch as one ordered loop](entries/reading/16-read-a-sketch-as-one-ordered-loop.md) |
+| Stop sketch inference moving lines I draw from code | [reading/16 — Read a sketch as one ordered loop](entries/reading/16-read-a-sketch-as-one-ordered-loop.md), and [GOTCHAS §94](GOTCHAS.md) |
 | Watch the active sketch while the user works | [reading/06 — Live sketch monitor](entries/reading/06-live-sketch-monitor.md) |
 | Make a failing call tell me why | [reading/07 — Report the feature type on failure](entries/reading/07-report-feature-type-on-failure.md) |
 | Read the dimensions and equations of an existing part | [reading/08 — Dimensions and equations](entries/reading/08-dimensions-and-equations.md) |
@@ -177,7 +179,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, surfacing/05, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 13, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, reading/16, surfacing/04, surfacing/05, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

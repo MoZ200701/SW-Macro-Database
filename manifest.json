@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 90,
+  "count": 91,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 77
+    "verified": 78
   },
   "entries": [
     {
@@ -2894,6 +2894,57 @@
         "dimension table from geometry"
       ],
       "answers": "My part was derived or imported and has no dimensions of its own — how do I get its real sizes (lengths, slot widths, hole diameters, positions) from code?"
+    },
+    {
+      "id": "reading-16-read-a-sketch-as-one-ordered-loop",
+      "title": "Read a drawn sketch back as points and tangents in model space, ready to chain into one loop",
+      "path": "entries/reading/16-read-a-sketch-as-one-ordered-loop.md",
+      "category": "reading",
+      "status": "verified",
+      "verified_on": "SolidWorks 2026 (revision 34.0.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "ISketch.GetSketchSegments",
+        "ISketchSegment.ConstructionGeometry",
+        "ISketchSegment.GetType",
+        "ISketchSegment.GetCurve",
+        "ISketchSegment.GetStartPoint2",
+        "ISketchArc.GetRotationDir",
+        "ISketchSpline.GetPoints2",
+        "ICurve.GetEndParams",
+        "ICurve.ReverseEvaluate",
+        "ICurve.Evaluate2",
+        "ICurve.GetTessPts",
+        "ISketch.ModelToSketchTransform",
+        "ISketchManager.AddToDB"
+      ],
+      "keywords": [
+        "read a sketch",
+        "sketch to points",
+        "ordered loop",
+        "chain segments",
+        "GetSketchSegments",
+        "ConstructionGeometry",
+        "construction lines",
+        "centreline",
+        "GetCurve on a sketch segment",
+        "GetEndParams",
+        "unbounded line",
+        "-10000 10000",
+        "arc full circle",
+        "ReverseEvaluate",
+        "GetTessPts with ends",
+        "Evaluate2 tangent",
+        "corner angle",
+        "tangent join",
+        "sketch inference",
+        "automatic relation",
+        "AddToDB",
+        "import a section sketch"
+      ],
+      "answers": "How do I read a sketch the user drew back as ordered points in model space, with its corners, without editing it?"
     },
     {
       "id": "sketches-01-2d-sketch-as-vba",

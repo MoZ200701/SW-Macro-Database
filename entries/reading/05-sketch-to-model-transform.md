@@ -135,6 +135,7 @@ any machine and catches the transpose immediately.
 ## See also
 
 - [reading/04 — Read the selection](04-read-the-selection.md)
+- [reading/16 — Read a sketch as one ordered loop](16-read-a-sketch-as-one-ordered-loop.md) — every segment of a sketch, through this transform
 - [GOTCHAS §10, §91](../../GOTCHAS.md)
 - [surfacing/02 — Axis conventions](../surfacing/02-axis-conventions.md) — the three standard planes' sketch axes
 - [assemblies/01 — New assembly and insert components](../assemblies/01-new-assembly-and-insert-components.md) — a component's `Transform2.ArrayData`

@@ -370,6 +370,7 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `Insert3DSketch2(rebuild)` | Open a 3D sketch; call again to close | Unverified |
 | `ActiveSketch` | The sketch being edited, or `Nothing` after closing. The Airfoil Converter refuses to select anything while it is not `None` (GOTCHAS §51) | Verified, SW 2026 (34.0.0) |
 | `AddToDB` / `DisplayWhenAdded` | Set `True` / `False` while drawing, restored after; `AddToDB` read back | Verified, SW 2026 (34.0.0) |
+| `AddToDB = True` while drawing | **Stops sketch inference** moving what code draws: without it a line 2.2° off horizontal was made horizontal, an end moving 0.395 mm (GOTCHAS §94) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-043300`, `-043327` |
 | `CreatePoint(x, y, z)` | A sketch point, in metres | Verified, SW 2026 (34.0.0) |
 | `CreateLine(x1, y1, z1, x2, y2, z2)` | A line, in metres | Verified, SW 2026 (34.0.0) |
 | `CreateLine2(x1, y1, z1, x2, y2, z2)` | A line, in metres | Unverified |
@@ -399,6 +400,9 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `GetStartPoint2` / `GetEndPoint2` | A segment's endpoints, as selectable objects | Verified, SW 2026 (34.0.0) |
 | `GetCenterPoint2` | An arc or circle centre | Verified, SW 2026 (34.0.0) |
 | `ConstructionGeometry` | Toggle construction. Verified on a line; availability on a bare point varies by version | Verified on a line, SW 2026 (34.0.0) |
+| `ConstructionGeometry` (read) | True on a `CreateCenterLine` line and on a line set construction; how a reader drops them ([reading/16](entries/reading/16-read-a-sketch-as-one-ordered-loop.md)) | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
+| `GetCurve` (ISketchSegment) | The segment's `ICurve`, **in sketch space**: a line's is unbounded (`GetEndParams` −10000 … 10000), an arc's the whole circle (0 … 2π, closed, periodic), a spline's 0 … 1 | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
+| `GetRotationDir` (ISketchArc) | −1 / 1, as drawn by `CreateArc(…, -1 / 1)` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
 | `Select4(append, data)` | Add to the selection. From Python, `data` a typed null dispatch. Failed once on a new sketch point, not reproduced in 14 trials (GOTCHAS §36) | Verified, SW 2026 (34.0.0) |
 | `X` / `Y` / `Z` | A sketch point's coordinates, in **sketch** space | Verified |
 | `GetType` | 0 line, 1 arc (a circle reads 1), 3 spline | Verified, SW 2026 (34.0.0) |
@@ -429,6 +433,9 @@ the tangency, tangent length and influence getters read 0 whatever was set.
 | `GetCurve` | IEdge, ISketchSegment | The underlying curve | Verified |
 | `IsLine` | ICurve | Whether it is straight | Verified |
 | `IsCircle` / `CircleParams` | ICurve | Whether it is a circle; centre (0–2), axis (3–5), radius (6), **metres**. A revolve's end edge read radius 30.000000000 mm | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-035854` |
+| `GetEndParams(out t0, out t1, out closed, out periodic)` | ICurve | The parameter range; through pywin32 a 5-tuple `(ok, t0, t1, closed, periodic)` | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
+| `ReverseEvaluate(x, y, z)` | ICurve | The parameter of a point on the curve; a sketch arc's ends gave its two parameters, a line's 0 and its length in metres | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
+| `Evaluate2(t, 1)` and `GetTessPts(…, start, end)` on a **sketch** curve | ICurve | Tangents for exact corner angles; points between the segment's own ends (sketch space), following an arc the way it was drawn | Verified, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p1_sketch_read-20261103-041058` |
 | `GetStartVertex` / `GetEndVertex` | IEdge | An edge's ends | Verified |
 | `GetSurface` | IFace2 | The underlying surface | Verified |
 | `EvaluateAtPoint(x, y, z)` | ISurface | **Returned `None`** at points taken off an edge's own curve, on a face that edge bounds (GOTCHAS §93); after projecting the point onto the face with `IFace2.GetClosestPointOn`, the evaluation worked | Verified to return `None` there, SW 2026 (34.0.0), Plane-Builder probes 2026-11-03, `p11_nose-20261103-034016` |

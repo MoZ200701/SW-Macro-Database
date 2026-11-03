@@ -1229,3 +1229,16 @@ there, worked. Check for `None` before indexing anything `EvaluateAtPoint`
 returns. Why those points were refused (a tolerance, or the edge lying on the
 face's boundary) was not established. SolidWorks 2026 (34.0.0), Plane-Builder
 probe run `p11_nose-20261103-034016`.
+
+## 94. Sketch inference moves lines drawn from code
+
+With a sketch open, `ISketchManager.CreateLine` for a line 2.2° off horizontal
+made it **exactly horizontal**: SolidWorks added a Horizontal relation, as it
+would for a user's mouse, and one end moved 0.395 mm. Nothing reported it; the
+sketch read back 0.395 mm off what was drawn and its corner 50.0° instead of
+47.763°. With `ISketchManager.AddToDB = True` while drawing (restored after)
+the same calls came out exactly as given. Lines far from horizontal or vertical
+were not moved. Set `AddToDB` for any sketch drawn from computed points, and
+read it back if it matters. SolidWorks 2026 (34.0.0), Plane-Builder probe runs
+`p1_sketch_read-20261103-043300` (moved) and `-043327` (with `AddToDB`). See
+[reading/16](entries/reading/16-read-a-sketch-as-one-ordered-loop.md).
