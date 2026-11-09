@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "description": "SolidWorks automation entries. Each answers one question. Check 'status' before trusting an entry: verified means it ran against the named version; unverified means it is well-formed against the documented API but was never executed.",
-  "count": 88,
+  "count": 92,
   "by_status": {
     "partly-verified": 10,
     "unverified": 3,
-    "verified": 75
+    "verified": 79
   },
   "entries": [
     {
@@ -249,6 +249,9 @@
         "IComponent2.Transform2"
       ],
       "keywords": [
+        "gear mate does not propagate",
+        "DragAsUI",
+        "TransformType 0 1 2",
         "drag operator",
         "GetDragOperator",
         "IDragOperator",
@@ -412,6 +415,10 @@
         "IComponent2.Transform2"
       ],
       "keywords": [
+        "CreateExplodedView",
+        "Chain1",
+        "explode along shaft axis",
+        "isometric overlap",
         "exploded view",
         "explode",
         "explode step",
@@ -429,6 +436,49 @@
         "check component moved"
       ],
       "answers": "How do I make an exploded view of an assembly from code — which parts move, how far and which way — and confirm each step went where I meant?"
+    },
+    {
+      "id": "assemblies-09-keep-an-edited-toolbox-copy",
+      "title": "Use an edited copy of a Toolbox part in an assembly without it reverting to the library part",
+      "path": "entries/assemblies/09-keep-an-edited-toolbox-copy.md",
+      "category": "assemblies",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IModelDocExtension.ToolboxPartType",
+        "IModelDoc2.Save3",
+        "IComponent2.Select4",
+        "IAssemblyDoc.ReplaceComponents2",
+        "IComponent2.GetPathName",
+        "IComponent2.ReferencedConfiguration",
+        "ISldWorks.OpenDoc6",
+        "ISldWorks.CloseDoc"
+      ],
+      "keywords": [
+        "Toolbox",
+        "toolbox part",
+        "edited toolbox part",
+        "toolbox copy",
+        "sldsetdocprop",
+        "Toolbox status",
+        "ToolboxPartType",
+        "swToolBoxPartType_e",
+        "swToolboxStandardPart",
+        "swToolboxCopiedPart",
+        "swNotAToolboxPart",
+        "reverts to library",
+        "edits disappeared",
+        "SOLIDWORKS Data browser",
+        "ReplaceComponents2",
+        "replace component",
+        "mates lost after reopen",
+        "error 51",
+        "read-only toolbox part"
+      ],
+      "answers": "I edited a Toolbox part (or a copy of one) and on reopening the assembly my edits are gone and the mates fail — why, and how do I make the edited copy stick?"
     },
     {
       "id": "connect-01-attach-vbscript",
@@ -1278,7 +1328,8 @@
         "IView.IsExploded",
         "IDrawingDoc.GetFirstView",
         "IView.GetNextView",
-        "IModelDocExtension.SaveAs"
+        "IModelDocExtension.SaveAs",
+        "IView.Angle"
       ],
       "keywords": [
         "drawing",
@@ -1308,7 +1359,15 @@
         "ShowExploded",
         "PNG export of a drawing",
         "sheet properties",
-        "GetProperties2"
+        "GetProperties2",
+        "rotate view",
+        "IView.Angle",
+        "per-view scale",
+        "ScaleDecimal",
+        "PDF export",
+        "named view edge-on",
+        "Toolbox gear view orientation",
+        "stale PNG"
       ],
       "answers": "How do I make a drawing from a template, place standard, model and projected views at the scale I want, line them up, and export a picture to check it?"
     },
@@ -1342,7 +1401,19 @@
         "IAnnotation.SetPosition2",
         "IAnnotation.GetPosition",
         "IModelDocExtension.CustomPropertyManager",
-        "ICustomPropertyManager.Add3"
+        "ICustomPropertyManager.Add3",
+        "ITableAnnotation.Text",
+        "ITableAnnotation.InsertColumn2",
+        "ITableAnnotation.SetTextFormat",
+        "ITableAnnotation.SetColumnWidth",
+        "ITableAnnotation.SetRowHeight",
+        "IConfiguration.AlternateName",
+        "IConfiguration.UseAlternateNameInBOM",
+        "IConfiguration.BOMPartNoSource",
+        "IModelDocExtension.CreateBalloonOptions",
+        "IModelDocExtension.InsertBOMBalloon2",
+        "IView.GetVisibleComponents",
+        "IAnnotation.GetLeaderPointsAtIndex"
       ],
       "keywords": [
         "BOM",
@@ -1369,7 +1440,19 @@
         "custom property",
         "CustomPropertyManager",
         "Add3",
-        "swCustomInfoText"
+        "swCustomInfoText",
+        "BOM cell edit writes to part",
+        "description write-back",
+        "custom BOM column",
+        "InsertColumn2",
+        "PART NUMBER alternate name",
+        "BOMPartNoSource",
+        "balloon quantity",
+        "ShowQuantity",
+        "InsertBOMBalloon2",
+        "CreateBalloonOptions member not found",
+        "leader attach point",
+        "crossing leaders"
       ],
       "answers": "How do I put a bill of materials on an assembly drawing from code, make it actually list the parts with descriptions, and balloon every part?"
     },
@@ -1622,6 +1705,141 @@
         "RunCommand"
       ],
       "answers": "My assembly has explode lines but the drawing's exploded view doesn't show them — how do I show them from code, and can I delete some of the segments?"
+    },
+    {
+      "id": "drawings-08-section-views-from-code",
+      "title": "Make a section view from code, pointing the right way, with parts left unsectioned",
+      "path": "entries/drawings/08-section-views-from-code.md",
+      "category": "drawings",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IDrawingDoc.ActivateView",
+        "ISketchManager.CreateLine",
+        "IDrawingDoc.CreateSectionViewAt5",
+        "IView.GetXform",
+        "IView.Angle",
+        "IView.Position",
+        "IView.GetVisibleComponents"
+      ],
+      "keywords": [
+        "section view",
+        "CreateSectionViewAt5",
+        "section line",
+        "cutting plane",
+        "sketch line in a view",
+        "view sketch coordinates",
+        "GetXform",
+        "section upside down",
+        "change direction",
+        "NotAligned",
+        "ExcludedComponents",
+        "shafts not hatched",
+        "unsectioned parts",
+        "rotated view",
+        "IView.Angle",
+        "section between spokes",
+        "aligned section tilted",
+        "swCreateSectionViewAtOptions_e"
+      ],
+      "answers": "How do I make a section view of a part or assembly from code — draw the cutting line where I mean, make it face the right way, and keep shafts unhatched?"
+    },
+    {
+      "id": "drawings-09-add-dimensions-and-tolerances",
+      "title": "Add dimensions to a drawing view from code, with symmetric and fit tolerances",
+      "path": "entries/drawings/09-add-dimensions-and-tolerances.md",
+      "category": "drawings",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IView.GetVisibleEntities2",
+        "IView.SelectEntity",
+        "IModelDoc2.AddDimension2",
+        "IDisplayDimension.GetDimension2",
+        "IDisplayDimension.SetPrecision3",
+        "IDisplayDimension.SetText",
+        "IDimension.Tolerance",
+        "IDimensionTolerance.Type",
+        "IDimensionTolerance.SetValues",
+        "IDimensionTolerance.SetFitValues",
+        "IDimensionTolerance.GetMaxValue",
+        "IDimensionTolerance.GetMinValue",
+        "IEdge.GetCurveParams2",
+        "ICurve.CircleParams",
+        "IDrawingDoc.CreateUnfoldedViewAt3"
+      ],
+      "keywords": [
+        "AddDimension2",
+        "add dimension from code",
+        "smart dimension",
+        "centre distance",
+        "diameter dimension",
+        "length dimension",
+        "face width",
+        "symmetric tolerance",
+        "plus minus",
+        "fit tolerance",
+        "H7",
+        "g6",
+        "p6",
+        "SetFitValues",
+        "swTolFITWITHTOL",
+        "Type 8",
+        "Type 4",
+        "SetValues",
+        "MOD-DIAM prefix",
+        "silhouette edge",
+        "swViewEntityType_SilhouetteEdge",
+        "GetVisibleEntities2 type 4",
+        "end view",
+        "step shaft",
+        "trailing zero"
+      ],
+      "answers": "How do I add dimensions to a drawing from code — centre distances, diameters, lengths — and give them a ± tolerance or an ISO fit?"
+    },
+    {
+      "id": "drawings-10-general-table",
+      "title": "Put a general table on a drawing and fill it from code",
+      "path": "entries/drawings/10-general-table.md",
+      "category": "drawings",
+      "status": "verified",
+      "verified_on": "SolidWorks 2024 SP5 (32.5.0)",
+      "language": [
+        "python"
+      ],
+      "api": [
+        "IDrawingDoc.InsertTableAnnotation2",
+        "ITableAnnotation.Text",
+        "ITableAnnotation.GetTextFormat",
+        "ITableAnnotation.SetTextFormat",
+        "ITableAnnotation.SetColumnWidth",
+        "ITableAnnotation.SetRowHeight",
+        "ITableAnnotation.GetRowHeight"
+      ],
+      "keywords": [
+        "general table",
+        "InsertTableAnnotation2",
+        "data table",
+        "gear data table",
+        "table text",
+        "indexed property put",
+        "Text(row",
+        "col)",
+        "DISPATCH_PROPERTYPUT",
+        "table font size",
+        "CharHeight",
+        "column width",
+        "row height",
+        "swBOMConfigurationAnchorType_e",
+        "anchor top left"
+      ],
+      "answers": "How do I add a table of my own (not a BOM) to a drawing sheet and write text into its cells?"
     },
     {
       "id": "equations-01-global-variables-from-code",

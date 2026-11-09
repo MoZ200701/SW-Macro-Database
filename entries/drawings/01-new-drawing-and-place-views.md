@@ -4,8 +4,8 @@ title: Make a drawing from a template and place, scale and align its views
 status: verified
 verified_on: SolidWorks 2024 SP5 (32.5.0)
 language: [python]
-api: [ISldWorks.NewDocument, IDrawingDoc.Create3rdAngleViews2, IDrawingDoc.CreateDrawViewFromModelView3, IDrawingDoc.CreateUnfoldedViewAt3, ISheet.GetProperties2, ISheet.SetScale, IView.UseSheetScale, IView.ScaleDecimal, IView.GetOutline, IView.Position, IView.ModelToViewTransform, IView.SetDisplayMode4, IView.Type, IView.GetName2, IView.ShowExploded, IView.IsExploded, IDrawingDoc.GetFirstView, IView.GetNextView, IModelDocExtension.SaveAs]
-keywords: [drawing, SLDDRW, drawing template, DRWDOT, new drawing, standard 3 views, third angle, first angle, projected view, unfolded view, model view, isometric view, sheet scale, view scale, UseSheetScale, sheet rescaled, 2:1 became 1:2, view position, view outline, align views, ModelToViewTransform, hidden lines visible, SetDisplayMode4, exploded drawing view, ShowExploded, PNG export of a drawing, sheet properties, GetProperties2]
+api: [ISldWorks.NewDocument, IDrawingDoc.Create3rdAngleViews2, IDrawingDoc.CreateDrawViewFromModelView3, IDrawingDoc.CreateUnfoldedViewAt3, ISheet.GetProperties2, ISheet.SetScale, IView.UseSheetScale, IView.ScaleDecimal, IView.GetOutline, IView.Position, IView.ModelToViewTransform, IView.SetDisplayMode4, IView.Type, IView.GetName2, IView.ShowExploded, IView.IsExploded, IDrawingDoc.GetFirstView, IView.GetNextView, IModelDocExtension.SaveAs, IView.Angle]
+keywords: [drawing, SLDDRW, drawing template, DRWDOT, new drawing, standard 3 views, third angle, first angle, projected view, unfolded view, model view, isometric view, sheet scale, view scale, UseSheetScale, sheet rescaled, 2:1 became 1:2, view position, view outline, align views, ModelToViewTransform, hidden lines visible, SetDisplayMode4, exploded drawing view, ShowExploded, PNG export of a drawing, sheet properties, GetProperties2, rotate view, IView.Angle, per-view scale, ScaleDecimal, PDF export, named view edge-on, Toolbox gear view orientation, stale PNG]
 answers: "How do I make a drawing from a template, place standard, model and projected views at the scale I want, line them up, and export a picture to check it?"
 ---
 
@@ -152,13 +152,63 @@ for path, opts in ((OUT, 1), (PNG, 3)):
     err, warn = z(), z(); r = ext.SaveAs(path, 0, opts, nul, err, warn); print(f"save {os.path.basename(path)} ret={r} err={err.value}")
 ```
 
+## Rotating a view, and a view at its own scale
+
+`IView.Angle` (radians) rotates a view on the sheet; a put took effect after
+`EditRebuild3`.
+
+```python
+top = drw.CreateDrawViewFromModelView3(MODEL, "*Top", 0.100, 0.172, 0)
+top.UseSheetScale = True; sheet.SetScale(1, 1, False, False); top.Angle = math.radians(90); call(drw, "EditRebuild3")
+```
+
+After a rotation, `GetOutline` is the bounding box of the rotated view, larger
+than what is drawn (a 117 mm circle at 45° reported about 178 mm), and the
+sketch inside the view is rotated with it
+([drawings/08](08-section-views-from-code.md)).
+
+One view at a scale other than the sheet's: `UseSheetScale = False`, then
+`ScaleDecimal = 5`. It read back 5.0 and its section views inherited it (they
+labelled themselves "SCALE 5 : 1"). Label such a view yourself; the title block
+gives only the sheet scale.
+
+## Choosing the named view by what it shows
+
+The named views are the part's, and which one shows what depends on how the
+part was modelled. On gears inserted from Toolbox, `*Right` drew the gear
+**edge-on**, although the bore's axis read as model X. What worked was trying
+the names in turn and keeping the first whose outline had the wanted shape:
+nearly square for a gear seen face-on, long and thin for a shaft from the side
+(rotating it 90° with `Angle` when it came out upright):
+
+```python
+v = None
+for vname in P.get("views", ("*Front", "*Top", "*Right", "*Back", "*Bottom", "*Left")):
+    v = drw.CreateDrawViewFromModelView3(path, vname, fx / 1000, fy / 1000, 0)
+    ...
+    call(drw, "EditRebuild3"); o = outline(v); w, h = o[2] - o[0], o[3] - o[1]
+    if abs(w - h) / max(w, h) < 0.12: break
+    call(drw, "ClearSelection2", True); ext.SelectByID2(call(v, "GetName2"), "DRAWINGVIEW", 0, 0, 0, False, 0, nul, 0); call(drw, "EditDelete"); v = None
+```
+
+`SelectByID2(name, "DRAWINGVIEW", …)` then `EditDelete` removed a rejected view.
+`*Back` was used to draw the face of a gear that carried its features.
+
+## PDF, and a PNG that can be stale
+
+`IModelDocExtension.SaveAs(path.PDF, 0, 3, null, err, warn)` wrote a one-page
+PDF of the sheet, err 0. It is drawn from the document, not the window. Once, a
+PNG exported straight after building a sheet showed an **earlier state** of the
+window (no balloons, an unfilled title block) while the PDF from the same moment
+was complete. Check the PDF.
+
 ## What it does not do
 
 - **Paper size from code.** The template set it; `NewDocument`'s paper arguments
   were left at 0 and not varied.
 - **Display-mode arguments other than the one call above** were not run.
-- **Breaks, crops and broken-out sections** were not tried. A section view was
-  not made from code either.
+- **Breaks, crops and broken-out sections** were not tried. Section views are in
+  [drawings/08](08-section-views-from-code.md).
 - **The PNG is of the window.** It depends on the window size; crop it by
   fractions, not pixels.
 
@@ -177,6 +227,13 @@ their origins at x 215.65 and 187.95 mm, and after the shift both read 215.65 an
 the stationary parts sat one above the other in the exported PNG. File names and
 paths are placeholders here.
 
+Later run, SolidWorks 2024 SP5 (32.5.0), seven sheets on an A3 template in
+third-angle projection: `Angle` puts of 90° and 45° rotated top views and a
+part view; per-view `ScaleDecimal` 5 read back 5.0 on views of small gears on a
+2:1 sheet; on Toolbox gear parts `*Right` drew edge-on and `*Front` face-on
+(`*Back` for the face with the web); `.PDF` exports returned `True` on every
+sheet, and one PNG taken at the same time was stale.
+
 ## See also
 
 - [drawings/02 — BOM table and balloons](02-bom-table-and-balloons.md)
@@ -185,6 +242,9 @@ paths are placeholders here.
 - [drawings/05 — Read and tidy dimensions](05-read-and-tidy-dimensions.md)
 - [drawings/06 — Alternate position views](06-alternate-position-views.md)
 - [drawings/07 — Explode lines in a drawing view](07-explode-lines-in-a-drawing-view.md)
+- [drawings/08 — Section views from code](08-section-views-from-code.md)
+- [drawings/09 — Add dimensions and tolerances](09-add-dimensions-and-tolerances.md)
+- [drawings/10 — A general table](10-general-table.md)
 - [documents/01 — New part from a template](../documents/01-new-part-from-template.md) — the same `NewDocument`, for parts
 - [connect/05 — Choosing among versions](../connect/05-choosing-among-versions.md)
 - [GOTCHAS §77, §86](../../GOTCHAS.md)

@@ -4,8 +4,8 @@ title: Add a bill of materials and balloons to an assembly drawing
 status: verified
 verified_on: SolidWorks 2024 SP5 (32.5.0)
 language: [python]
-api: [IView.InsertBomTable5, IBomTableAnnotation.BomFeature, IBomFeature.GetConfigurationCount, IBomFeature.GetConfigurations, IBomFeature.SetConfigurations, IBomFeature.FollowAssemblyOrder2, IBomFeature.TableType, IView.GetTableAnnotations, ITableAnnotation.Type, ITableAnnotation.RowCount, ITableAnnotation.ColumnCount, ITableAnnotation.Text, IDrawingDoc.CreateAutoBalloonOptions, IDrawingDoc.AutoBalloon5, INote.IsBomBalloon, INote.GetText, IAnnotation.SetPosition2, IAnnotation.GetPosition, IModelDocExtension.CustomPropertyManager, ICustomPropertyManager.Add3]
-keywords: [BOM, bill of materials, parts list, InsertBomTable5, empty BOM, BOM shows only header, no QTY column, BomFeature, SetConfigurations, top-level only, bom-standard.sldbomtbt, item number, FollowAssemblyOrder2, balloons, auto balloon, AutoBalloon5, CreateAutoBalloonOptions, missing balloons, hidden parts not ballooned, IsBomBalloon, Description column, custom property, CustomPropertyManager, Add3, swCustomInfoText]
+api: [IView.InsertBomTable5, IBomTableAnnotation.BomFeature, IBomFeature.GetConfigurationCount, IBomFeature.GetConfigurations, IBomFeature.SetConfigurations, IBomFeature.FollowAssemblyOrder2, IBomFeature.TableType, IView.GetTableAnnotations, ITableAnnotation.Type, ITableAnnotation.RowCount, ITableAnnotation.ColumnCount, ITableAnnotation.Text, IDrawingDoc.CreateAutoBalloonOptions, IDrawingDoc.AutoBalloon5, INote.IsBomBalloon, INote.GetText, IAnnotation.SetPosition2, IAnnotation.GetPosition, IModelDocExtension.CustomPropertyManager, ICustomPropertyManager.Add3, ITableAnnotation.Text, ITableAnnotation.InsertColumn2, ITableAnnotation.SetTextFormat, ITableAnnotation.SetColumnWidth, ITableAnnotation.SetRowHeight, IConfiguration.AlternateName, IConfiguration.UseAlternateNameInBOM, IConfiguration.BOMPartNoSource, IModelDocExtension.CreateBalloonOptions, IModelDocExtension.InsertBOMBalloon2, IView.GetVisibleComponents, IAnnotation.GetLeaderPointsAtIndex]
+keywords: [BOM, bill of materials, parts list, InsertBomTable5, empty BOM, BOM shows only header, no QTY column, BomFeature, SetConfigurations, top-level only, bom-standard.sldbomtbt, item number, FollowAssemblyOrder2, balloons, auto balloon, AutoBalloon5, CreateAutoBalloonOptions, missing balloons, hidden parts not ballooned, IsBomBalloon, Description column, custom property, CustomPropertyManager, Add3, swCustomInfoText, BOM cell edit writes to part, description write-back, custom BOM column, InsertColumn2, PART NUMBER alternate name, BOMPartNoSource, balloon quantity, ShowQuantity, InsertBOMBalloon2, CreateBalloonOptions member not found, leader attach point, crossing leaders]
 answers: "How do I put a bill of materials on an assembly drawing from code, make it actually list the parts with descriptions, and balloon every part?"
 ---
 
@@ -127,6 +127,105 @@ metres); the leader stays on its part. To delete balloons, select them by name,
 not through the annotation — see
 [drawings/03](03-notes-title-block-and-deleting-annotations.md#deleting-an-annotation).
 
+## Editing a BOM cell writes to the part
+
+`ITableAnnotation.Text(row, col)` can be put on a BOM through `Invoke`, as on a
+general table ([drawings/10](10-general-table.md)), and the cell shows the new
+text. But on a column linked to a property, **the put is written back to the
+component's property**:
+
+- Appending " (NEW)" to DESCRIPTION cells changed each part's file-level
+  `Description` custom property in memory, and the parts showed as modified
+  (`GetSaveFlag` `True`). The next drawing built from those parts showed the
+  appended text.
+- On a read-only Toolbox library part, the put wrote the configuration-specific
+  `Description` of the configuration in use. That cannot be saved, so it lasts
+  only for the session.
+
+So do not put text into a linked BOM cell to change what one drawing says. Fix
+the property on the part instead (below), or put drawing-only information in a
+column of your own. Restoring the properties with `Add3(…, 2)` and saving put
+the parts back.
+
+### A column of your own
+
+`ITableAnnotation.InsertColumn2(where, index, title, widthStyle)` with `where`
+`3` (`swTableItemInsertPosition_After`) and index 2 added a column after
+DESCRIPTION titled as given, `ColumnCount` 4 → 5. Its cells, filled with the
+same put, did **not** dirty any part (`NEW_PARTS` is a set of part numbers;
+names here are placeholders):
+
+```python
+ok = bom.InsertColumn2(3, 2, "STATUS", 0); call(drw, "EditRebuild3")
+for r in range(1, call(bom, "RowCount")):
+    put_text(bom, r, 3, "NEW" if str(bom.Text(r, 1)).strip() in NEW_PARTS else "REUSED")
+```
+
+### PART NUMBER from the configuration
+
+The PART NUMBER column shows the file name by default; on a part whose
+configuration names are long (Toolbox gears name them after every parameter) it
+showed the configuration name. A name of your choice, set on the part's
+configuration and saved, filled the column without touching the table:
+
+```python
+cfg = call(d, "GetActiveConfiguration")
+cfg.AlternateName = pn; cfg.UseAlternateNameInBOM = True; cfg.BOMPartNoSource = 8
+e, w = z(), z(); ok = d.Save3(1, e, w)
+```
+
+`BOMPartNoSource` 8 is `swBOMPartNumber_UserSpecified` (1 document name,
+2 configuration name). Read back 8 and the name; the BOM showed it after a
+rebuild.
+
+### Text size, column widths, row heights
+
+The template's BOM text was 3.5 mm and wrapped every description. Smaller text
+first, then widths and heights, all in metres:
+
+```python
+tf = call(bom, "GetTextFormat"); print("BOM char height was", round(call(tf, "CharHeight")*1000, 2))
+tf.CharHeight = 0.0025; print("SetTextFormat:", bom.SetTextFormat(False, tf))
+for c, wd in enumerate((0.013, 0.040, 0.100, 0.013)): bom.SetColumnWidth(c, wd, 0)
+call(drw, "EditRebuild3")
+for r in range(call(bom, "RowCount")): bom.SetRowHeight(r, 0.0055, 0)
+```
+
+Narrowing columns without shrinking the text made rows taller, not the table
+smaller: a row does not shrink below its wrapped text.
+
+## Balloons one at a time, without the quantity
+
+`AutoBalloon5` on one template drew each balloon with its **quantity** beside
+it ("1" next to every balloon, "2" next to a part used twice). The auto-balloon
+options object has no quantity setting. Inserting each balloon on its own did:
+
+```python
+call(drw, "ClearSelection2", True); iso.SelectEntity(best, False)
+bo = call(ext, "CreateBalloonOptions"); bo.Style = 1; bo.Size = 2; bo.UpperTextContent = 1; bo.ShowQuantity = False
+note = ext.InsertBOMBalloon2(bo); call(drw, "ClearSelection2", True)
+```
+
+- `IModelDocExtension.CreateBalloonOptions` is property-style through late
+  binding: `ext.CreateBalloonOptions()` raised "Member not found"
+  ([GOTCHAS §55](../../GOTCHAS.md)).
+- `InsertBOMBalloon2` balloons the selected **edge's** component and returned
+  the balloon note. Selecting the component itself instead
+  (`SelectByID2("<comp>-1@<assembly>@<view>", "COMPONENT", …)` selected it)
+  returned `None`: it needs an edge or face.
+- To pick an edge per component: `IView.GetVisibleComponents` lists the
+  components with something visible; `IView.GetVisibleEntities2(component, 1)`
+  gives that component's visible edges. In a drawing view the component names
+  come back **prefixed with the root assembly**, `Assembly-3/Part-1`; strip up
+  to the last `/` before matching.
+- The leader's attachment point is the last point of
+  `IAnnotation.GetLeaderPointsAtIndex(0)` (sheet metres, `[…, x, y, z]`). Sorting
+  balloons into a left and a right column by that x, and ordering each column by
+  its y, gave leaders that did not cross.
+- A part with no visible edge in the view (behind larger parts in an exploded
+  isometric) cannot be ballooned there; balloon it in another view where it
+  shows (a section did), or change the explode so it is visible.
+
 ## What it does not do
 
 - **Indented or parts-only BOMs**, and BOMs on a multi-configuration assembly
@@ -135,6 +234,8 @@ not through the annotation — see
   each other or with the table were moved by hand-picked coordinates, not by a rule.
 - **Open:** whether `AutoBalloon5` can be told to balloon hidden parts. Settle it
   by varying the options object on a view with a fully enclosed part.
+- **Open:** where the auto-balloon quantity display comes from (a document
+  setting of the template is the likely source; not found).
 
 ## Evidence
 
@@ -150,10 +251,27 @@ balloons; the two hidden parts were each ballooned in an orthographic view
 (1 new, kept 1), and the sheet then had 9 balloons whose numbers matched the BOM.
 Part and view names are placeholders here.
 
+Later run, SolidWorks 2024 SP5 (32.5.0), two assembly drawings of nine BOM items
+each:
+- `Text` puts on DESCRIPTION cells changed five parts' `Description` properties
+  in memory, confirmed by reading `CustomPropertyManager("")` and `GetSaveFlag`;
+  they were restored with `Add3` and saved.
+- `InsertColumn2(3, 2, "STATUS", 0)` returned `True` and its cells left the parts
+  clean.
+- `AlternateName` with `BOMPartNoSource` 8 on six gear parts gave the PART NUMBER
+  column those names.
+- `CharHeight` 3.5 → 2.5 mm took row heights from 7.3–11.1 to 5.5 mm.
+- `InsertBOMBalloon2` with `ShowQuantity = False` made 8 of 9 balloons from the
+  isometric with no quantity shown; the ninth part, hidden there, was ballooned
+  in the section view; after a later explode change all 9 were made in the
+  isometric.
+
 ## See also
 
 - [drawings/01 — New drawing and place views](01-new-drawing-and-place-views.md)
 - [drawings/03 — Notes, the title block, and deleting annotations](03-notes-title-block-and-deleting-annotations.md)
 - [assemblies/08 — Exploded view from code](../assemblies/08-exploded-view-from-code.md) — ballooning an exploded isometric
 - [files/05 — Rename a component's file](../files/05-rename-a-component-file.md) — the PART NUMBER column is the file name
-- [GOTCHAS §78, §80, §81](../../GOTCHAS.md)
+- [drawings/10 — A general table](10-general-table.md) — the same cell put, without the write-back
+- [drawings/08 — Section views from code](08-section-views-from-code.md) — ballooning a part in a section
+- [GOTCHAS §55, §78, §80, §81, §91, §92](../../GOTCHAS.md)

@@ -26,7 +26,7 @@ code. You never need to open the projects the entries came from.
 
 ## What's in here
 
-76 entries, grouped eleven ways:
+92 entries, grouped twelve ways:
 
 - **[entries/connect/](entries/connect/)** — reaching a running SolidWorks from
   VBScript, Python, C# and VBA, keeping the connection alive safely, and
@@ -69,6 +69,10 @@ code. You never need to open the projects the entries came from.
 - **[entries/appearance/](entries/appearance/)** — reading a part's colour,
   transparency and applied appearances, and removing an appearance that every
   body inherits.
+- **[entries/drawings/](entries/drawings/)** — drawings from code: views at
+  scale, section views, BOMs and balloons, notes and the title block, centre
+  marks, dimensions with ± and fit tolerances, general tables, alternate
+  positions and explode lines.
 - **[entries/files/](entries/files/)** — whole-library operations: importing
   neutral formats such as STEP in bulk, writing one file per configuration, and
   moving a tree onto a newer file version, and writing one body out to STEP.
@@ -84,7 +88,7 @@ Every entry declares one:
 | `unverified` | Well-formed against the documented API. Nobody has watched it run. |
 | `superseded` | Do not use. The entry links to what replaced it. |
 
-Currently: **63 verified, 10 partly verified, 3 unverified.**
+Currently: **79 verified, 10 partly verified, 3 unverified.**
 
 This distinction is the most valuable thing here, so it is never blurred. An
 entry that guesses says so.
