@@ -229,6 +229,7 @@ in `assembly_components_and_mates`:
 
 ## See also
 
+- [assemblies/09 — Keep an edited Toolbox copy](09-keep-an-edited-toolbox-copy.md) — `ReplaceComponents2`, and Toolbox parts that reload from the library
 - [assemblies/02 — Mates from code](02-mates-from-code.md)
 - [documents/01 — New part from a template](../documents/01-new-part-from-template.md)
 - [documents/02 — Save as, and close](../documents/02-save-as-and-close.md)

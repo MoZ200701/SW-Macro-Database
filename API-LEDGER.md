@@ -574,6 +574,12 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `GetFirstDisplayDimension5` / `IDisplayDimension.GetNext5` | The view's dimensions | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `GetFirstCenterMark` / `ICenterMark.GetNext` | The view's centre marks | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `RootDrawingComponent` | Its `Name` is the root component with instance suffix, for selecting through the view | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `Angle` (get and put) | View rotation, radians; takes effect after `EditRebuild3`. The outline becomes the rotated bounding box ([drawings/01](entries/drawings/01-new-drawing-and-place-views.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `UseSheetScale = False` then `ScaleDecimal = 5` | One view at its own scale; its sections inherit it | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `GetXform` | `[x, y, scale]` in sheet metres (three items seen); with `Angle`, converts sheet points to the view's sketch coordinates (GOTCHAS §87) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `GetVisibleComponents` | Components with something visible in the view; names prefixed `Root-N/` | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `GetVisibleEntities2(component, 1)` | That component's visible edges | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `GetVisibleEntities2(null, 4)` | Silhouette edges: returned, but **no member usable through late binding** (GOTCHAS §89) | Verified not to work, SW 2024 SP5 (32.5.0), 2026-11-09 |
 
 ## INote, IAnnotation and ICenterMark (drawing annotations)
 
@@ -602,7 +608,9 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `SetText(1, text)` | Replace the prefix; read back | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `SetPrecision3(primary, dual, tol, dualTol)` | Decimal places, `-1` to leave a field; returned 0 and the display changed | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `Type2` | 6 on a diameter dimension SolidWorks put on an arc | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
-| `IDimensionTolerance.SetType`, `SetFitValues`; `IDisplayDimension.Diametric` | Written, never reached ([drawings/05](entries/drawings/05-read-and-tidy-dimensions.md)) | Unverified |
+| `IDimensionTolerance.Type = 4` then `SetValues(min, max)` | Symmetric tolerance, metres; displayed `32.54 ±0.05` ([drawings/09](entries/drawings/09-add-dimensions-and-tolerances.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IDimensionTolerance.Type = 8` then `SetFitValues(hole, shaft)` | ISO fit with limits filled in by SolidWorks (H7, g6, p6 read back) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IDimensionTolerance.SetType`; `IDisplayDimension.Diametric` | Written, never reached ([drawings/05](entries/drawings/05-read-and-tidy-dimensions.md)) | Unverified |
 
 ## IBomFeature and the table (from `IBomTableAnnotation.BomFeature`)
 
@@ -614,6 +622,29 @@ The interface name was not recorded in the source; see [curves/06](entries/curve
 | `FollowAssemblyOrder2 = True` | Item numbers in tree order; balloons renumber with it | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `TableType` | 2 | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
 | `ITableAnnotation.RowCount` / `ColumnCount` / `Text(r, c)` | Read the table | Verified, SW 2024 SP5 (32.5.0), 2026-10-30 |
+| `ITableAnnotation.Text(r, c)` put through `Invoke` (`DISPATCH_PROPERTYPUT`, r, c, value) | Write a cell. **On a BOM's linked column it writes to the part's property** (GOTCHAS §91) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `ITableAnnotation.InsertColumn2(3, index, title, 0)` | A user column after `index`; its cells are not linked | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `ITableAnnotation.GetTextFormat` / `SetTextFormat(False, tf)` | Table text height via `tf.CharHeight` (metres) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `ITableAnnotation.SetColumnWidth(i, w, 0)` / `SetRowHeight(i, h, 0)` / `GetRowHeight(i)` | Metres; a row does not shrink below its text | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IConfiguration.AlternateName`, `UseAlternateNameInBOM`, `BOMPartNoSource = 8` | The BOM's PART NUMBER for that configuration | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+
+## General tables and dimensions added from code
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IDrawingDoc.InsertTableAnnotation2(False, x, y, 1, "", rows, cols)` | A general table, top-left at (x, y) metres ([drawings/10](entries/drawings/10-general-table.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IModelDoc2.AddDimension2(x, y, 0)` on a drawing | Dimension the selected edges, text at (x, y) sheet metres: two circles → centre distance, one circle → diameter, two parallel lines → distance ([drawings/09](entries/drawings/09-add-dimensions-and-tolerances.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IDrawingDoc.CreateSectionViewAt5(x, y, 0, label, options, excludedComponents, 0)` | A section from the selected sketch line; option 4 reverses the direction, 1 unaligned; excluded components drawn unhatched ([drawings/08](entries/drawings/08-section-views-from-code.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IDrawingDoc.ActivateView(name)` + `ISketchManager.CreateLine` | The cutting line, in the view's sketch coordinates (GOTCHAS §87) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IModelDocExtension.CreateBalloonOptions` (property-style) + `InsertBOMBalloon2(options)` | One balloon on the selected edge's component; `ShowQuantity = False` hides the quantity. `None` with a component selected instead of an edge | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IAnnotation.GetLeaderPointsAtIndex(0)` | Leader points, sheet metres; the last three are the attachment | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+
+## Toolbox status and replacing a component
+
+| Member | Purpose | Status |
+|---|---|---|
+| `IModelDocExtension.ToolboxPartType` (get; put through `Invoke` `DISPATCH_PROPERTYPUT`) | 0 not Toolbox, 1 standard, 2 copied; put 0 and `Save3` cleared the flag ([assemblies/09](entries/assemblies/09-keep-an-edited-toolbox-copy.md)) | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
+| `IAssemblyDoc.ReplaceComponents2(path, config, False, 1, True)` | Replace the selected component only, with the named configuration, mates re-attached | Verified, SW 2024 SP5 (32.5.0), 2026-11-09 |
 
 ## ICustomPropertyManager (from `IModelDocExtension.CustomPropertyManager`)
 

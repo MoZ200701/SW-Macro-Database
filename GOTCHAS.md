@@ -742,6 +742,14 @@ then `'bool' object is not callable`. Invoking its dispid with
 `pythoncom.DISPATCH_METHOD`, as in §39, made it take its arguments and work.
 See [appearance/01](entries/appearance/01-read-and-remove-a-part-appearance.md).
 
+
+On SolidWorks 2024 SP5 (32.5.0), drawing work met more members that attribute
+access had already run, where adding parentheses failed:
+`IModelDocExtension.CreateBalloonOptions` ("Member not found"),
+`IEdge.GetCurveParams2`, `IModelDoc2.EditRebuild3` and
+`INote.GetBalloonStyle` (`'tuple'`/`'bool'`/`'int' object is not callable`). Reach them
+through `call`. See [drawings/02](entries/drawings/02-bom-table-and-balloons.md)
+and [drawings/09](entries/drawings/09-add-dimensions-and-tolerances.md).
 ## 56. Reloading a curve is charged for the whole tree below it
 
 `IFeature.ModifyDefinition` after `LoadPointsFromFile` cost **25 seconds per
@@ -1078,3 +1086,56 @@ by a part's travel, because one view's outline included an extra phantom positio
 by where each puts the model origin — `ModelToViewTransform.ArrayData` items 9
 and 10 — not by `Position`. SolidWorks 2024 SP5 (32.5.0). See
 [drawings/01](entries/drawings/01-new-drawing-and-place-views.md#laying-views-out).
+
+## 87. A line sketched in a drawing view uses the view's coordinates
+
+`ISketchManager.CreateLine` in an active drawing view takes the **view's sketch
+coordinates**: offset from the view's position and turned by its rotation. A
+section line given in sheet coordinates on a view rotated 90° landed off the
+sheet and the section cut through nothing. Convert with `IView.GetXform`
+(`[x, y, scale]`) and `IView.Angle`. SolidWorks 2024 SP5 (32.5.0). See
+[drawings/08](entries/drawings/08-section-views-from-code.md#the-cutting-line-is-sketched-in-the-views-own-coordinates).
+
+## 88. A section view can come out upside down, and a diagonal cut stays tilted
+
+`CreateSectionViewAt5` with option 0 drew an assembly section upside down,
+wherever it was placed; option 4 (change direction) fixed it. A 45° cutting
+line gave a section drawn at 45° even with option 1 (not aligned). Rotate the
+parent view with `IView.Angle` and cut it straight instead. SolidWorks 2024 SP5
+(32.5.0). See [drawings/08](entries/drawings/08-section-views-from-code.md).
+
+## 89. Silhouette edges are unusable through late binding
+
+`IView.GetVisibleEntities2(null, 4)` returns a cylinder's silhouette edges, but
+through pywin32 `GetCurve` returned `None`, `GetStartPoint` raised "The server
+threw an exception" and `Select2` raised "Type mismatch". Dimension a shaft's
+diameters in an end view instead, where they are circles. SolidWorks 2024 SP5
+(32.5.0). See
+[drawings/09](entries/drawings/09-add-dimensions-and-tolerances.md#turned-parts-the-silhouette-edge-cannot-be-used).
+
+## 90. A Toolbox-flagged component reloads from the Toolbox library
+
+An assembly saved with an edited copy of a Toolbox part (status still 1) loaded
+the **library** part on reopen, dropping the edits; its mates read clean until
+a rebuild. Clearing the flag on the copy and re-saving the assembly was not
+enough. Clear the flag, then `ReplaceComponents2` onto the copy, then save.
+SolidWorks 2024 SP5 (32.5.0). See
+[assemblies/09](entries/assemblies/09-keep-an-edited-toolbox-copy.md).
+
+## 91. Editing a BOM cell writes to the part's property
+
+A `Text(row, col)` put on a BOM's DESCRIPTION cell changed the part's
+`Description` custom property and left the part modified. On a read-only
+Toolbox part it changed the configuration's property for the session only. Set
+properties on the part, or add a column of your own with `InsertColumn2`.
+SolidWorks 2024 SP5 (32.5.0). See
+[drawings/02](entries/drawings/02-bom-table-and-balloons.md#editing-a-bom-cell-writes-to-the-part).
+
+## 92. Auto-balloons can show each part's quantity, with no option to turn it off
+
+`AutoBalloon5` drew the BOM quantity beside every balloon on one template, and
+`IAutoBalloonOptions` has no quantity member. `InsertBOMBalloon2` with
+`IBalloonOptions.ShowQuantity = False`, one balloon per selected edge, did
+not. `CreateBalloonOptions` is property-style through late binding (§55).
+SolidWorks 2024 SP5 (32.5.0). See
+[drawings/02](entries/drawings/02-bom-table-and-balloons.md#balloons-one-at-a-time-without-the-quantity).

@@ -110,6 +110,7 @@ view the loop marked its two holes, both `True`.
 
 ## See also
 
+- [drawings/08 — Section views from code](08-section-views-from-code.md)
 - [drawings/01 — New drawing and place views](01-new-drawing-and-place-views.md)
 - [drawings/03 — Notes, the title block, and deleting annotations](03-notes-title-block-and-deleting-annotations.md)
 - [reading/15 — Measure a part that has no dimensions](../reading/15-measure-a-part-that-has-no-dimensions.md) — the same face and curve parameters on a body

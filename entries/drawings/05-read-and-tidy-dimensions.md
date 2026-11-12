@@ -123,6 +123,7 @@ from `'2X <MOD-DIAM>'`, read back as `'2X '`.
 
 ## See also
 
+- [drawings/09 — Add dimensions and tolerances](09-add-dimensions-and-tolerances.md) — adding dimensions, and setting ± and fit tolerances
 - [drawings/01 — New drawing and place views](01-new-drawing-and-place-views.md)
 - [drawings/03 — Notes, the title block, and deleting annotations](03-notes-title-block-and-deleting-annotations.md) — note text, changed the same way
 - [features/04 — Read a feature's dimensions](../features/04-read-a-features-dimensions.md) — the model side of the same `IDimension`

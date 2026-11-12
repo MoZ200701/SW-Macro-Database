@@ -113,6 +113,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Read every existing mate: type, components, axes, gear ratio, folder, suppression | [assemblies/06 — Read every mate](entries/assemblies/06-read-every-mate.md) |
 | Make configurations that each hold a mechanism in a different position | [assemblies/07 — Configurations that hold different positions](entries/assemblies/07-configurations-that-hold-different-positions.md) |
 | Build an exploded view step by step, and check each step moved the right way | [assemblies/08 — Exploded view from code](entries/assemblies/08-exploded-view-from-code.md) |
+| Use an edited copy of a Toolbox part without it reverting to the library part on reopen | [assemblies/09 — Keep an edited Toolbox copy](entries/assemblies/09-keep-an-edited-toolbox-copy.md) |
 
 ## Make drawings
 
@@ -125,6 +126,9 @@ set in one read should use [manifest.json](manifest.json) instead.
 | Review a drawing's dimensions and tolerances, fix trailing zeros and prefixes | [drawings/05 — Read and tidy dimensions](entries/drawings/05-read-and-tidy-dimensions.md) |
 | Show a mechanism's other positions as phantom lines | [drawings/06 — Alternate position views](entries/drawings/06-alternate-position-views.md) |
 | Show explode lines in an exploded drawing view | [drawings/07 — Explode lines in a drawing view](entries/drawings/07-explode-lines-in-a-drawing-view.md) |
+| Cut a section view where you mean, facing the right way, with shafts unhatched | [drawings/08 — Section views from code](entries/drawings/08-section-views-from-code.md) |
+| Add centre distances, diameters and lengths, with ± or ISO fit tolerances | [drawings/09 — Add dimensions and tolerances](entries/drawings/09-add-dimensions-and-tolerances.md) |
+| Put a general (non-BOM) table on a sheet and fill its cells | [drawings/10 — A general table](entries/drawings/10-general-table.md) |
 
 ## Read an existing model
 
@@ -172,7 +176,7 @@ set in one read should use [manifest.json](manifest.json) instead.
 ## Index by language
 
 - **VBScript** — connect/01, connect/07, connect/08, connect/09, curves/02, curves/04, curves/07, curves/08, reading/07
-- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 08, drawings/01 through 07, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, files/04, files/05
+- **Python (pywin32)** — connect/02, connect/05, connect/06, connect/10, connect/11, appearance/01, curves/02, curves/04, curves/05, curves/06, curves/10, curves/11, curves/12, documents/01, documents/02, equations/01, equations/02, sketches/03, sketches/04, sketches/07, sketches/10, features/01 through 12, assemblies/01 through 09, drawings/01 through 10, reading/04, reading/05, reading/10, reading/11, reading/12, reading/13, reading/15, surfacing/04, files/04, files/05
 - **VBA** — connect/04, sketches/01 through 06, curves/03, files/01, files/02
 - **C# (.NET 8)** — connect/03, connect/06, connect/09, reading/01, reading/02, reading/03, reading/06, reading/08, reading/09, files/01, files/02, files/03
 

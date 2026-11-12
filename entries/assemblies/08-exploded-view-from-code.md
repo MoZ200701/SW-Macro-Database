@@ -5,7 +5,7 @@ status: verified
 verified_on: SolidWorks 2024 SP5 (32.5.0)
 language: [python]
 api: [IAssemblyDoc.GetExplodedViewNames2, IAssemblyDoc.ShowExploded2, IConfiguration.AddExplodeStep2, IConfiguration.GetNumberOfExplodeSteps, IConfiguration.GetExplodeStep, IConfiguration.DeleteExplodeStep, IExplodeStep.Name, IComponent2.Select4, ISelectionMgr.CreateSelectData, IComponent2.Transform2]
-keywords: [exploded view, explode, explode step, AddExplodeStep2, ShowExploded2, GetExplodedViewNames2, DeleteExplodeStep, GetExplodeStep, explode direction, explode distance, explode along axis, reverse direction, Exploded View1, Chain1, check component moved]
+keywords: [CreateExplodedView, Chain1, explode along shaft axis, isometric overlap, exploded view, explode, explode step, AddExplodeStep2, ShowExploded2, GetExplodedViewNames2, DeleteExplodeStep, GetExplodeStep, explode direction, explode distance, explode along axis, reverse direction, Exploded View1, Chain1, check component moved]
 answers: "How do I make an exploded view of an assembly from code — which parts move, how far and which way — and confirm each step went where I meant?"
 ---
 
@@ -82,8 +82,10 @@ StepN` otherwise).
 
 ## What it does not do
 
-- **`CreateExplodedView`** is in the recipe for an assembly with no exploded view,
-  but every run here found one already there; it was never reached.
+- **`CreateExplodedView`** was reached on two assemblies that had no exploded
+  view (`GetExplodedViewNames2` returned an empty list). It returned `True`,
+  and the configuration then held one step named `Chain1`, which the recipe
+  deleted before adding its own. Where that step came from was not established.
 - **Radial explodes, rotation in a step, and moving along a part's own axis**
   were not tried.
 - **Explode lines** are a separate feature: [drawings/07](../drawings/07-explode-lines-in-a-drawing-view.md).
@@ -100,8 +102,19 @@ exactly the intended vector: (0, 0, 25), (0, 0, 50), (72, 0, 0), (−25, 0, 0),
 along +Y, (0, 45, 0), each matching its intended vector. A drawing view of the assembly then read `IsExploded` `True` after
 `ShowExploded(True)`. Component names are placeholders here.
 
+Later run, SolidWorks 2024 SP5 (32.5.0), two assemblies of gears on shafts,
+exploded straight up the shaft axis (axis index 1, reverse `False`). Six steps
+per assembly, rebuilt four times with different distances; every step returned
+`err=0` and moved its part by exactly (0, d, 0) mm, d from 25 to 92. For an
+exploded isometric, parts lifted along their own axis need to clear the part
+below **in projection**: a 59 mm disc seen in isometric covers about 34 mm of
+height, so lifts of 18–25 mm left everything overlapping. Lifts of 30–74 mm, with
+the stack behind lifted further than the one in front, separated discs of
+43–60 mm in the exported picture. Those are the distances that worked, not a rule.
+
 ## See also
 
+- [drawings/02 — BOM table and balloons](../drawings/02-bom-table-and-balloons.md#balloons-one-at-a-time-without-the-quantity) — ballooning parts an explode leaves hidden
 - [drawings/07 — Explode lines in a drawing view](../drawings/07-explode-lines-in-a-drawing-view.md)
 - [drawings/01 — New drawing and place views](../drawings/01-new-drawing-and-place-views.md) — the exploded isometric on a sheet
 - [drawings/02 — BOM table and balloons](../drawings/02-bom-table-and-balloons.md)

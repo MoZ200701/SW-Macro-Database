@@ -5,7 +5,7 @@ status: partly-verified
 verified_on: SolidWorks 2024 SP5 (32.5.0)
 language: [python]
 api: [IAssemblyDoc.GetDragOperator, IDragOperator.AddComponent, IDragOperator.TransformType, IDragOperator.UseAbsoluteTransform, IDragOperator.BeginDrag, IDragOperator.Drag, IDragOperator.EndDrag, IMateEntity2.EntityParams, IFeature.SetSuppression2, IFeature.GetErrorCode2, IComponent2.Transform2]
-keywords: [drag operator, GetDragOperator, IDragOperator, BeginDrag, EndDrag, move component, rotate component, motion test, mechanism will not move, linkage locked, gear mate, mate diagnosis, which mate locks, suppress mate, EntityParams, error 51, Transform2 put, EditRebuild3]
+keywords: [gear mate does not propagate, DragAsUI, TransformType 0 1 2, drag operator, GetDragOperator, IDragOperator, BeginDrag, EndDrag, move component, rotate component, motion test, mechanism will not move, linkage locked, gear mate, mate diagnosis, which mate locks, suppress mate, EntityParams, error 51, Transform2 put, EditRebuild3]
 answers: "How do I find out from code whether an assembly can move, and which mate is stopping it?"
 ---
 
@@ -151,7 +151,17 @@ is the ring gear's, the mate's *second* entity
   gear in that assembly were concentric to sketch points rather than axes,
   which is the first thing to rule out. A second recipe (`DragAsUI`, or another
   `TransformType`) is the second.
-- `DragMode` was never set, so what it changes is not known.
+- **On a second assembly, no gear mate carried motion at all.** Four gears,
+  each concentric to a cylindrical face (not a sketch point), joined by two
+  gear mates that solved with no errors. Dragging any one of them 10° about its
+  own axis turned that gear 10.0° and every other gear 0.0°, with `Drag` and
+  with `DragAsUI`, at `TransformType` 0, 1 and 2 — twelve combinations on the
+  two gears of one pair, and the plain recipe on all four. So concentricity to
+  sketch points is not the explanation, and neither is the recipe choice among
+  those tried. Testing gear-mate motion this way is **not reliable**; confirm a
+  gear train's direction and ratio by dragging in the user interface.
+- `DragMode` was never set. It read 3 before every drag in the second assembly;
+  what other values do is not known.
 - The file is flagged modified (`GetSaveFlag` `True`) after a restore, even
   though every component was back within 0.01° and every mate's suppression
   matched the start. Do not save on the user's behalf. Tell them the contents
@@ -176,6 +186,12 @@ ProgID failed with `MK_E_UNAVAILABLE`).
   did.
 - After every run, every component read back within 0.01° and 0.01 mm of its
   snapshot and no mate's suppression differed.
+
+Second assembly, SolidWorks 2024 SP5 (32.5.0): eleven to thirteen mates, all
+`GetErrorCode2` 0. Each drag of 5 steps × 2° returned `True` on every step;
+the rotations read with `atan2` on the relative frame about the axis were 10.0°
+for the dragged gear and 0.0° for the rest, every time. After restoring, the
+worst residual was 0.0° and no mate had an error.
 
 ## See also
 

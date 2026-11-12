@@ -378,6 +378,7 @@ that application testable without SolidWorks.
 
 ## See also
 
+- [drawings/10 — A general table](../drawings/10-general-table.md) — the indexed put on `ITableAnnotation.Text`
 - [connect/05 — Choosing among versions](05-choosing-among-versions.md)
 - [connect/06 — One apartment thread](06-one-apartment-thread.md)
 - [reading/04 — Read the selection](../reading/04-read-the-selection.md)
